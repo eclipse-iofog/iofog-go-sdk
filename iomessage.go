@@ -36,23 +36,21 @@ func (msg *IoMessage) DecodeData() error {
 	if !ok {
 		return errors.New("Content data is not of type string")
 	}
-	decodedContentData, err := base64.StdEncoding.DecodeString(strContentData)
-	if err != nil {
-		logger.Println("Error when decoding ContentData: ", err.Error())
+	if decodedContentData, err := base64.StdEncoding.DecodeString(strContentData); err == nil {
+		msg.ContentData = decodedContentData
+	} else {
 		return err
 	}
-	msg.ContentData = decodedContentData
 
 	strContextData, ok := msg.ContextData.(string)
 	if !ok {
 		return errors.New("Context data is not of type string")
 	}
-	decodedContextData, err := base64.StdEncoding.DecodeString(strContextData)
-	if err != nil {
-		logger.Println("Error when decoding ContextData: ", err.Error())
+	if decodedContextData, err := base64.StdEncoding.DecodeString(strContextData); err == nil {
+		msg.ContextData = decodedContextData
+	} else {
 		return err
 	}
-	msg.ContextData = decodedContextData
 	return nil
 }
 
@@ -217,7 +215,7 @@ func (msg *IoMessage) EncodeBinary() ([]byte, error) {
 			return nil, errors.New("Content data is not of type []byte")
 		}
 	}
-	if msg.ContentData != nil {
+	if msg.ContextData != nil {
 		bytesContextData, ok = msg.ContextData.([]byte)
 		if !ok {
 			return nil, errors.New("Context data is not of type []byte")
