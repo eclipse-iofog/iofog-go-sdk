@@ -59,12 +59,12 @@ func (client *ioFogClient) initClient() {
 	})
 }
 
-func NewIoFogClient(host string, port int, ssl bool, id string) *ioFogClient {
+func NewIoFogClient(id string, ssl bool, host string, port int) *ioFogClient {
 	if id == "" {
 		logger.Print("Id is empty. IoFog client is not created")
 		return nil
 	}
-	client := ioFogClient{id: id, ssl: ssl}
+	client := ioFogClient{id: id, ssl: ssl, host: host, port: port}
 	client.initClient()
 	return &client
 }
@@ -127,7 +127,9 @@ func (client *ioFogClient) GetNextMessages(decodeBase64 bool) ([]IoMessage, erro
 
 func (client *ioFogClient) PostMessage(msg *IoMessage) (*PostMessageResponse, error) {
 	msg.Publisher = client.id
-	msg.Version = IOMESSAGE_VERSION
+	if msg.Version == 0 {
+		msg.Version = IOMESSAGE_VERSION
+	}
 	requestBytes, _ := json.Marshal(msg)
 	resp, err := makePostRequest(client.url_post_message, APPLICATION_JSON, bytes.NewBuffer(requestBytes))
 	if err != nil {
