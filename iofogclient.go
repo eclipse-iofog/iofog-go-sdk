@@ -15,7 +15,6 @@ import (
 )
 
 var (
-	//f, _ = os.OpenFile("log.txt", os.O_RDWR | os.O_CREATE, 0777)
 	logger = log.New(os.Stderr, "", log.LstdFlags)
 )
 
@@ -170,17 +169,18 @@ func (client *ioFogClient) EstablishMessageWsConnection(messageChannel chan <- *
 
 func (client *ioFogClient) SendMessageViaSocket(msg *IoMessage) error {
 	defer func() {
-		client.mutexMessageWs.Unlock()
 		if r := recover(); r != nil {
 			logger.Println("Recovered after", r)
 		}
 	}()
 	msg.ID = "";
 	msg.Timestamp = 0
+	if msg.Version == 0 {
+		msg.Version = IOMESSAGE_VERSION
+	}
 	msg.Publisher = client.id
 	msgBytes, err := msg.EncodeBinary()
 	if err != nil {
-		logger.Println("Error while encoding IoMessage to bytes:", err.Error())
 		return err
 	}
 	lengthBytes := make([]byte, 4)
@@ -189,6 +189,7 @@ func (client *ioFogClient) SendMessageViaSocket(msg *IoMessage) error {
 	bytesToSend = append(bytesToSend, CODE_MSG)
 	bytesToSend = append(bytesToSend, lengthBytes...)
 	bytesToSend = append(bytesToSend, msgBytes...)
+	defer client.mutexMessageWs.Unlock()
 	client.mutexMessageWs.Lock()
 	if err = client.wsMessage.WriteMessage(ws.BinaryMessage, bytesToSend); err != nil {
 		logger.Println("Error while sending message:", err.Error())
@@ -209,7 +210,7 @@ func (client *ioFogClient) establishControlWsConnection(signalChannel chan <- in
 	} else {
 		client.wsControlAttempt = 0
 		client.wsControl = conn
-		setCustomPingHandler(client.wsControl, "control")
+		setCustomPingHandler(client.wsControl)
 		errChanel := make(chan int);
 		go client.wsControlLoop(errChanel, signalChannel)
 		for {
@@ -236,7 +237,7 @@ func (client *ioFogClient) establishMessageWsConnection(messageChannel chan <- *
 	} else {
 		client.wsMessageAttempt = 0
 		client.wsMessage = conn
-		setCustomPingHandler(client.wsMessage, "message")
+		setCustomPingHandler(client.wsMessage)
 		errChanel := make(chan int);
 		go client.wsMessageLoop(errChanel, messageChannel, receiptChannel)
 		for {
@@ -264,7 +265,6 @@ func (client*ioFogClient) wsControlLoop(errChanel chan <- int, dataChannel chan 
 		}
 		if p[0] == CODE_CONTROL_SIGNAL {
 			dataChannel <- int(p[0])
-			logger.Println("IoFog control signal received. Sending acknowledgement")
 			err := client.wsControl.WriteMessage(ws.BinaryMessage, []byte{CODE_ACK})
 			if err != nil {
 				logger.Println("Error while sending acknowledgement:", err.Error())
@@ -294,7 +294,6 @@ func (client*ioFogClient) wsMessageLoop(errChanel chan <- int, messageChannel ch
 				logger.Println(err.Error())
 			}
 			messageChannel <- msg
-			logger.Println("IoFog message received. Sending acknowledgement")
 			client.mutexMessageWs.Lock()
 			err = client.wsMessage.WriteMessage(ws.BinaryMessage, []byte{CODE_ACK})
 			client.mutexMessageWs.Unlock()
@@ -314,7 +313,6 @@ func (client*ioFogClient) wsMessageLoop(errChanel chan <- int, messageChannel ch
 				receiptResponse.Timestamp = int(binary.BigEndian.Uint32(p[dataPos: dataPos + tsLen]))
 			}
 			receiptChannel <- receiptResponse
-			logger.Println("IoFog receipt received. Sending acknowledgement")
 			client.mutexMessageWs.Lock()
 			err = client.wsMessage.WriteMessage(ws.BinaryMessage, []byte{CODE_ACK})
 			client.mutexMessageWs.Unlock()
