@@ -64,11 +64,10 @@ func makePostRequest(url, bodyType string, body io.Reader) ([]byte, error) {
 	return respBodyBytes, nil
 }
 
-func setCustomPingHandler(conn* ws.Conn, socketType string) {
+func setCustomPingHandler(conn* ws.Conn) {
 	conn.SetPingHandler(func(message string) error {
 		if message == string(ws.PingMessage) {
 			message = string(ws.PongMessage)
-			logger.Println("IoFog ping frame received on", socketType, "ws")
 		}
 		err := conn.WriteControl(ws.PongMessage, []byte(message), time.Now().Add(time.Second))
 		if err == ws.ErrCloseSent {
