@@ -1,7 +1,6 @@
 package container_sdk_go
 
 import (
-	"encoding/base64"
 	"encoding/binary"
 	"errors"
 )
@@ -27,46 +26,8 @@ type IoMessage struct {
 	DifficultyTarget int         `json:"difficultytarget"`
 	InfoType         string      `json:"infotype"`
 	InfoFormat       string      `json:"infoformat"`
-	ContextData      interface{} `json:"contextdata"`
-	ContentData      interface{} `json:"contentdata"`
-}
-
-func (msg *IoMessage) DecodeData() error {
-	strContentData, ok := msg.ContentData.(string)
-	if !ok {
-		return errors.New("Content data is not of type string")
-	}
-	if decodedContentData, err := base64.StdEncoding.DecodeString(strContentData); err == nil {
-		msg.ContentData = decodedContentData
-	} else {
-		return err
-	}
-
-	strContextData, ok := msg.ContextData.(string)
-	if !ok {
-		return errors.New("Context data is not of type string")
-	}
-	if decodedContextData, err := base64.StdEncoding.DecodeString(strContextData); err == nil {
-		msg.ContextData = decodedContextData
-	} else {
-		return err
-	}
-	return nil
-}
-
-func (msg *IoMessage) EncodeData() error {
-	bytesContentData, ok := msg.ContentData.([]byte)
-	if !ok {
-		return errors.New("Content data is not of type []byte")
-	}
-	msg.ContentData = base64.StdEncoding.EncodeToString(bytesContentData)
-
-	bytesContextData, ok := msg.ContextData.([]byte)
-	if !ok {
-		return errors.New("Context data is not of type []byte")
-	}
-	msg.ContextData = base64.StdEncoding.EncodeToString(bytesContextData)
-	return nil
+	ContextData      []byte      `json:"contextdata"`
+	ContentData      []byte      `json:"contentdata"`
 }
 
 func (msg *IoMessage) DecodeBinary(data []byte) error {
@@ -207,19 +168,12 @@ func (msg *IoMessage) EncodeBinary() ([]byte, error) {
 
 	bytesContentData := make([]byte, 1)
 	bytesContextData := make([]byte, 1)
-	var ok bool
 
 	if msg.ContentData != nil {
-		bytesContentData, ok = msg.ContentData.([]byte)
-		if !ok {
-			return nil, errors.New("Content data is not of type []byte")
-		}
+		bytesContentData = msg.ContentData
 	}
 	if msg.ContextData != nil {
-		bytesContextData, ok = msg.ContextData.([]byte)
-		if !ok {
-			return nil, errors.New("Context data is not of type []byte")
-		}
+		bytesContextData = msg.ContextData
 	}
 
 	msgHeaderBytes := make([]byte, 0, 32)
