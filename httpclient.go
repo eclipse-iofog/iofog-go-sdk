@@ -9,6 +9,7 @@ import (
 	"errors"
 )
 
+
 type ioFogHttpClient struct {
 	ssl                         bool
 	host                        string
@@ -22,7 +23,7 @@ type ioFogHttpClient struct {
 }
 
 func newIoFogHttpClient(id string, ssl bool, host string, port int) *ioFogHttpClient {
-	client := ioFogHttpClient {
+	client := ioFogHttpClient{
 		host:host,
 		port:port,
 		ssl:ssl,
@@ -43,7 +44,7 @@ func newIoFogHttpClient(id string, ssl bool, host string, port int) *ioFogHttpCl
 }
 
 func (client *ioFogHttpClient) getConfig() (map[string]interface{}, error) {
-	resp, err := makePostRequest(client.url_get_config, APPLICATION_JSON, bytes.NewBuffer(client.requestBodyId))
+	resp, err := client.makePostRequest(client.url_get_config, APPLICATION_JSON, bytes.NewBuffer(client.requestBodyId))
 	if err != nil {
 		return nil, err
 	}
@@ -59,7 +60,7 @@ func (client *ioFogHttpClient) getConfig() (map[string]interface{}, error) {
 }
 
 func (client *ioFogHttpClient) getNextMessages() ([]IoMessage, error) {
-	resp, err := makePostRequest(client.url_get_next_messages, APPLICATION_JSON, bytes.NewBuffer(client.requestBodyId))
+	resp, err := client.makePostRequest(client.url_get_next_messages, APPLICATION_JSON, bytes.NewBuffer(client.requestBodyId))
 	if err != nil {
 		return nil, err
 	}
@@ -72,7 +73,7 @@ func (client *ioFogHttpClient) getNextMessages() ([]IoMessage, error) {
 
 func (client *ioFogHttpClient) postMessage(msg *IoMessage) (*PostMessageResponse, error) {
 	requestBytes, _ := json.Marshal(msg)
-	resp, err := makePostRequest(client.url_post_message, APPLICATION_JSON, bytes.NewBuffer(requestBytes))
+	resp, err := client.makePostRequest(client.url_post_message, APPLICATION_JSON, bytes.NewBuffer(requestBytes))
 	if err != nil {
 		return nil, err
 	}
@@ -85,7 +86,7 @@ func (client *ioFogHttpClient) postMessage(msg *IoMessage) (*PostMessageResponse
 
 func (client *ioFogHttpClient) getMessagesFromPublishersWithinTimeFrame(query *MessagesQueryParameters) (*TimeFrameMessages, error) {
 	requestBytes, _ := json.Marshal(query)
-	resp, err := makePostRequest(client.url_get_publishers_messages, APPLICATION_JSON, bytes.NewBuffer(requestBytes))
+	resp, err := client.makePostRequest(client.url_get_publishers_messages, APPLICATION_JSON, bytes.NewBuffer(requestBytes))
 	if err != nil {
 		return nil, err
 	}
@@ -96,7 +97,7 @@ func (client *ioFogHttpClient) getMessagesFromPublishersWithinTimeFrame(query *M
 	return (*TimeFrameMessages)(nextMessagesResponse), nil
 }
 
-func makePostRequest(url, bodyType string, body io.Reader) ([]byte, error) {
+func (client *ioFogHttpClient) makePostRequest(url, bodyType string, body io.Reader) ([]byte, error) {
 	resp, err := http.Post(url, bodyType, body)
 	if err != nil {
 		return nil, err
