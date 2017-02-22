@@ -2,9 +2,6 @@ package container_sdk_go
 
 import (
 	"math"
-	"io"
-	"net/http"
-	"errors"
 	ws "github.com/gorilla/websocket"
 	"time"
 	"net"
@@ -48,20 +45,6 @@ func int64ToBytesBE(num int64) ([]byte, int) {
 	}
 
 	return b, numOfBytes
-}
-
-func makePostRequest(url, bodyType string, body io.Reader) ([]byte, error) {
-	resp, err := http.Post(url, bodyType, body)
-	if err != nil {
-		return nil, err
-	}
-	respBodyBytes := make([]byte, resp.ContentLength)
-	resp.Body.Read(respBodyBytes)
-	resp.Body.Close()
-	if resp.StatusCode == http.StatusBadRequest {
-		return nil, errors.New(string(respBodyBytes))
-	}
-	return respBodyBytes, nil
 }
 
 func setCustomPingHandler(conn* ws.Conn) {
