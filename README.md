@@ -26,19 +26,26 @@ Import sdk:
 
 Create IoFog client with default settings:
 ```go
-  client := sdk.NewDefaultIoFogClient()
-  	if client != nil {
-  		// do smth...
-  	}
+	client, err := sdk.NewDefaultIoFogClient()
+	if err != nil {
+		println(err.Error())
+		return
+	} else {
+	    // work with client
+	}
 ```
 
 Or specify host, port, ssl and container id explicitly:
 ```go
-	client := sdk.NewIoFogClient("IoFog", 54321, false, "containerId")
-  	if client != nil {
-  		// do smth...
-  	}
+	client, err := sdk.NewIoFogClient("IoFog", 54321, false, "containerId")
+        if err != nil {
+		println(err.Error())
+		return
+	} else {
+	    // work with client
+	}
 ```
+
 
 #### REST calls
 
@@ -107,6 +114,7 @@ Get container's config:
 ```
 
 #### WebSocket calls
+
 Establish connection with message ws. This call returns two channels, so
  you can listen to incoming messages and receipts:
 ```go
