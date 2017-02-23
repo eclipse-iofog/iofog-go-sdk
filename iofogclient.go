@@ -17,6 +17,7 @@ func (client *ioFogClient) initClient(host string, port int, ssl bool) {
 	client.wsClient = newIoFogWsClient(client.id, ssl, host, port)
 }
 
+
 func NewIoFogClient(id string, ssl bool, host string, port int) *ioFogClient {
 	if id == "" {
 		logger.Print("Id is empty. IoFog client is not created")
@@ -71,12 +72,17 @@ func (client *ioFogClient) GetMessagesFromPublishersWithinTimeFrame(query *Messa
 	return client.httpClient.getMessagesFromPublishersWithinTimeFrame(query)
 }
 
-func (client *ioFogClient) EstablishControlWsConnection(signalChannel chan <- int) {
-	go client.wsClient.establishControlWsConnection(signalChannel)
+func (client *ioFogClient) EstablishControlWsConnection() <- chan byte {
+	signalChannel := make(chan byte)
+	go client.wsClient.connectToControlWs(signalChannel)
+	return signalChannel
 }
 
-func (client *ioFogClient) EstablishMessageWsConnection(messageChannel chan <- *IoMessage, receiptChannel chan <- *PostMessageResponse) {
-	go client.wsClient.establishMessageWsConnection(messageChannel, receiptChannel)
+func (client *ioFogClient) EstablishMessageWsConnection() (<- chan *IoMessage, <- chan *PostMessageResponse) {
+	messageChannel := make(chan *IoMessage)
+	receiptChannel := make(chan *PostMessageResponse)
+	go client.wsClient.connectToMessageWs(messageChannel, receiptChannel)
+	return messageChannel, receiptChannel
 }
 
 func (client *ioFogClient) SendMessageViaSocket(msg *IoMessage) error {
