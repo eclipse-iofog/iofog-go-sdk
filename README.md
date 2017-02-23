@@ -19,7 +19,9 @@ Get sdk:
 
 Import sdk:
 ```go
-   import "github.com/iotracks/container-sdk-go"
+   import (
+   sdk "github.com/iotracks/container-sdk-go"
+   )
 ```
 
 Create IoFog client with default settings:
@@ -40,9 +42,9 @@ Or specify host, port, ssl and container id explicitly:
 
 #### REST calls
 
-Get list of next unread IoMessages. Pass true in parameters if you with to decode received data from base64 to raw bytes, pass false otherwise:
+Get list of next unread IoMessages:
 ```go
-	messages, err := client.GetNextMessages(true)
+	messages, err := client.GetNextMessages()
 	if err != nil {
 	    // handle bad request or error
 		println(err.Error())
@@ -73,19 +75,19 @@ Post new IoMessage to ioFog via REST call:
 	}
 ```
 
-Get an array of IoMessages from specified publishers within given timeframe. Pass true in parameters if you with to decode received data from base64 to raw bytes, pass false otherwise:
+Get an array of IoMessages from specified publishers within given timeframe:
 ```go
 	timeFrameMessages, err := client.GetMessagesFromPublishersWithinTimeFrame(&sdk.MessagesQueryParameters{
 		TimeFrameStart: 1234567890123,
 		TimeFrameEnd: 1234567892123,
 		Publishers: []string{"sefhuiw4984twefsdoiuhsdf", "d895y459rwdsifuhSDFKukuewf", "SESD984wtsdidsiusidsufgsdfkh"},
 
-	}, true)
+	})
 	if err != nil {
 	    // handle bad request or error
 		println(err.Error())
 	} else {
-	    // timeFrameMessages contains fields Messages,
+	    // timeFrameMessages contains fields Messages - an array of IoMessages,
 	    // TimeFrameStart and TimeFrameEnd 
         fmt.Printf("%+v", timeFrameMessages)
     }
@@ -105,19 +107,10 @@ Get container's config:
 ```
 
 #### WebSocket calls
-Establish connection with message ws and pass channels to listen to incoming messages and receipts or send your own message:
+Establish connection with message ws. This call returns two channels, so
+ you can listen to incoming messages and receipts:
 ```go
-		dataChannel := make(chan *sdk.IoMessage)
-		receiptChannel := make(chan *sdk.PostMessageResponse)
-		client.EstablishMessageWsConnection(dataChannel, receiptChannel)
-		
-		client.SendMessageViaSocket(&sdk.IoMessage{
-        	Tag: "aaa",
-        	SequenceNumber: 127,
-        	ContentData: []byte("Here goes some test data"),
-        	ContextData: []byte("This one is test too"),
-        })
-
+		dataChannel, receiptChannel := client.EstablishMessageWsConnection()
 		for {
 			select {
 			case msg := <-dataChannel:
@@ -125,14 +118,22 @@ Establish connection with message ws and pass channels to listen to incoming mes
 			case r := <-receiptChannel:
 				// r is response with ID and Timestamp
 		}
-		
-
 ```
+
+After establishing this connection you can send your own message to IoFog:
+```go
+		client.SendMessageViaSocket(&sdk.IoMessage{
+        	Tag: "aaa",
+        	SequenceNumber: 127,
+        	ContentData: []byte("Here goes some test data"),
+        	ContextData: []byte("This one is test too"),
+        })
+```
+
 
 Establish connection with control ws and pass channel to listen to incoming config update signals:
 ```go
-	confChannel := make(chan int)
-	client.EstablishControlWsConnection(confChannel)
+	confChannel := client.EstablishControlWsConnection()
 	for {
 		select {
 		case <-confChannel:
@@ -146,10 +147,4 @@ Establish connection with control ws and pass channel to listen to incoming conf
 			}
 	}
 ```
-
-
-
-
-
-
 
