@@ -77,8 +77,8 @@ func (client *ioFogClient) EstablishControlWsConnection() <- chan byte {
 }
 
 func (client *ioFogClient) EstablishMessageWsConnection() (<- chan *IoMessage, <- chan *PostMessageResponse) {
-	messageChannel := make(chan *IoMessage, 5)
-	receiptChannel := make(chan *PostMessageResponse, 5)
+	messageChannel := make(chan *IoMessage, 20)
+	receiptChannel := make(chan *PostMessageResponse, 20)
 	go client.wsClient.connectToMessageWs(messageChannel, receiptChannel)
 	return messageChannel, receiptChannel
 }
