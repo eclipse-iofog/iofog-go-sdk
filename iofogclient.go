@@ -71,14 +71,14 @@ func (client *ioFogClient) GetMessagesFromPublishersWithinTimeFrame(query *Messa
 }
 
 func (client *ioFogClient) EstablishControlWsConnection() <- chan byte {
-	signalChannel := make(chan byte)
+	signalChannel := make(chan byte, 5)
 	go client.wsClient.connectToControlWs(signalChannel)
 	return signalChannel
 }
 
 func (client *ioFogClient) EstablishMessageWsConnection() (<- chan *IoMessage, <- chan *PostMessageResponse) {
-	messageChannel := make(chan *IoMessage)
-	receiptChannel := make(chan *PostMessageResponse)
+	messageChannel := make(chan *IoMessage, 5)
+	receiptChannel := make(chan *PostMessageResponse, 5)
 	go client.wsClient.connectToMessageWs(messageChannel, receiptChannel)
 	return messageChannel, receiptChannel
 }

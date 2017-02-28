@@ -98,7 +98,7 @@ func (client *ioFogWsClient) connectToMessageWs(messageChannel chan <- *IoMessag
 			client.wsMessage = conn
 			setCustomPingHandler(client.wsMessage)
 			errChanel := make(chan byte, 2)
-			writeChannel := make(chan []byte)
+			writeChannel := make(chan []byte, 5)
 			client.writeMessageChannel = writeChannel
 			go client.listenMessageSocket(errChanel, messageChannel, receiptChannel, writeChannel)
 			go client.writeMessageSocket(errChanel, writeChannel)
