@@ -176,7 +176,7 @@ func (msg *IoMessage) EncodeBinary() ([]byte, error) {
 		bytesContextData = msg.ContextData
 	}
 
-	msgHeaderBytes := make([]byte, 0, 32)
+	msgHeaderBytes := make([]byte, 0, 33)
 	msgBodyBytes := make([]byte, 0, 128)
 	versionBytes := make([]byte, 2)
 	lenBytes := make([]byte, 4)
