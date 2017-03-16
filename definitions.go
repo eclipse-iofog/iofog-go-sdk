@@ -35,8 +35,12 @@ const (
 	CODE_MSG = 0xD
 	CODE_RECEIPT = 0xE
 
-	wsAttemptLimit = 5
-	wsConnectTimeout = time.Second
+	WS_ATTEMPT_LIMIT = 5
+	WS_CONNECT_TIMEOUT = time.Second
+
+	DEFAULT_SIGNAL_BUFFER_SIZE = 5
+	DEFAULT_MESSAGE_BUFFER_SIZE = 20
+	DEFAULT_RECEIPT_BUFFER_SIZE = 20
 )
 
 var (

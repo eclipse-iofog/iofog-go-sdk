@@ -70,15 +70,24 @@ func (client *ioFogClient) GetMessagesFromPublishersWithinTimeFrame(query *Messa
 	return client.httpClient.getMessagesFromPublishersWithinTimeFrame(query)
 }
 
-func (client *ioFogClient) EstablishControlWsConnection() <- chan byte {
-	signalChannel := make(chan byte, 5)
+func (client *ioFogClient) EstablishControlWsConnection(signalBufSize int) <- chan byte {
+	if signalBufSize == 0 {
+		signalBufSize = DEFAULT_SIGNAL_BUFFER_SIZE
+	}
+	signalChannel := make(chan byte, signalBufSize)
 	go client.wsClient.connectToControlWs(signalChannel)
 	return signalChannel
 }
 
-func (client *ioFogClient) EstablishMessageWsConnection() (<- chan *IoMessage, <- chan *PostMessageResponse) {
-	messageChannel := make(chan *IoMessage, 20)
-	receiptChannel := make(chan *PostMessageResponse, 20)
+func (client *ioFogClient) EstablishMessageWsConnection(msgBufSize, receiptBufSize int) (<- chan *IoMessage, <- chan *PostMessageResponse) {
+	if msgBufSize == 0 {
+		msgBufSize = DEFAULT_MESSAGE_BUFFER_SIZE
+	}
+	if receiptBufSize == 0 {
+		receiptBufSize = DEFAULT_RECEIPT_BUFFER_SIZE
+	}
+	messageChannel := make(chan *IoMessage, msgBufSize)
+	receiptChannel := make(chan *PostMessageResponse, receiptBufSize)
 	go client.wsClient.connectToMessageWs(messageChannel, receiptChannel)
 	return messageChannel, receiptChannel
 }

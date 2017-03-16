@@ -56,8 +56,8 @@ func (client *ioFogWsClient) connectToControlWs(signalChannel chan <- byte) {
 		conn, _, err := ws.DefaultDialer.Dial(client.url_get_control_ws, nil)
 		if conn == nil {
 			logger.Println(err.Error(), "Reconnecting to control ws...")
-			sleepTime := 1 << client.wsControlAttempt * wsConnectTimeout
-			if client.wsControlAttempt < wsAttemptLimit {
+			sleepTime := 1 << client.wsControlAttempt * WS_CONNECT_TIMEOUT
+			if client.wsControlAttempt < WS_ATTEMPT_LIMIT {
 				client.wsControlAttempt++
 			}
 			time.Sleep(sleepTime)
@@ -88,8 +88,8 @@ func (client *ioFogWsClient) connectToMessageWs(messageChannel chan <- *IoMessag
 		conn, _, err := ws.DefaultDialer.Dial(client.url_get_message_ws, nil)
 		if conn == nil {
 			logger.Println(err.Error(), "Reconnecting to message ws...")
-			sleepTime := 1 << client.wsMessageAttempt * wsConnectTimeout
-			if client.wsMessageAttempt < wsAttemptLimit {
+			sleepTime := 1 << client.wsMessageAttempt * WS_CONNECT_TIMEOUT
+			if client.wsMessageAttempt < WS_ATTEMPT_LIMIT {
 				client.wsMessageAttempt++
 			}
 			time.Sleep(sleepTime)
