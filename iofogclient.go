@@ -30,7 +30,7 @@ func NewIoFogClient(id string, ssl bool, host string, port int) (*ioFogClient, e
 func NewDefaultIoFogClient() (*ioFogClient, error) {
 	selfname := os.Getenv(SELFNAME)
 	if selfname == "" {
-		return nil, errors.New("Cannot create client with empty id: " + SELFNAME + " environment virable is not set")
+		return nil, errors.New("Cannot create client with empty id: " + SELFNAME + " environment variable is not set")
 	}
 	ssl, err := strconv.ParseBool(os.Getenv(SSL))
 	if err != nil {

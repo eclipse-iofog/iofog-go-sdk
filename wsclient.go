@@ -50,7 +50,6 @@ func (client *ioFogWsClient) sendMessage(msg *IoMessage) (e error) {
 	return nil
 }
 
-// TODO loop or goroutine?
 func (client *ioFogWsClient) connectToControlWs(signalChannel chan <- byte) {
 	for {
 		conn, _, err := ws.DefaultDialer.Dial(client.url_get_control_ws, nil)
@@ -82,7 +81,6 @@ func (client *ioFogWsClient) connectToControlWs(signalChannel chan <- byte) {
 	}
 }
 
-// TODO loop or goroutine?
 func (client *ioFogWsClient) connectToMessageWs(messageChannel chan <- *IoMessage, receiptChannel chan <- *PostMessageResponse) {
 	for {
 		conn, _, err := ws.DefaultDialer.Dial(client.url_get_message_ws, nil)
