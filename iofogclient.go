@@ -39,7 +39,7 @@ func NewDefaultIoFogClient() (*ioFogClient, error) {
 	}
 
 	host := IOFOG
-	if cmd := exec.Command("ping", "-c 3", host); cmd.Run() != nil {
+	if cmd := exec.Command("ping", "-c", "3", host); cmd.Run() != nil {
 		logger.Println("Host", host, "is unreachable. Switching to", HOST_DEFAULT)
 		host = HOST_DEFAULT
 	}
