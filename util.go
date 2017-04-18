@@ -105,7 +105,7 @@ func getReceiptReceivedViaSocket(receipt []byte) (*PostMessageResponse, error) {
 		dataPos += idLen
 	}
 	if tsLen != 0 {
-		receiptResponse.Timestamp = int(binary.BigEndian.Uint32(receipt[dataPos: dataPos + tsLen]))
+		receiptResponse.Timestamp = int64(binary.BigEndian.Uint64(receipt[dataPos: dataPos + tsLen]))
 	}
 	return receiptResponse, nil
 }
