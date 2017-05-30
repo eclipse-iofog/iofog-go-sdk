@@ -30,8 +30,6 @@ func newIoFogWsClient(id string, ssl bool, host string, port int) *ioFogWsClient
 	return &client
 }
 
-// TODO return error if socket corruption
-// todo check nil client?
 func (client *ioFogWsClient) sendMessage(msg *IoMessage) (e error) {
 	if client.wsMessage == nil {
 		return errors.New("Socket is not initialized")

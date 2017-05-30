@@ -7,27 +7,27 @@ import (
 	"errors"
 )
 
-type ioFogClient struct {
+type IoFogClient struct {
 	id         string
 	httpClient *ioFogHttpClient
 	wsClient   *ioFogWsClient
 }
 
-func (client *ioFogClient) initClient(host string, port int, ssl bool) {
+func (client *IoFogClient) initClient(host string, port int, ssl bool) {
 	client.httpClient = newIoFogHttpClient(client.id, ssl, host, port)
 	client.wsClient = newIoFogWsClient(client.id, ssl, host, port)
 }
 
-func NewIoFogClient(id string, ssl bool, host string, port int) (*ioFogClient, error) {
+func NewIoFogClient(id string, ssl bool, host string, port int) (*IoFogClient, error) {
 	if id == "" {
 		return nil, errors.New("Cannot create client with empty id")
 	}
-	client := ioFogClient{id: id}
+	client := IoFogClient{id: id}
 	client.initClient(host, port, ssl)
 	return &client, nil
 }
 
-func NewDefaultIoFogClient() (*ioFogClient, error) {
+func NewDefaultIoFogClient() (*IoFogClient, error) {
 	selfname := os.Getenv(SELFNAME)
 	if selfname == "" {
 		return nil, errors.New("Cannot create client with empty id: " + SELFNAME + " environment variable is not set")
@@ -44,20 +44,20 @@ func NewDefaultIoFogClient() (*ioFogClient, error) {
 		host = HOST_DEFAULT
 	}
 
-	client := ioFogClient{id: selfname}
+	client := IoFogClient{id: selfname}
 	client.initClient(host, PORT_IOFOG, ssl)
 	return &client, nil
 }
 
-func (client *ioFogClient) GetConfig() (map[string]interface{}, error) {
+func (client *IoFogClient) GetConfig() (map[string]interface{}, error) {
 	return client.httpClient.getConfig()
 }
 
-func (client *ioFogClient) GetNextMessages() ([]IoMessage, error) {
+func (client *IoFogClient) GetNextMessages() ([]IoMessage, error) {
 	return client.httpClient.getNextMessages()
 }
 
-func (client *ioFogClient) PostMessage(msg *IoMessage) (*PostMessageResponse, error) {
+func (client *IoFogClient) PostMessage(msg *IoMessage) (*PostMessageResponse, error) {
 	msg.Publisher = client.id
 	if msg.Version == 0 {
 		msg.Version = IOMESSAGE_VERSION
@@ -65,12 +65,12 @@ func (client *ioFogClient) PostMessage(msg *IoMessage) (*PostMessageResponse, er
 	return client.httpClient.postMessage(msg)
 }
 
-func (client *ioFogClient) GetMessagesFromPublishersWithinTimeFrame(query *MessagesQueryParameters) (*TimeFrameMessages, error) {
+func (client *IoFogClient) GetMessagesFromPublishersWithinTimeFrame(query *MessagesQueryParameters) (*TimeFrameMessages, error) {
 	query.ID = client.id
 	return client.httpClient.getMessagesFromPublishersWithinTimeFrame(query)
 }
 
-func (client *ioFogClient) EstablishControlWsConnection(signalBufSize int) <- chan byte {
+func (client *IoFogClient) EstablishControlWsConnection(signalBufSize int) <- chan byte {
 	if signalBufSize == 0 {
 		signalBufSize = DEFAULT_SIGNAL_BUFFER_SIZE
 	}
@@ -79,7 +79,7 @@ func (client *ioFogClient) EstablishControlWsConnection(signalBufSize int) <- ch
 	return signalChannel
 }
 
-func (client *ioFogClient) EstablishMessageWsConnection(msgBufSize, receiptBufSize int) (<- chan *IoMessage, <- chan *PostMessageResponse) {
+func (client *IoFogClient) EstablishMessageWsConnection(msgBufSize, receiptBufSize int) (<- chan *IoMessage, <- chan *PostMessageResponse) {
 	if msgBufSize == 0 {
 		msgBufSize = DEFAULT_MESSAGE_BUFFER_SIZE
 	}
@@ -92,7 +92,7 @@ func (client *ioFogClient) EstablishMessageWsConnection(msgBufSize, receiptBufSi
 	return messageChannel, receiptChannel
 }
 
-func (client *ioFogClient) SendMessageViaSocket(msg *IoMessage) error {
+func (client *IoFogClient) SendMessageViaSocket(msg *IoMessage) error {
 	msg.ID = "";
 	msg.Timestamp = 0
 	if msg.Version == 0 {
