@@ -93,15 +93,15 @@ func (client *ioFogWsClient) connectToMessageWs(messageChannel chan <- *IoMessag
 			client.wsMessageAttempt = 0
 			client.wsMessage = conn
 			setCustomPingHandler(client.wsMessage)
-			errChanel := make(chan byte, 2)
+			errChannel := make(chan byte, 2)
 			writeChannel := make(chan []byte, 20)
 			client.writeMessageChannel = writeChannel
-			go client.listenMessageSocket(errChanel, messageChannel, receiptChannel, writeChannel)
-			go client.writeMessageSocket(errChanel, writeChannel)
+			go client.listenMessageSocket(errChannel, messageChannel, receiptChannel, writeChannel)
+			go client.writeMessageSocket(errChannel, writeChannel)
 			loop:
 			for {
 				select {
-				case <-errChanel:
+				case <-errChannel:
 					logger.Println("Reconnecting after message ws corruption")
 					client.wsMessage.Close()
 					break loop
