@@ -49,6 +49,21 @@ func (client *ioFogHttpClient) getConfig() (map[string]interface{}, error) {
 	return config, nil
 }
 
+func (client *ioFogHttpClient) getConfigIntoStruct(config interface{}) (error) {
+	resp, err := makePostRequest(client.url_get_config, APPLICATION_JSON, bytes.NewBuffer(client.requestBodyId))
+	if err != nil {
+		return err
+	}
+	configResponse := new(getConfigResponse)
+	if err := json.Unmarshal(resp, configResponse); err != nil {
+		return err
+	}
+	if err := json.Unmarshal([]byte(configResponse.Config), config); err != nil {
+		return err
+	}
+	return nil
+}
+
 func (client *ioFogHttpClient) getNextMessages() ([]IoMessage, error) {
 	resp, err := makePostRequest(client.url_get_next_messages, APPLICATION_JSON, bytes.NewBuffer(client.requestBodyId))
 	if err != nil {

@@ -53,6 +53,10 @@ func (client *IoFogClient) GetConfig() (map[string]interface{}, error) {
 	return client.httpClient.getConfig()
 }
 
+func (client *IoFogClient) GetConfigIntoStruct(config interface{}) (error) {
+	return client.httpClient.getConfigIntoStruct(config)
+}
+
 func (client *IoFogClient) GetNextMessages() ([]IoMessage, error) {
 	return client.httpClient.getNextMessages()
 }
