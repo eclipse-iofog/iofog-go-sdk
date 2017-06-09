@@ -50,6 +50,9 @@ func (client *ioFogWsClient) sendMessage(msg *IoMessage) (e error) {
 
 func (client *ioFogWsClient) connectToControlWs(signalChannel chan <- byte) {
 	for {
+		if client.wsControl != nil {
+			client.wsControl.Close()
+		}
 		conn, _, err := ws.DefaultDialer.Dial(client.url_get_control_ws, nil)
 		if conn == nil {
 			logger.Println(err.Error(), "Reconnecting to control ws...")
@@ -81,6 +84,9 @@ func (client *ioFogWsClient) connectToControlWs(signalChannel chan <- byte) {
 
 func (client *ioFogWsClient) connectToMessageWs(messageChannel chan <- *IoMessage, receiptChannel chan <- *PostMessageResponse) {
 	for {
+		if client.wsMessage != nil {
+			client.wsControl.Close()
+		}
 		conn, _, err := ws.DefaultDialer.Dial(client.url_get_message_ws, nil)
 		if conn == nil {
 			logger.Println(err.Error(), "Reconnecting to message ws...")
