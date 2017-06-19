@@ -1,10 +1,10 @@
 package container_sdk_go
 
 import (
-	"os"
-	"strconv"
-	"os/exec"
 	"errors"
+	"os"
+	"os/exec"
+	"strconv"
 )
 
 type IoFogClient struct {
@@ -53,7 +53,7 @@ func (client *IoFogClient) GetConfig() (map[string]interface{}, error) {
 	return client.httpClient.getConfig()
 }
 
-func (client *IoFogClient) GetConfigIntoStruct(config interface{}) (error) {
+func (client *IoFogClient) GetConfigIntoStruct(config interface{}) error {
 	return client.httpClient.getConfigIntoStruct(config)
 }
 
@@ -74,7 +74,7 @@ func (client *IoFogClient) GetMessagesFromPublishersWithinTimeFrame(query *Messa
 	return client.httpClient.getMessagesFromPublishersWithinTimeFrame(query)
 }
 
-func (client *IoFogClient) EstablishControlWsConnection(signalBufSize int) <- chan byte {
+func (client *IoFogClient) EstablishControlWsConnection(signalBufSize int) <-chan byte {
 	if signalBufSize == 0 {
 		signalBufSize = DEFAULT_SIGNAL_BUFFER_SIZE
 	}
@@ -83,7 +83,7 @@ func (client *IoFogClient) EstablishControlWsConnection(signalBufSize int) <- ch
 	return signalChannel
 }
 
-func (client *IoFogClient) EstablishMessageWsConnection(msgBufSize, receiptBufSize int) (<- chan *IoMessage, <- chan *PostMessageResponse) {
+func (client *IoFogClient) EstablishMessageWsConnection(msgBufSize, receiptBufSize int) (<-chan *IoMessage, <-chan *PostMessageResponse) {
 	if msgBufSize == 0 {
 		msgBufSize = DEFAULT_MESSAGE_BUFFER_SIZE
 	}
@@ -97,7 +97,7 @@ func (client *IoFogClient) EstablishMessageWsConnection(msgBufSize, receiptBufSi
 }
 
 func (client *IoFogClient) SendMessageViaSocket(msg *IoMessage) error {
-	msg.ID = "";
+	msg.ID = ""
 	msg.Timestamp = 0
 	if msg.Version == 0 {
 		msg.Version = IOMESSAGE_VERSION

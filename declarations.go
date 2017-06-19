@@ -34,7 +34,7 @@ const (
 	CODE_MSG            = 0xD
 	CODE_RECEIPT        = 0xE
 
-	WS_ATTEMPT_LIMIT   = 5
+	WS_ATTEMPT_LIMIT   = 10
 	WS_CONNECT_TIMEOUT = time.Second
 
 	DEFAULT_SIGNAL_BUFFER_SIZE  = 5

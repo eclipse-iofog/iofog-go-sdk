@@ -1,10 +1,10 @@
 package container_sdk_go
 
 import (
+	"errors"
 	"fmt"
 	ws "github.com/gorilla/websocket"
 	"time"
-	"errors"
 )
 
 type ioFogWsClient struct {
@@ -34,7 +34,7 @@ func (client *ioFogWsClient) sendMessage(msg *IoMessage) (e error) {
 	if client.wsMessage == nil {
 		return errors.New("Socket is not initialized")
 	}
-	bytesToSend, err := prepareMessageForSendingViaSocket(msg)
+	bytesToSend, err := PrepareMessageForSendingViaSocket(msg)
 	if err != nil {
 		return err
 	}
@@ -48,7 +48,7 @@ func (client *ioFogWsClient) sendMessage(msg *IoMessage) (e error) {
 	return nil
 }
 
-func (client *ioFogWsClient) connectToControlWs(signalChannel chan <- byte) {
+func (client *ioFogWsClient) connectToControlWs(signalChannel chan<- byte) {
 	for {
 		if client.wsControl != nil {
 			client.wsControl.Close()
@@ -69,7 +69,7 @@ func (client *ioFogWsClient) connectToControlWs(signalChannel chan <- byte) {
 			writeChannel := make(chan []byte)
 			go client.listenControlSocket(errChanel, signalChannel, writeChannel)
 			go client.writeControlSocket(errChanel, writeChannel)
-			loop:
+		loop:
 			for {
 				select {
 				case <-errChanel:
@@ -82,7 +82,7 @@ func (client *ioFogWsClient) connectToControlWs(signalChannel chan <- byte) {
 	}
 }
 
-func (client *ioFogWsClient) connectToMessageWs(messageChannel chan <- *IoMessage, receiptChannel chan <- *PostMessageResponse) {
+func (client *ioFogWsClient) connectToMessageWs(messageChannel chan<- *IoMessage, receiptChannel chan<- *PostMessageResponse) {
 	for {
 		if client.wsMessage != nil {
 			client.wsControl.Close()
@@ -104,7 +104,7 @@ func (client *ioFogWsClient) connectToMessageWs(messageChannel chan <- *IoMessag
 			client.writeMessageChannel = writeChannel
 			go client.listenMessageSocket(errChannel, messageChannel, receiptChannel, writeChannel)
 			go client.writeMessageSocket(errChannel, writeChannel)
-			loop:
+		loop:
 			for {
 				select {
 				case <-errChannel:
@@ -117,7 +117,7 @@ func (client *ioFogWsClient) connectToMessageWs(messageChannel chan <- *IoMessag
 	}
 }
 
-func (client*ioFogWsClient) listenControlSocket(errChanel chan <- byte, signalChannel chan <- byte, writeChannel chan <- []byte) {
+func (client *ioFogWsClient) listenControlSocket(errChanel chan<- byte, signalChannel chan<- byte, writeChannel chan<- []byte) {
 	for {
 		_, p, err := client.wsControl.ReadMessage()
 		if err != nil {
@@ -133,7 +133,7 @@ func (client*ioFogWsClient) listenControlSocket(errChanel chan <- byte, signalCh
 	}
 }
 
-func (client*ioFogWsClient) writeControlSocket(errChanel chan <- byte, writeChannel <- chan []byte) {
+func (client *ioFogWsClient) writeControlSocket(errChanel chan<- byte, writeChannel <-chan []byte) {
 	for data := range writeChannel {
 		err := client.wsControl.WriteMessage(ws.BinaryMessage, data)
 		if err != nil {
@@ -144,7 +144,7 @@ func (client*ioFogWsClient) writeControlSocket(errChanel chan <- byte, writeChan
 	}
 }
 
-func (client*ioFogWsClient) listenMessageSocket(errChanel chan <- byte, messageChannel chan <- *IoMessage, receiptChannel chan <-  *PostMessageResponse, writeChannel chan <- []byte) {
+func (client *ioFogWsClient) listenMessageSocket(errChanel chan<- byte, messageChannel chan<- *IoMessage, receiptChannel chan<- *PostMessageResponse, writeChannel chan<- []byte) {
 	for {
 		_, p, err := client.wsMessage.ReadMessage()
 		if err != nil {
@@ -154,7 +154,7 @@ func (client*ioFogWsClient) listenMessageSocket(errChanel chan <- byte, messageC
 			return
 		}
 		if p[0] == CODE_MSG {
-			msg, err := getMessageReceivedViaSocket(p)
+			msg, err := GetMessageReceivedViaSocket(p)
 			if err != nil {
 				logger.Println(err.Error())
 			}
@@ -171,7 +171,7 @@ func (client*ioFogWsClient) listenMessageSocket(errChanel chan <- byte, messageC
 	}
 }
 
-func (client*ioFogWsClient) writeMessageSocket(errChanel chan <- byte, writeChannel <- chan []byte) {
+func (client *ioFogWsClient) writeMessageSocket(errChanel chan<- byte, writeChannel <-chan []byte) {
 	for data := range writeChannel {
 		err := client.wsMessage.WriteMessage(ws.BinaryMessage, data)
 		if err != nil {

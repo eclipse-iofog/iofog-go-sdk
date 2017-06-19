@@ -6,7 +6,6 @@ import (
 	"fmt"
 )
 
-
 type ioFogHttpClient struct {
 	url_base_rest               string
 	url_get_config              string
@@ -28,7 +27,7 @@ func newIoFogHttpClient(id string, ssl bool, host string, port int) *ioFogHttpCl
 	client.url_get_publishers_messages = fmt.Sprint(client.url_base_rest, URL_GET_PUBLISHERS_MESSAGES)
 	client.url_post_message = fmt.Sprint(client.url_base_rest, URL_POST_MESSAGE)
 	client.requestBodyId, _ = json.Marshal(map[string]interface{}{
-		ID : id,
+		ID: id,
 	})
 	return &client
 }
@@ -49,7 +48,7 @@ func (client *ioFogHttpClient) getConfig() (map[string]interface{}, error) {
 	return config, nil
 }
 
-func (client *ioFogHttpClient) getConfigIntoStruct(config interface{}) (error) {
+func (client *ioFogHttpClient) getConfigIntoStruct(config interface{}) error {
 	resp, err := makePostRequest(client.url_get_config, APPLICATION_JSON, bytes.NewBuffer(client.requestBodyId))
 	if err != nil {
 		return err

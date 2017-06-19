@@ -1,14 +1,14 @@
 package container_sdk_go
 
 import (
-	"math"
-	ws "github.com/gorilla/websocket"
-	"time"
-	"net"
-	"io"
-	"net/http"
-	"errors"
 	"encoding/binary"
+	"errors"
+	ws "github.com/gorilla/websocket"
+	"io"
+	"math"
+	"net"
+	"net/http"
+	"time"
 )
 
 func intToBytesBE(num int) ([]byte, int) {
@@ -42,7 +42,7 @@ func int64ToBytesBE(num int64) ([]byte, int) {
 	return b, numOfBytes
 }
 
-func setCustomPingHandler(conn*ws.Conn) {
+func setCustomPingHandler(conn *ws.Conn) {
 	conn.SetPingHandler(func(message string) error {
 		if message == string(ws.PingMessage) {
 			message = string(ws.PongMessage)
@@ -71,24 +71,24 @@ func makePostRequest(url, bodyType string, body io.Reader) ([]byte, error) {
 	return respBodyBytes, nil
 }
 
-func prepareMessageForSendingViaSocket(msg *IoMessage) ([]byte, error) {
+func PrepareMessageForSendingViaSocket(msg *IoMessage) ([]byte, error) {
 	msgBytes, err := msg.EncodeBinary()
 	if err != nil {
 		return nil, err
 	}
 	lengthBytes := make([]byte, 4)
 	binary.BigEndian.PutUint32(lengthBytes, uint32(len(msgBytes)))
-	bytesToSend := make([]byte, 0, len(msgBytes) + 5)
+	bytesToSend := make([]byte, 0, len(msgBytes)+5)
 	bytesToSend = append(bytesToSend, CODE_MSG)
 	bytesToSend = append(bytesToSend, lengthBytes...)
 	bytesToSend = append(bytesToSend, msgBytes...)
 	return bytesToSend, nil
 }
 
-func getMessageReceivedViaSocket(msgBytes []byte) (*IoMessage, error) {
+func GetMessageReceivedViaSocket(msgBytes []byte) (*IoMessage, error) {
 	msgLen := binary.BigEndian.Uint32(msgBytes[1:5])
 	msg := new(IoMessage)
-	err := msg.DecodeBinary(msgBytes[5: 5 + msgLen])
+	err := msg.DecodeBinary(msgBytes[5 : 5+msgLen])
 	if err != nil {
 		return nil, err
 	}
@@ -101,11 +101,11 @@ func getReceiptReceivedViaSocket(receipt []byte) (*PostMessageResponse, error) {
 	receiptResponse := new(PostMessageResponse)
 	dataPos := 3
 	if idLen != 0 {
-		receiptResponse.ID = string(receipt[dataPos: dataPos + idLen])
+		receiptResponse.ID = string(receipt[dataPos : dataPos+idLen])
 		dataPos += idLen
 	}
 	if tsLen != 0 {
-		receiptResponse.Timestamp = int64(binary.BigEndian.Uint64(receipt[dataPos: dataPos + tsLen]))
+		receiptResponse.Timestamp = int64(binary.BigEndian.Uint64(receipt[dataPos : dataPos+tsLen]))
 	}
 	return receiptResponse, nil
 }

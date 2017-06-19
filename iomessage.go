@@ -8,26 +8,26 @@ import (
 const IOMESSAGE_VERSION = 4
 
 type IoMessage struct {
-	ID               string      `json:"id"`
-	Tag              string      `json:"tag"`
-	GroupId          string      `json:"groupid"`
-	SequenceNumber   int         `json:"sequencenumber"`
-	SequenceTotal    int         `json:"sequencetotal"`
-	Priority         int         `json:"priority"`
-	Timestamp        int64       `json:"timestamp"`
-	Publisher        string      `json:"publisher"`
-	AuthID           string      `json:"authid"`
-	AuthGroup        string      `json:"authgroup"`
-	Version          int         `json:"version"`
-	ChainPosition    int64       `json:"chainposition"`
-	Hash             string      `json:"hash"`
-	PreviousHash     string      `json:"previoushash"`
-	Nonce            string      `json:"nonce"`
-	DifficultyTarget int         `json:"difficultytarget"`
-	InfoType         string      `json:"infotype"`
-	InfoFormat       string      `json:"infoformat"`
-	ContextData      []byte      `json:"contextdata"`
-	ContentData      []byte      `json:"contentdata"`
+	ID               string `json:"id"`
+	Tag              string `json:"tag"`
+	GroupId          string `json:"groupid"`
+	SequenceNumber   int    `json:"sequencenumber"`
+	SequenceTotal    int    `json:"sequencetotal"`
+	Priority         int    `json:"priority"`
+	Timestamp        int64  `json:"timestamp"`
+	Publisher        string `json:"publisher"`
+	AuthID           string `json:"authid"`
+	AuthGroup        string `json:"authgroup"`
+	Version          int    `json:"version"`
+	ChainPosition    int64  `json:"chainposition"`
+	Hash             string `json:"hash"`
+	PreviousHash     string `json:"previoushash"`
+	Nonce            string `json:"nonce"`
+	DifficultyTarget int    `json:"difficultytarget"`
+	InfoType         string `json:"infotype"`
+	InfoFormat       string `json:"infoformat"`
+	ContextData      []byte `json:"contextdata"`
+	ContentData      []byte `json:"contentdata"`
 }
 
 func (msg *IoMessage) DecodeBinary(data []byte) error {
@@ -41,24 +41,24 @@ func (msg *IoMessage) DecodeBinary(data []byte) error {
 	var nextLength uint32
 	nextLength = uint32(data[2])
 	if nextLength != 0 {
-		msg.ID = string(data[dataPos: dataPos + nextLength])
+		msg.ID = string(data[dataPos : dataPos+nextLength])
 		dataPos += nextLength
 	}
 	nextLength = uint32(binary.BigEndian.Uint16(data[3:5]))
 	if nextLength != 0 {
-		msg.Tag = string(data[dataPos: dataPos + nextLength])
+		msg.Tag = string(data[dataPos : dataPos+nextLength])
 		dataPos += nextLength
 	}
 	nextLength = uint32(data[5])
 	if nextLength != 0 {
-		msg.GroupId = string(data[dataPos: dataPos + nextLength])
+		msg.GroupId = string(data[dataPos : dataPos+nextLength])
 		dataPos += nextLength
 	}
 	nextLength = uint32(data[6])
 	if nextLength != 0 {
 		b := make([]byte, 4)
 		for i := uint32(0); i < 4 && i < nextLength; i++ {
-			b[i] = data[dataPos + nextLength - uint32(i) - 1]
+			b[i] = data[dataPos+nextLength-uint32(i)-1]
 		}
 		msg.SequenceNumber = int(binary.LittleEndian.Uint32(b))
 		dataPos += nextLength
@@ -67,7 +67,7 @@ func (msg *IoMessage) DecodeBinary(data []byte) error {
 	if nextLength != 0 {
 		b := make([]byte, 4)
 		for i := uint32(0); i < 4 && i < nextLength; i++ {
-			b[i] = data[dataPos + nextLength - uint32(i) - 1]
+			b[i] = data[dataPos+nextLength-uint32(i)-1]
 		}
 		msg.SequenceTotal = int(binary.LittleEndian.Uint32(b))
 		dataPos += nextLength
@@ -76,7 +76,7 @@ func (msg *IoMessage) DecodeBinary(data []byte) error {
 	if nextLength != 0 {
 		b := make([]byte, 4)
 		for i := uint32(0); i < 4 && i < nextLength; i++ {
-			b[i] = data[dataPos + nextLength - uint32(i) - 1]
+			b[i] = data[dataPos+nextLength-uint32(i)-1]
 		}
 		msg.Priority = int(binary.LittleEndian.Uint32(b))
 		dataPos += nextLength
@@ -85,77 +85,77 @@ func (msg *IoMessage) DecodeBinary(data []byte) error {
 	if nextLength != 0 {
 		b := make([]byte, 8)
 		for i := uint32(0); i < 8 && i < nextLength; i++ {
-			b[i] = data[dataPos + nextLength - uint32(i) - 1]
+			b[i] = data[dataPos+nextLength-uint32(i)-1]
 		}
 		msg.Timestamp = int64(binary.LittleEndian.Uint64(b))
 		dataPos += nextLength
 	}
 	nextLength = uint32(data[10])
 	if nextLength != 0 {
-		msg.Publisher = string(data[dataPos: dataPos + nextLength])
+		msg.Publisher = string(data[dataPos : dataPos+nextLength])
 		dataPos += nextLength
 	}
 	nextLength = uint32(binary.BigEndian.Uint16(data[11:13]))
 	if nextLength != 0 {
-		msg.AuthID = string(data[dataPos: dataPos + nextLength])
+		msg.AuthID = string(data[dataPos : dataPos+nextLength])
 		dataPos += nextLength
 	}
 	nextLength = uint32(binary.BigEndian.Uint16(data[13:15]))
 	if nextLength != 0 {
-		msg.AuthGroup = string(data[dataPos: dataPos + nextLength])
+		msg.AuthGroup = string(data[dataPos : dataPos+nextLength])
 		dataPos += nextLength
 	}
 	nextLength = uint32(data[15])
 	if nextLength != 0 {
 		b := make([]byte, 8)
 		for i := uint32(0); i < 8 && i < nextLength; i++ {
-			b[i] = data[dataPos + nextLength - uint32(i) - 1]
+			b[i] = data[dataPos+nextLength-uint32(i)-1]
 		}
 		msg.ChainPosition = int64(binary.LittleEndian.Uint64(b))
 		dataPos += nextLength
 	}
 	nextLength = uint32(binary.BigEndian.Uint16(data[16:18]))
 	if nextLength != 0 {
-		msg.Hash = string(data[dataPos: dataPos + nextLength])
+		msg.Hash = string(data[dataPos : dataPos+nextLength])
 		dataPos += nextLength
 	}
 	nextLength = uint32(binary.BigEndian.Uint16(data[18:20]))
 	if nextLength != 0 {
-		msg.PreviousHash = string(data[dataPos: dataPos + nextLength])
+		msg.PreviousHash = string(data[dataPos : dataPos+nextLength])
 		dataPos += nextLength
 	}
 	nextLength = uint32(binary.BigEndian.Uint16(data[20:22]))
 	if nextLength != 0 {
-		msg.Nonce = string(data[dataPos: dataPos + nextLength])
+		msg.Nonce = string(data[dataPos : dataPos+nextLength])
 		dataPos += nextLength
 	}
 	nextLength = uint32(data[22])
 	if nextLength != 0 {
 		b := make([]byte, 4)
 		for i := uint32(0); i < 4 && i < nextLength; i++ {
-			b[i] = data[dataPos + nextLength - uint32(i) - 1]
+			b[i] = data[dataPos+nextLength-uint32(i)-1]
 		}
 		msg.DifficultyTarget = int(binary.LittleEndian.Uint32(b))
 		dataPos += nextLength
 	}
 	nextLength = uint32(data[23])
 	if nextLength != 0 {
-		msg.InfoType = string(data[dataPos: dataPos + nextLength])
+		msg.InfoType = string(data[dataPos : dataPos+nextLength])
 		dataPos += nextLength
 	}
 	nextLength = uint32(data[24])
 	if nextLength != 0 {
-		msg.InfoFormat = string(data[dataPos: dataPos + nextLength])
+		msg.InfoFormat = string(data[dataPos : dataPos+nextLength])
 		dataPos += nextLength
 	}
 	nextLength = binary.BigEndian.Uint32(data[25:29])
 	if nextLength != 0 {
-		msg.ContextData = data[dataPos: dataPos + nextLength]
+		msg.ContextData = data[dataPos : dataPos+nextLength]
 		dataPos += nextLength
 	}
 	nextLength = binary.BigEndian.Uint32(data[29:33])
 	if nextLength != 0 {
-		msg.ContentData = data[dataPos: dataPos + nextLength]
+		msg.ContentData = data[dataPos : dataPos+nextLength]
 		dataPos += nextLength
 	}
 	return nil
