@@ -85,7 +85,7 @@ func (client *ioFogWsClient) connectToControlWs(signalChannel chan<- byte) {
 func (client *ioFogWsClient) connectToMessageWs(messageChannel chan<- *IoMessage, receiptChannel chan<- *PostMessageResponse) {
 	for {
 		if client.wsMessage != nil {
-			client.wsControl.Close()
+			client.wsMessage.Close()
 		}
 		conn, _, err := ws.DefaultDialer.Dial(client.url_get_message_ws, nil)
 		if conn == nil {
