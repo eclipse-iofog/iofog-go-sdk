@@ -14,13 +14,13 @@ Golang SDK lets you easily build an ioElement with your favorite Go language. It
 
 Get sdk:
 ```go
-   go get github.com/iotracks/container-sdk-go
+   go get github.com/iofog/container-sdk-go
 ```
 
 Import sdk:
 ```go
    import (
-   sdk "github.com/iotracks/container-sdk-go"
+   sdk "github.com/iofog/container-sdk-go"
    )
 ```
 
