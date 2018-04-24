@@ -1,4 +1,4 @@
-# container-sdk-go
+# iofog-sdk-go
 
 Golang SDK lets you easily build an ioElement with your favorite Go language. It gives you all the functionality to interact with ioFog both via Local API and WebSockets:
 
@@ -14,13 +14,13 @@ Golang SDK lets you easily build an ioElement with your favorite Go language. It
 
 Get sdk:
 ```go
-   go get github.com/iotracks/container-sdk-go
+   go get github.com/iofog/iofog-sdk-go
 ```
 
 Import sdk:
 ```go
    import (
-   sdk "github.com/iotracks/container-sdk-go"
+   sdk "github.com/iofog/iofog-sdk-go"
    )
 ```
 

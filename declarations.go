@@ -1,4 +1,4 @@
-package container_sdk_go
+package iofog_sdk_go
 
 import (
 	"log"
