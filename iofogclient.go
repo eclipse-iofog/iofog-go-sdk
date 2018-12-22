@@ -8,12 +8,13 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  *******************************************************************************
-*/
+ */
 
 package iofog_sdk_go
 
 import (
 	"errors"
+	"github.com/eapache/channels"
 	"os"
 	"os/exec"
 	"strconv"
@@ -95,17 +96,17 @@ func (client *IoFogClient) EstablishControlWsConnection(signalBufSize int) <-cha
 	return signalChannel
 }
 
-func (client *IoFogClient) EstablishMessageWsConnection(msgBufSize, receiptBufSize int) (<-chan *IoMessage, <-chan *PostMessageResponse) {
+func (client *IoFogClient) EstablishMessageWsConnection(msgBufSize, receiptBufSize int) (<-chan interface{}, <-chan interface{}) {
 	if msgBufSize == 0 {
 		msgBufSize = DEFAULT_MESSAGE_BUFFER_SIZE
 	}
 	if receiptBufSize == 0 {
 		receiptBufSize = DEFAULT_RECEIPT_BUFFER_SIZE
 	}
-	messageChannel := make(chan *IoMessage, msgBufSize)
-	receiptChannel := make(chan *PostMessageResponse, receiptBufSize)
-	go client.wsClient.connectToMessageWs(messageChannel, receiptChannel)
-	return messageChannel, receiptChannel
+	messageChannel := channels.NewRingChannel(channels.BufferCap(msgBufSize))
+	receiptChannel := channels.NewRingChannel(channels.BufferCap(receiptBufSize))
+	go client.wsClient.connectToMessageWs(messageChannel.In(), receiptChannel.In())
+	return messageChannel.Out(), receiptChannel.Out()
 }
 
 func (client *IoFogClient) SendMessageViaSocket(msg *IoMessage) error {

@@ -8,7 +8,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  *******************************************************************************
-*/
+ */
 
 package iofog_sdk_go
 
@@ -99,6 +99,9 @@ func PrepareMessageForSendingViaSocket(msg *IoMessage) ([]byte, error) {
 
 func GetMessageReceivedViaSocket(msgBytes []byte) (*IoMessage, error) {
 	msgLen := binary.BigEndian.Uint32(msgBytes[1:5])
+	if cap(msgBytes) < int(msgLen)+5 {
+		return nil, errors.New("msg length is incorrect")
+	}
 	msg := new(IoMessage)
 	err := msg.DecodeBinary(msgBytes[5 : 5+msgLen])
 	if err != nil {

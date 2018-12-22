@@ -8,13 +8,14 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  *******************************************************************************
-*/
+ */
 
 package iofog_sdk_go
 
 import (
 	"errors"
 	"fmt"
+	channels "github.com/eapache/channels"
 	ws "github.com/gorilla/websocket"
 	"time"
 )
@@ -27,7 +28,7 @@ type ioFogWsClient struct {
 	wsMessage           *ws.Conn
 	wsControlAttempt    uint
 	wsMessageAttempt    uint
-	writeMessageChannel chan []byte
+	writeMessageChannel chan<- interface{}
 }
 
 func newIoFogWsClient(id string, ssl bool, host string, port int) *ioFogWsClient {
@@ -74,6 +75,7 @@ func (client *ioFogWsClient) connectToControlWs(signalChannel chan<- byte) {
 			}
 			time.Sleep(sleepTime)
 		} else {
+			logger.Println("Control ws connection has been established.")
 			client.wsControlAttempt = 0
 			client.wsControl = conn
 			setCustomPingHandler(client.wsControl)
@@ -94,7 +96,7 @@ func (client *ioFogWsClient) connectToControlWs(signalChannel chan<- byte) {
 	}
 }
 
-func (client *ioFogWsClient) connectToMessageWs(messageChannel chan<- *IoMessage, receiptChannel chan<- *PostMessageResponse) {
+func (client *ioFogWsClient) connectToMessageWs(messageChannel chan<- interface{}, receiptChannel chan<- interface{}) {
 	for {
 		if client.wsMessage != nil {
 			client.wsMessage.Close()
@@ -108,14 +110,15 @@ func (client *ioFogWsClient) connectToMessageWs(messageChannel chan<- *IoMessage
 			}
 			time.Sleep(sleepTime)
 		} else {
+			logger.Println("Message ws connection has been established.")
 			client.wsMessageAttempt = 0
 			client.wsMessage = conn
 			setCustomPingHandler(client.wsMessage)
 			errChannel := make(chan byte, 2)
-			writeChannel := make(chan []byte, 20)
-			client.writeMessageChannel = writeChannel
-			go client.listenMessageSocket(errChannel, messageChannel, receiptChannel, writeChannel)
-			go client.writeMessageSocket(errChannel, writeChannel)
+			writeChannel := channels.NewRingChannel(channels.BufferCap(DEFAULT_MESSAGE_BUFFER_SIZE))
+			client.writeMessageChannel = writeChannel.In()
+			go client.listenMessageSocket(errChannel, messageChannel, receiptChannel, writeChannel.In())
+			go client.writeMessageSocket(errChannel, writeChannel.Out())
 		loop:
 			for {
 				select {
@@ -156,7 +159,7 @@ func (client *ioFogWsClient) writeControlSocket(errChanel chan<- byte, writeChan
 	}
 }
 
-func (client *ioFogWsClient) listenMessageSocket(errChanel chan<- byte, messageChannel chan<- *IoMessage, receiptChannel chan<- *PostMessageResponse, writeChannel chan<- []byte) {
+func (client *ioFogWsClient) listenMessageSocket(errChanel chan<- byte, messageChannel chan<- interface{}, receiptChannel chan<- interface{}, writeChannel chan<- interface{}) {
 	for {
 		_, p, err := client.wsMessage.ReadMessage()
 		if err != nil {
@@ -183,9 +186,9 @@ func (client *ioFogWsClient) listenMessageSocket(errChanel chan<- byte, messageC
 	}
 }
 
-func (client *ioFogWsClient) writeMessageSocket(errChanel chan<- byte, writeChannel <-chan []byte) {
+func (client *ioFogWsClient) writeMessageSocket(errChanel chan<- byte, writeChannel <-chan interface{}) {
 	for data := range writeChannel {
-		err := client.wsMessage.WriteMessage(ws.BinaryMessage, data)
+		err := client.wsMessage.WriteMessage(ws.BinaryMessage, data.([]byte))
 		if err != nil {
 			logger.Println("Message ws write error:", err.Error())
 			errChanel <- 0
