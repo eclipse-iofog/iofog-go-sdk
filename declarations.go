@@ -8,7 +8,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  *******************************************************************************
-*/
+ */
 
 package iofog_sdk_go
 
@@ -50,8 +50,8 @@ const (
 	WS_CONNECT_TIMEOUT = time.Second
 
 	DEFAULT_SIGNAL_BUFFER_SIZE  = 5
-	DEFAULT_MESSAGE_BUFFER_SIZE = 20
-	DEFAULT_RECEIPT_BUFFER_SIZE = 20
+	DEFAULT_MESSAGE_BUFFER_SIZE = 200
+	DEFAULT_RECEIPT_BUFFER_SIZE = 200
 )
 
 var (
