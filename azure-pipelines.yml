@@ -19,7 +19,7 @@ variables:
   modulePath: '$(GOPATH)/src/github.com/$(build.repository.name)' # Path to the module's code
 
 jobs:
-  - job: go-sdk
+  - job: Test
     pool:
       vmImage: 'Ubuntu-16.04'
 
