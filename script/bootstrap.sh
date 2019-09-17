@@ -12,13 +12,13 @@ set -e
 #
 
 # Is go installed?
-if ! checkForInstallation "go"; then
-    echoNotify "\nYou do not have Go installed. Please install and re-run bootstrap."
+if [ -z $(command -v go) ]; then
+    echo "\nYou do not have Go installed. Please install and re-run bootstrap."
     exit 1
 fi
 
 # Is dep installed?
-if ! checkForInstallation "dep"; then
-    echoInfo " Attempting to install 'go dep'"
+if [ -z $(command -v dep) ]; then
+    echo " Attempting to install 'go dep'"
     go get -u github.com/golang/dep/cmd/dep
 fi
