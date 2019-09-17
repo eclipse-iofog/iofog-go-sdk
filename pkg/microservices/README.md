@@ -1,6 +1,6 @@
-# iofog-sdk-go
+# Microservices Package
 
-Golang SDK lets you easily build an ioElement with your favorite Go language. It gives you all the functionality to interact with ioFog both via Local API and WebSockets:
+This package gives you all the functionality to interact with ioFog both via Local API and WebSockets:
 
  - send new message to ioFog with REST (PostMessage)
  - fetch next unread messages from ioFog (GetNextMessages)
@@ -14,19 +14,19 @@ Golang SDK lets you easily build an ioElement with your favorite Go language. It
 
 Get sdk:
 ```go
-   go get github.com/iofog/iofog-sdk-go
+   go get github.com/eclipse-iofog/iofog-sdk-go
 ```
 
-Import sdk:
+Import package:
 ```go
    import (
-   sdk "github.com/iofog/iofog-sdk-go"
+   sdk "github.com/eclipse-iofog/iofog-sdk-go/pkg/microservices"
    )
 ```
 
 Create IoFog client with default settings:
 ```go
-	client, err := sdk.NewDefaultIoFogClient()
+	client, err := microservices.NewDefaultIoFogClient()
 	if err != nil {
 		println(err.Error())
 		return
@@ -37,7 +37,7 @@ Create IoFog client with default settings:
 
 Or specify host, port, ssl and container id explicitly:
 ```go
-	client, err := sdk.NewIoFogClient("IoFog", 54321, false, "containerId")
+	client, err := microservices.NewIoFogClient("IoFog", 54321, false, "containerId")
         if err != nil {
 		println(err.Error())
 		return
@@ -64,7 +64,7 @@ Get list of next unread IoMessages:
 
 Post new IoMessage to ioFog via REST call:
 ```go
-	postMessageResponse, err := client.PostMessage(&sdk.IoMessage{
+	postMessageResponse, err := client.PostMessage(&microservices.IoMessage{
 		SequenceNumber:1,
 		SequenceTotal:1,
 		InfoType:"text",
@@ -84,7 +84,7 @@ Post new IoMessage to ioFog via REST call:
 
 Get an array of IoMessages from specified publishers within given timeframe:
 ```go
-	timeFrameMessages, err := client.GetMessagesFromPublishersWithinTimeFrame(&sdk.MessagesQueryParameters{
+	timeFrameMessages, err := client.GetMessagesFromPublishersWithinTimeFrame(&microservices.MessagesQueryParameters{
 		TimeFrameStart: 1234567890123,
 		TimeFrameEnd: 1234567892123,
 		Publishers: []string{"sefhuiw4984twefsdoiuhsdf", "d895y459rwdsifuhSDFKukuewf", "SESD984wtsdidsiusidsufgsdfkh"},
@@ -130,7 +130,7 @@ Establish connection with message ws. This call returns two channels, so
 
 After establishing this connection you can send your own message to IoFog:
 ```go
-		client.SendMessageViaSocket(&sdk.IoMessage{
+		client.SendMessageViaSocket(&microservices.IoMessage{
         	Tag: "aaa",
         	SequenceNumber: 127,
         	ContentData: []byte("Here goes some test data"),
@@ -155,4 +155,3 @@ Establish connection with control ws and pass channel to listen to incoming conf
 			}
 	}
 ```
-
