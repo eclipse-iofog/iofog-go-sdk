@@ -20,13 +20,13 @@ Get sdk:
 Import package:
 ```go
    import (
-   sdk "github.com/eclipse-iofog/iofog-sdk-go/pkg/microservices"
+   msvcs "github.com/eclipse-iofog/iofog-sdk-go/pkg/microservices"
    )
 ```
 
 Create IoFog client with default settings:
 ```go
-	client, err := microservices.NewDefaultIoFogClient()
+	client, err := msvcs.NewDefaultIoFogClient()
 	if err != nil {
 		println(err.Error())
 		return
@@ -37,7 +37,7 @@ Create IoFog client with default settings:
 
 Or specify host, port, ssl and container id explicitly:
 ```go
-	client, err := microservices.NewIoFogClient("IoFog", 54321, false, "containerId")
+	client, err := msvcs.NewIoFogClient("IoFog", 54321, false, "containerId")
         if err != nil {
 		println(err.Error())
 		return
@@ -64,7 +64,7 @@ Get list of next unread IoMessages:
 
 Post new IoMessage to ioFog via REST call:
 ```go
-	postMessageResponse, err := client.PostMessage(&microservices.IoMessage{
+	postMessageResponse, err := client.PostMessage(&msvcs.IoMessage{
 		SequenceNumber:1,
 		SequenceTotal:1,
 		InfoType:"text",
@@ -84,7 +84,7 @@ Post new IoMessage to ioFog via REST call:
 
 Get an array of IoMessages from specified publishers within given timeframe:
 ```go
-	timeFrameMessages, err := client.GetMessagesFromPublishersWithinTimeFrame(&microservices.MessagesQueryParameters{
+	timeFrameMessages, err := client.GetMessagesFromPublishersWithinTimeFrame(&msvcs.MessagesQueryParameters{
 		TimeFrameStart: 1234567890123,
 		TimeFrameEnd: 1234567892123,
 		Publishers: []string{"sefhuiw4984twefsdoiuhsdf", "d895y459rwdsifuhSDFKukuewf", "SESD984wtsdidsiusidsufgsdfkh"},
@@ -130,7 +130,7 @@ Establish connection with message ws. This call returns two channels, so
 
 After establishing this connection you can send your own message to IoFog:
 ```go
-		client.SendMessageViaSocket(&microservices.IoMessage{
+		client.SendMessageViaSocket(&msvcs.IoMessage{
         	Tag: "aaa",
         	SequenceNumber: 127,
         	ContentData: []byte("Here goes some test data"),
