@@ -33,14 +33,18 @@ func httpDo(method, url string, headers map[string]string, requestBody interface
 		jsonBody = string(jsonBodyBytes)
 	}
 
-	// Instantiate request
 	if Verbose {
 		fmt.Printf("===> [%s] %s \nBody: %s\n", method, url, jsonBody)
 	}
+
+	// Instantiate request
 	request, err := http.NewRequest(method, url, strings.NewReader(jsonBody))
 	if err != nil {
 		return
 	}
+
+	// Don't re-use connections to avoid EOF error
+	request.Close = true
 
 	// Set headers on request
 	if headers != nil {
