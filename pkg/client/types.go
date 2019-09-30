@@ -43,6 +43,48 @@ type FlowListResponse struct {
 	Flows []FlowInfo `json:"flows"`
 }
 
+// Registries
+
+type RegistryInfo struct {
+	ID           int    `json:"id"`
+	URL          string `json:"url"`
+	IsPublic     bool   `json:"isPublic"`
+	IsSecure     bool   `json:"isSecure"`
+	Certificate  string `json:"certificate"`
+	RequiresCert bool   `json:"requiresCert"`
+	Username     string `json:"username"`
+	Email        string `json:"userEmail"`
+}
+
+type RegistryCreateRequest struct {
+	URL          string `json:"url"`
+	IsPublic     bool   `json:"isPublic"`
+	Certificate  string `json:"certificate"`
+	RequiresCert bool   `json:"requiresCert"`
+	Username     string `json:"username"`
+	Email        string `json:"email"`
+	Password     string `json:"password"`
+}
+
+type RegistryCreateResponse struct {
+	ID int `json:"id"`
+}
+
+type RegistryUpdateRequest struct {
+	URL          *string `json:"url,omitempty"`
+	IsPublic     *bool   `json:"isPublic,omitempty"`
+	Certificate  *string `json:"certificate,omitempty"`
+	RequiresCert *bool   `json:"requiresCert,omitempty"`
+	Username     *string `json:"username,omitempty"`
+	Email        *string `json:"email,omitempty"`
+	Password     *string `json:"password,omitempty"`
+	ID           int     `json:"-"`
+}
+
+type RegistryListResponse struct {
+	Registries []RegistryInfo `json:"registries"`
+}
+
 // Catalog (Keeping it basic, because it will be reworked soon)
 
 type CatalogImage struct {
