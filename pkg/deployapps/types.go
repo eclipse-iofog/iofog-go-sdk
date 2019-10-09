@@ -117,4 +117,5 @@ type IofogController struct {
 	Email    string
 	Password string
 	Endpoint string
+	Token    string
 }

@@ -97,7 +97,11 @@ func (exe *remoteExecutor) Execute() (err error) {
 }
 
 func (exe *remoteExecutor) init() (err error) {
-	exe.client, err = client.NewAndLogin(exe.controller.Endpoint, exe.controller.Email, exe.controller.Password)
+	if exe.controller.Token != "" {
+		exe.client, err = client.NewWithToken(exe.controller.Endpoint, exe.controller.Token)
+	} else {
+		exe.client, err = client.NewAndLogin(exe.controller.Endpoint, exe.controller.Email, exe.controller.Password)
+	}
 	if err != nil {
 		return
 	}
