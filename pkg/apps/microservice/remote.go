@@ -246,6 +246,14 @@ func (exe *remoteExecutor) create(config, agentUUID string, catalogID, registryI
 		{ContainerImage: exe.msvc.Images.X86, AgentTypeID: client.AgentTypeAgentTypeIDDict["x86"]},
 		{ContainerImage: exe.msvc.Images.ARM, AgentTypeID: client.AgentTypeAgentTypeIDDict["arm"]},
 	}
+	volumes := mapVolumes(exe.msvc.Volumes)
+	if volumes == nil {
+		volumes = &[]client.MicroserviceVolumeMapping{}
+	}
+	envs := mapEnvs(exe.msvc.Env)
+	if envs == nil {
+		envs = &[]client.MicroserviceEnvironment{}
+	}
 	return exe.client.CreateMicroservice(client.MicroserviceCreateRequest{
 		Config:         config,
 		CatalogItemID:  catalogID,
@@ -253,8 +261,8 @@ func (exe *remoteExecutor) create(config, agentUUID string, catalogID, registryI
 		Name:           exe.msvc.Name,
 		RootHostAccess: exe.msvc.RootHostAccess,
 		Ports:          mapPorts(exe.msvc.Ports),
-		Volumes:        *mapVolumes(exe.msvc.Volumes),
-		Env:            *mapEnvs(exe.msvc.Env),
+		Volumes:        *volumes,
+		Env:            *envs,
 		RegistryID:     registryID,
 		AgentUUID:      agentUUID,
 		Routes:         exe.routes,
