@@ -39,12 +39,11 @@ const (
 )
 
 // Header contains k8s yaml header
-// +k8s:deepcopy-gen=true
 type Header struct {
 	APIVersion string         `yaml:"apiVersion" json:"apiVersion"`
 	Kind       Kind           `yaml:"kind" json:"kind"`
 	Metadata   HeaderMetadata `yaml:"metadata" json:"metadata"`
-	Spec       NestedMap      `yaml:"spec" json:"spec"`
+	Spec       interface{}    `yaml:"spec" json:"spec"`
 }
 
 // CatalogItem contains information about a catalog item
