@@ -204,8 +204,8 @@ type MicroserviceUpdateRequest struct {
 	Ports             []MicroservicePortMapping    `json:"-"` // Ports are not valid in Controller PATCH call, need to use separate API calls
 	Volumes           *[]MicroserviceVolumeMapping `json:"volumeMappings,omitempty"`
 	Routes            []string                     `json:"-"` // Routes are not valid in Controller PATCH call, need to use separate API calls
-	Env               []MicroserviceEnvironment    `json:"env,omitempty"`
-	Images            []CatalogImage               `json:"images,omitempty"`
+	Env               *[]MicroserviceEnvironment   `json:"env,omitempty"`
+	Images            []CatalogImage               `json:"images"`
 }
 
 type MicroserviceCreateResponse struct {

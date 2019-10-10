@@ -209,7 +209,11 @@ func (in *IofogController) DeepCopy() *IofogController {
 func (in *Microservice) DeepCopyInto(out *Microservice) {
 	*out = *in
 	in.Agent.DeepCopyInto(&out.Agent)
-	out.Images = in.Images
+	if in.Images != nil {
+		in, out := &in.Images, &out.Images
+		*out = new(MicroserviceImages)
+		**out = **in
+	}
 	out.Config = in.Config.DeepCopy()
 	if in.Ports != nil {
 		in, out := &in.Ports, &out.Ports
@@ -218,13 +222,21 @@ func (in *Microservice) DeepCopyInto(out *Microservice) {
 	}
 	if in.Volumes != nil {
 		in, out := &in.Volumes, &out.Volumes
-		*out = make([]MicroserviceVolumeMapping, len(*in))
-		copy(*out, *in)
+		*out = new([]MicroserviceVolumeMapping)
+		if **in != nil {
+			in, out := *in, *out
+			*out = make([]MicroserviceVolumeMapping, len(*in))
+			copy(*out, *in)
+		}
 	}
 	if in.Env != nil {
 		in, out := &in.Env, &out.Env
-		*out = make([]MicroserviceEnvironment, len(*in))
-		copy(*out, *in)
+		*out = new([]MicroserviceEnvironment)
+		if **in != nil {
+			in, out := *in, *out
+			*out = make([]MicroserviceEnvironment, len(*in))
+			copy(*out, *in)
+		}
 	}
 	if in.Routes != nil {
 		in, out := &in.Routes, &out.Routes

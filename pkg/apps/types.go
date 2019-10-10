@@ -77,18 +77,18 @@ type MicroserviceAgent struct {
 // Microservice contains information for configuring a microservice
 // +k8s:deepcopy-gen=true
 type Microservice struct {
-	UUID           string                      `yaml:"uuid" json:"uuid"`
-	Name           string                      `yaml:"name" json:"name"`
-	Agent          MicroserviceAgent           `yaml:"agent" json:"agent"`
-	Images         MicroserviceImages          `yaml:"images" json:"images"`
-	Config         NestedMap                   `yaml:"config" json:"config"`
-	RootHostAccess bool                        `yaml:"rootHostAccess" json:"rootHostAccess"`
-	Ports          []MicroservicePortMapping   `yaml:"ports" json:"ports"`
-	Volumes        []MicroserviceVolumeMapping `yaml:"volumes" json:"volumes"`
-	Env            []MicroserviceEnvironment   `yaml:"env" json:"env"`
-	Routes         []string                    `yaml:"routes,omitempty" json:"routes,omitempty"`
-	Flow           *string                     `yaml:"application,omitempty" json:"application,omitempty"`
-	Created        string                      `yaml:"created,omitempty" json:"created,omitempty"`
+	UUID           string                       `yaml:"uuid" json:"uuid"`
+	Name           string                       `yaml:"name" json:"name"`
+	Agent          MicroserviceAgent            `yaml:"agent" json:"agent"`
+	Images         *MicroserviceImages          `yaml:"images,omitempty" json:"images,omitempty"`
+	Config         NestedMap                    `yaml:"config" json:"config"`
+	RootHostAccess bool                         `yaml:"rootHostAccess" json:"rootHostAccess"`
+	Ports          []MicroservicePortMapping    `yaml:"ports" json:"ports"`
+	Volumes        *[]MicroserviceVolumeMapping `yaml:"volumes,omitempty" json:"volumes,omitempty"`
+	Env            *[]MicroserviceEnvironment   `yaml:"env,omitempty" json:"env,omitempty"`
+	Routes         []string                     `yaml:"routes,omitempty" json:"routes,omitempty"`
+	Flow           *string                      `yaml:"application,omitempty" json:"application,omitempty"`
+	Created        string                       `yaml:"created,omitempty" json:"created,omitempty"`
 }
 
 type NestedMap map[string]interface{}
