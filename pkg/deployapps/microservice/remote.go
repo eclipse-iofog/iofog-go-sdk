@@ -14,12 +14,12 @@
 package deploymicroservice
 
 import (
-	"encoding/json"
 	"fmt"
 	"strconv"
 
 	"github.com/eclipse-iofog/iofog-go-sdk/pkg/client"
 	types "github.com/eclipse-iofog/iofog-go-sdk/pkg/deployapps"
+	jsoniter "github.com/json-iterator/go"
 )
 
 // ApplicationData is data fetched from controller at init time
@@ -218,7 +218,7 @@ func (exe *remoteExecutor) Deploy() (newMsvc *client.MicroserviceInfo, err error
 	// Transform msvc config to JSON string
 	config := ""
 	if exe.msvc.Config != nil {
-		byteconfig, err := json.Marshal(exe.msvc.Config)
+		byteconfig, err := jsoniter.Marshal(exe.msvc.Config)
 		if err != nil {
 			return nil, err
 		}
