@@ -16,9 +16,9 @@ package deployapplication
 import (
 	"fmt"
 
-	"github.com/eclipse-iofog/iofog-go-sdk/pkg/client"
 	types "github.com/eclipse-iofog/iofog-go-sdk/pkg/apps"
 	deploymicroservice "github.com/eclipse-iofog/iofog-go-sdk/pkg/apps/microservice"
+	"github.com/eclipse-iofog/iofog-go-sdk/pkg/client"
 )
 
 type iofogUser struct {

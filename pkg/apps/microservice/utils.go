@@ -17,8 +17,8 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/eclipse-iofog/iofog-go-sdk/pkg/client"
 	types "github.com/eclipse-iofog/iofog-go-sdk/pkg/apps"
+	"github.com/eclipse-iofog/iofog-go-sdk/pkg/client"
 )
 
 func MicroserviceArrayToMap(a []types.Microservice) (result map[string]*types.Microservice) {

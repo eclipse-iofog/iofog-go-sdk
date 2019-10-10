@@ -17,9 +17,9 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/eclipse-iofog/iofog-go-sdk/pkg/client"
 	types "github.com/eclipse-iofog/iofog-go-sdk/pkg/apps"
 	jsoniter "github.com/json-iterator/go"
+	"github.com/eclipse-iofog/iofog-go-sdk/pkg/client"
 )
 
 // ApplicationData is data fetched from controller at init time
