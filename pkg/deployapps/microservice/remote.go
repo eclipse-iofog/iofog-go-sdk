@@ -14,7 +14,6 @@
 package deploymicroservice
 
 import (
-	"encoding/json"
 	"fmt"
 	"strconv"
 
@@ -218,7 +217,7 @@ func (exe *remoteExecutor) Deploy() (newMsvc *client.MicroserviceInfo, err error
 	// Transform msvc config to JSON string
 	config := ""
 	if exe.msvc.Config != nil {
-		byteconfig, err := json.Marshal(exe.msvc.Config)
+		byteconfig, err := jsoniter.Marshal(exe.msvc.Config)
 		if err != nil {
 			return nil, err
 		}
