@@ -18,7 +18,7 @@ import (
 	"strconv"
 
 	"github.com/eclipse-iofog/iofog-go-sdk/pkg/client"
-	types "github.com/eclipse-iofog/iofog-go-sdk/pkg/deployapps"
+	types "github.com/eclipse-iofog/iofog-go-sdk/pkg/apps"
 	jsoniter "github.com/json-iterator/go"
 )
 
@@ -252,10 +252,10 @@ func (exe *remoteExecutor) create(config, agentUUID string, catalogID, registryI
 		FlowID:         exe.flowInfo.ID,
 		Name:           exe.msvc.Name,
 		RootHostAccess: exe.msvc.RootHostAccess,
-		Ports:          exe.msvc.Ports,
-		Volumes:        exe.msvc.Volumes,
+		Ports:          mapPorts(exe.msvc.Ports),
+		Volumes:        mapVolumes(exe.msvc.Volumes),
+		Env:            mapEnvs(exe.msvc.Env),
 		RegistryID:     registryID,
-		Env:            exe.msvc.Env,
 		AgentUUID:      agentUUID,
 		Routes:         exe.routes,
 		Images:         images,
@@ -268,17 +268,39 @@ func (exe *remoteExecutor) update(config, agentUUID string, catalogID, registryI
 		{ContainerImage: exe.msvc.Images.ARM, AgentTypeID: client.AgentTypeAgentTypeIDDict["arm"]},
 	}
 
+	vols := mapVolumes(exe.msvc.Volumes)
 	return exe.client.UpdateMicroservice(client.MicroserviceUpdateRequest{
 		UUID:           exe.msvc.UUID,
 		Config:         &config,
 		Name:           &exe.msvc.Name,
 		RootHostAccess: &exe.msvc.RootHostAccess,
-		Ports:          exe.msvc.Ports,
-		Volumes:        &exe.msvc.Volumes,
-		Env:            exe.msvc.Env,
+		Ports:          mapPorts(exe.msvc.Ports),
+		Volumes:        &vols,
+		Env:            mapEnvs(exe.msvc.Env),
 		AgentUUID:      &agentUUID,
 		RegistryID:     &registryID,
 		Routes:         exe.routes,
 		Images:         images,
 	})
+}
+
+func mapPorts(in []types.MicroservicePortMapping) (out []client.MicroservicePortMapping) {
+	for _, port := range in {
+		out = append(out, client.MicroservicePortMapping(port))
+	}
+	return
+}
+
+func mapVolumes(in []types.MicroserviceVolumeMapping) (out []client.MicroserviceVolumeMapping) {
+	for _, vol := range in {
+		out = append(out, client.MicroserviceVolumeMapping(vol))
+	}
+	return
+}
+
+func mapEnvs(in []types.MicroserviceEnvironment) (out []client.MicroserviceEnvironment) {
+	for _, env := range in {
+		out = append(out, client.MicroserviceEnvironment(env))
+	}
+	return
 }

@@ -11,7 +11,7 @@
  *
  */
 
-package deploy
+package apps
 
 import (
 	"fmt"
