@@ -18,6 +18,10 @@ export GOARCH ?= amd64
 GOLANG_VERSION = 1.12
 GOFILES_NOVENDOR = $(shell find . -type f -name '*.go' -not -path "./vendor/*" -not -path "./client/*")
 
+.PHONY: init
+init: ## Init git repository
+	@cp gitHooks/* .git/hooks/
+
 .PHONY: all
 all: dep gen test## Get deps and run tests
 
