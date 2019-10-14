@@ -11,13 +11,12 @@
  *
  */
 
-package deploymicroservice
+package apps
 
 import (
 	"fmt"
 	"strconv"
 
-	types "github.com/eclipse-iofog/iofog-go-sdk/pkg/apps"
 	"github.com/eclipse-iofog/iofog-go-sdk/pkg/client"
 	jsoniter "github.com/json-iterator/go"
 )
@@ -32,9 +31,9 @@ type ApplicationData struct {
 	FlowInfo           *client.FlowInfo
 }
 
-type remoteExecutor struct {
-	controller         types.IofogController
-	msvc               types.Microservice
+type microserviceExecutor struct {
+	controller         IofogController
+	msvc               Microservice
 	microserviceByName map[string]*client.MicroserviceInfo
 	agentsByName       map[string]*client.AgentInfo
 	catalogByID        map[int]*client.CatalogItemInfo
@@ -45,8 +44,8 @@ type remoteExecutor struct {
 	routes             []string
 }
 
-func newRemoteExecutor(controller types.IofogController, msvc types.Microservice) *remoteExecutor {
-	exe := &remoteExecutor{
+func newMicroserviceExecutor(controller IofogController, msvc Microservice) *microserviceExecutor {
+	exe := &microserviceExecutor{
 		controller: controller,
 		msvc:       msvc,
 	}
@@ -54,9 +53,9 @@ func newRemoteExecutor(controller types.IofogController, msvc types.Microservice
 	return exe
 }
 
-// NewRemoteExecutorWithApplicationDataAndClient used by application deployment in order to reuse already initialised data
-func NewRemoteExecutorWithApplicationDataAndClient(controller types.IofogController, msvc types.Microservice, appData ApplicationData, clt *client.Client) *remoteExecutor {
-	exe := &remoteExecutor{
+// newMicroserviceExecutorWithApplicationDataAndClient used by application deployment in order to reuse already initialised data
+func newMicroserviceExecutorWithApplicationDataAndClient(controller IofogController, msvc Microservice, appData ApplicationData, clt *client.Client) *microserviceExecutor {
+	exe := &microserviceExecutor{
 		controller:         controller,
 		msvc:               msvc,
 		client:             clt,
@@ -71,14 +70,7 @@ func NewRemoteExecutorWithApplicationDataAndClient(controller types.IofogControl
 	return exe
 }
 
-func (exe *remoteExecutor) GetName() string {
-	return exe.msvc.Name
-}
-
-//
-// Deploy application using remote controller
-//
-func (exe *remoteExecutor) Execute() (err error) {
+func (exe *microserviceExecutor) execute() (err error) {
 	// Init remote resources
 	if err = exe.init(); err != nil {
 		return
@@ -90,13 +82,13 @@ func (exe *remoteExecutor) Execute() (err error) {
 	}
 
 	// Deploy microservice
-	if _, err = exe.Deploy(); err != nil {
+	if _, err = exe.deploy(); err != nil {
 		return
 	}
 	return nil
 }
 
-func (exe *remoteExecutor) init() (err error) {
+func (exe *microserviceExecutor) init() (err error) {
 	if exe.controller.Token != "" {
 		exe.client, err = client.NewWithToken(exe.controller.Endpoint, exe.controller.Token)
 	} else {
@@ -106,7 +98,7 @@ func (exe *remoteExecutor) init() (err error) {
 		return
 	}
 	if exe.msvc.Flow == nil {
-		return types.NewInputError("You must specify an application in order to deploy a microservice")
+		return NewInputError("You must specify an application in order to deploy a microservice")
 	}
 	flowList, err := exe.client.GetAllFlows()
 	if err != nil {
@@ -118,7 +110,7 @@ func (exe *remoteExecutor) init() (err error) {
 		}
 	}
 	if exe.flowInfo == nil {
-		return types.NewInputError(fmt.Sprintf("Could not find application [%s]", *exe.msvc.Flow))
+		return NewInputError(fmt.Sprintf("Could not find application [%s]", *exe.msvc.Flow))
 	}
 	listMsvcs, err := exe.client.GetMicroservicesPerFlow(exe.flowInfo.ID)
 	if err != nil {
@@ -132,7 +124,7 @@ func (exe *remoteExecutor) init() (err error) {
 			if exe.msvc.UUID == "" {
 				exe.msvc.UUID = listMsvcs.Microservices[i].UUID
 			} else if exe.msvc.UUID != listMsvcs.Microservices[i].UUID {
-				return types.NewConflictError(fmt.Sprintf("Cannot deploy microservice, there is a UUID mismatch. Controller UUID [%s], YAML UUID [%s]", listMsvcs.Microservices[i].UUID, exe.msvc.UUID))
+				return NewConflictError(fmt.Sprintf("Cannot deploy microservice, there is a UUID mismatch. Controller UUID [%s], YAML UUID [%s]", listMsvcs.Microservices[i].UUID, exe.msvc.UUID))
 			}
 		}
 	}
@@ -168,7 +160,7 @@ func (exe *remoteExecutor) init() (err error) {
 	return
 }
 
-func (exe *remoteExecutor) validate() error {
+func (exe *microserviceExecutor) validate() error {
 	// Validate routes
 	routes, err := validateRoutes(exe.msvc.Routes, exe.microserviceByName)
 	if err != nil {
@@ -178,7 +170,7 @@ func (exe *remoteExecutor) validate() error {
 	exe.routes = routes
 
 	// Validate microservice
-	if err := ValidateMicroservice(exe.msvc, exe.agentsByName, exe.catalogByID, exe.registryByID); err != nil {
+	if err := validateMicroservice(exe.msvc, exe.agentsByName, exe.catalogByID, exe.registryByID); err != nil {
 		return err
 	}
 
@@ -186,19 +178,19 @@ func (exe *remoteExecutor) validate() error {
 	if exe.msvc.UUID != "" {
 		existingMsvc := exe.microserviceByName[exe.msvc.Name]
 		if exe.msvc.Images.CatalogID != 0 && exe.msvc.Images.CatalogID != existingMsvc.CatalogItemID {
-			return types.NewInputError(fmt.Sprintf("Cannot update a microservice catalog item"))
+			return NewInputError(fmt.Sprintf("Cannot update a microservice catalog item"))
 		}
 		if exe.flowInfo != nil && exe.flowInfo.ID != existingMsvc.FlowID {
-			return types.NewInputError(fmt.Sprintf("Cannot update a microservice application"))
+			return NewInputError(fmt.Sprintf("Cannot update a microservice application"))
 		}
 	}
 	// TODO: Check if microservice already exists (Will fail on API call)
 	return nil
 }
 
-func (exe *remoteExecutor) Deploy() (newMsvc *client.MicroserviceInfo, err error) {
+func (exe *microserviceExecutor) deploy() (newMsvc *client.MicroserviceInfo, err error) {
 	// Get catalog item
-	catalogItem, err := SetUpCatalogItem(&exe.msvc, exe.catalogByID, exe.catalogByName, exe.client)
+	catalogItem, err := setUpCatalogItem(&exe.msvc, exe.catalogByID, exe.catalogByName, exe.client)
 	if err != nil {
 		return nil, err
 	}
@@ -210,7 +202,7 @@ func (exe *remoteExecutor) Deploy() (newMsvc *client.MicroserviceInfo, err error
 	// Get registry
 
 	// Configure agent
-	agent, err := ConfigureAgent(&exe.msvc, exe.agentsByName[exe.msvc.Agent.Name], exe.client)
+	agent, err := configureAgent(&exe.msvc, exe.agentsByName[exe.msvc.Agent.Name], exe.client)
 	if err != nil {
 		return nil, err
 	}
@@ -241,7 +233,7 @@ func (exe *remoteExecutor) Deploy() (newMsvc *client.MicroserviceInfo, err error
 	return exe.create(config, agent.UUID, catalogItemID, registryID)
 }
 
-func (exe *remoteExecutor) create(config, agentUUID string, catalogID, registryID int) (newMsvc *client.MicroserviceInfo, err error) {
+func (exe *microserviceExecutor) create(config, agentUUID string, catalogID, registryID int) (newMsvc *client.MicroserviceInfo, err error) {
 	images := []client.CatalogImage{
 		{ContainerImage: exe.msvc.Images.X86, AgentTypeID: client.AgentTypeAgentTypeIDDict["x86"]},
 		{ContainerImage: exe.msvc.Images.ARM, AgentTypeID: client.AgentTypeAgentTypeIDDict["arm"]},
@@ -270,7 +262,7 @@ func (exe *remoteExecutor) create(config, agentUUID string, catalogID, registryI
 	})
 }
 
-func (exe *remoteExecutor) update(config, agentUUID string, catalogID, registryID int) (newMsvc *client.MicroserviceInfo, err error) {
+func (exe *microserviceExecutor) update(config, agentUUID string, catalogID, registryID int) (newMsvc *client.MicroserviceInfo, err error) {
 	images := []client.CatalogImage{
 		{ContainerImage: exe.msvc.Images.X86, AgentTypeID: client.AgentTypeAgentTypeIDDict["x86"]},
 		{ContainerImage: exe.msvc.Images.ARM, AgentTypeID: client.AgentTypeAgentTypeIDDict["arm"]},
@@ -291,14 +283,14 @@ func (exe *remoteExecutor) update(config, agentUUID string, catalogID, registryI
 	})
 }
 
-func mapPorts(in []types.MicroservicePortMapping) (out []client.MicroservicePortMapping) {
+func mapPorts(in []MicroservicePortMapping) (out []client.MicroservicePortMapping) {
 	for _, port := range in {
 		out = append(out, client.MicroservicePortMapping(port))
 	}
 	return
 }
 
-func mapVolumes(in *[]types.MicroserviceVolumeMapping) *[]client.MicroserviceVolumeMapping {
+func mapVolumes(in *[]MicroserviceVolumeMapping) *[]client.MicroserviceVolumeMapping {
 	if in == nil {
 		return nil
 	}
@@ -310,7 +302,7 @@ func mapVolumes(in *[]types.MicroserviceVolumeMapping) *[]client.MicroserviceVol
 	return &out
 }
 
-func mapEnvs(in *[]types.MicroserviceEnvironment) *[]client.MicroserviceEnvironment {
+func mapEnvs(in *[]MicroserviceEnvironment) *[]client.MicroserviceEnvironment {
 	if in == nil {
 		return nil
 	}

@@ -11,13 +11,14 @@
  *
  */
 
-package deploymicroservice
+package apps
 
-import (
-	types "github.com/eclipse-iofog/iofog-go-sdk/pkg/apps"
-)
+func DeployApplication(controller IofogController, application Application) error {
+	exe := newApplicationExecutor(controller, application)
+	return exe.execute()
+}
 
-func Execute(controller types.IofogController, microservice types.Microservice) error {
-	exe := newRemoteExecutor(controller, microservice)
-	return exe.Execute()
+func DeployMicroservice(controller IofogController, microservice Microservice) error {
+	exe := newMicroserviceExecutor(controller, microservice)
+	return exe.execute()
 }

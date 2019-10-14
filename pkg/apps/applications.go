@@ -11,13 +11,11 @@
  *
  */
 
-package deployapplication
+package apps
 
 import (
 	"fmt"
 
-	types "github.com/eclipse-iofog/iofog-go-sdk/pkg/apps"
-	deploymicroservice "github.com/eclipse-iofog/iofog-go-sdk/pkg/apps/microservice"
 	"github.com/eclipse-iofog/iofog-go-sdk/pkg/client"
 )
 
@@ -26,9 +24,9 @@ type iofogUser struct {
 	password string
 }
 
-type remoteExecutor struct {
-	controller         types.IofogController
-	app                types.Application
+type applicationExecutor struct {
+	controller         IofogController
+	app                Application
 	microserviceByName map[string]*client.MicroserviceInfo
 	client             *client.Client
 	flowInfo           *client.FlowInfo
@@ -38,7 +36,7 @@ type remoteExecutor struct {
 	registryByID       map[int]*client.RegistryInfo
 }
 
-func microserviceArrayToMap(a []types.Microservice) (result map[string]*client.MicroserviceInfo) {
+func microserviceArrayToClientMap(a []Microservice) (result map[string]*client.MicroserviceInfo) {
 	result = make(map[string]*client.MicroserviceInfo)
 	for i := 0; i < len(a); i++ {
 		// No need to fill information, we only need to know if the name exists
@@ -47,24 +45,17 @@ func microserviceArrayToMap(a []types.Microservice) (result map[string]*client.M
 	return
 }
 
-func newRemoteExecutor(controller types.IofogController, app types.Application) *remoteExecutor {
-	exe := &remoteExecutor{
+func newApplicationExecutor(controller IofogController, app Application) *applicationExecutor {
+	exe := &applicationExecutor{
 		controller:         controller,
 		app:                app,
-		microserviceByName: microserviceArrayToMap(app.Microservices),
+		microserviceByName: microserviceArrayToClientMap(app.Microservices),
 	}
 
 	return exe
 }
 
-func (exe *remoteExecutor) GetName() string {
-	return exe.app.Name
-}
-
-//
-// Deploy application using remote controller
-//
-func (exe *remoteExecutor) Execute() (err error) {
+func (exe *applicationExecutor) execute() (err error) {
 	// Init remote resources
 	if err = exe.init(); err != nil {
 		return
@@ -82,7 +73,7 @@ func (exe *remoteExecutor) Execute() (err error) {
 	return nil
 }
 
-func (exe *remoteExecutor) init() (err error) {
+func (exe *applicationExecutor) init() (err error) {
 	if exe.controller.Token != "" {
 		exe.client, err = client.NewWithToken(exe.controller.Endpoint, exe.controller.Token)
 	} else {
@@ -137,20 +128,20 @@ func (exe *remoteExecutor) init() (err error) {
 	return
 }
 
-func (exe *remoteExecutor) validate() (err error) {
+func (exe *applicationExecutor) validate() (err error) {
 	// Validate routes
 	for _, route := range exe.app.Routes {
 		if _, foundFrom := exe.microserviceByName[route.From]; !foundFrom {
-			return types.NewNotFoundError(fmt.Sprintf("Could not find origin microservice for the route %v", route))
+			return NewNotFoundError(fmt.Sprintf("Could not find origin microservice for the route %v", route))
 		}
 		if _, foundTo := exe.microserviceByName[route.To]; !foundTo {
-			return types.NewNotFoundError(fmt.Sprintf("Could not find destination microservice for the route %v", route))
+			return NewNotFoundError(fmt.Sprintf("Could not find destination microservice for the route %v", route))
 		}
 	}
 
 	// Validate microservice
 	for _, msvc := range exe.app.Microservices {
-		if err = deploymicroservice.ValidateMicroservice(msvc, exe.agentsByName, exe.catalogByID, exe.registryByID); err != nil {
+		if err = validateMicroservice(msvc, exe.agentsByName, exe.catalogByID, exe.registryByID); err != nil {
 			return
 		}
 	}
@@ -159,7 +150,7 @@ func (exe *remoteExecutor) validate() (err error) {
 	return nil
 }
 
-func (exe *remoteExecutor) createRoutes(microserviceByName map[string]*client.MicroserviceInfo) (err error) {
+func (exe *applicationExecutor) createRoutes(microserviceByName map[string]*client.MicroserviceInfo) (err error) {
 	for _, route := range exe.app.Routes {
 		fromMsvc, _ := microserviceByName[route.From]
 		toMsvc, _ := microserviceByName[route.To]
@@ -170,7 +161,7 @@ func (exe *remoteExecutor) createRoutes(microserviceByName map[string]*client.Mi
 	return nil
 }
 
-func (exe *remoteExecutor) update() (err error) {
+func (exe *applicationExecutor) update() (err error) {
 	description := fmt.Sprintf("Flow for application: %s", exe.app.Name)
 	// Update and stop flow
 	active := false
@@ -189,7 +180,7 @@ func (exe *remoteExecutor) update() (err error) {
 		existingMicroservicesPerName[listMsvcs.Microservices[idx].Name] = &listMsvcs.Microservices[idx]
 	}
 
-	yamlMicroservicesPerName := make(map[string]*types.Microservice)
+	yamlMicroservicesPerName := make(map[string]*Microservice)
 	for idx := range exe.app.Microservices {
 		// Set flow
 		exe.app.Microservices[idx].Flow = &exe.app.Name
@@ -216,10 +207,10 @@ func (exe *remoteExecutor) update() (err error) {
 	for _, msvc := range yamlMicroservicesPerName {
 		// Force deletion of all routes
 		msvc.Routes = []string{}
-		msvcExecutor := deploymicroservice.NewRemoteExecutorWithApplicationDataAndClient(
+		msvcExecutor := newMicroserviceExecutorWithApplicationDataAndClient(
 			exe.controller,
 			*msvc,
-			deploymicroservice.ApplicationData{
+			ApplicationData{
 				MicroserviceByName: existingMicroservicesPerName,
 				AgentsByName:       exe.agentsByName,
 				CatalogByID:        exe.catalogByID,
@@ -229,7 +220,7 @@ func (exe *remoteExecutor) update() (err error) {
 			},
 			exe.client,
 		)
-		newMsvc, err := msvcExecutor.Deploy()
+		newMsvc, err := msvcExecutor.deploy()
 		if err != nil {
 			return err
 		}
@@ -240,7 +231,7 @@ func (exe *remoteExecutor) update() (err error) {
 	return exe.createRoutes(existingMicroservicesPerName)
 }
 
-func (exe *remoteExecutor) create() (err error) {
+func (exe *applicationExecutor) create() (err error) {
 	description := fmt.Sprintf("Flow for application: %s", exe.app.Name)
 	// Create flow
 	flow, err := exe.client.CreateFlow(exe.app.Name, description)
@@ -252,10 +243,10 @@ func (exe *remoteExecutor) create() (err error) {
 
 	// Create microservices
 	for _, msvc := range exe.app.Microservices {
-		msvcExecutor := deploymicroservice.NewRemoteExecutorWithApplicationDataAndClient(
+		msvcExecutor := newMicroserviceExecutorWithApplicationDataAndClient(
 			exe.controller,
 			msvc,
-			deploymicroservice.ApplicationData{
+			ApplicationData{
 				MicroserviceByName: exe.microserviceByName,
 				AgentsByName:       exe.agentsByName,
 				CatalogByID:        exe.catalogByID,
@@ -264,7 +255,7 @@ func (exe *remoteExecutor) create() (err error) {
 			},
 			exe.client,
 		)
-		newMsvc, err := msvcExecutor.Deploy()
+		newMsvc, err := msvcExecutor.deploy()
 		if err != nil {
 			return err
 		}
@@ -276,7 +267,7 @@ func (exe *remoteExecutor) create() (err error) {
 	return exe.createRoutes(exe.microserviceByName)
 }
 
-func (exe *remoteExecutor) deploy() (err error) {
+func (exe *applicationExecutor) deploy() (err error) {
 	if exe.flowInfo == nil {
 		if err = exe.create(); err != nil {
 			return err
