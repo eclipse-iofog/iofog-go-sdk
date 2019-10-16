@@ -280,6 +280,7 @@ func (exe *microserviceExecutor) update(config, agentUUID string, catalogID, reg
 		RegistryID:     &registryID,
 		Routes:         exe.routes,
 		Images:         images,
+		Rebuild:        exe.msvc.Rebuild,
 	})
 }
 

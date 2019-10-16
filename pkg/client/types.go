@@ -206,6 +206,7 @@ type MicroserviceUpdateRequest struct {
 	Routes            []string                     `json:"-"` // Routes are not valid in Controller PATCH call, need to use separate API calls
 	Env               *[]MicroserviceEnvironment   `json:"env,omitempty"`
 	Images            []CatalogImage               `json:"images"`
+	Rebuild           bool                         `json:"rebuild"`
 }
 
 type MicroserviceCreateResponse struct {

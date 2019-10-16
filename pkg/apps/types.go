@@ -89,6 +89,7 @@ type Microservice struct {
 	Routes         []string                     `yaml:"routes,omitempty" json:"routes,omitempty"`
 	Flow           *string                      `yaml:"application,omitempty" json:"application,omitempty"`
 	Created        string                       `yaml:"created,omitempty" json:"created,omitempty"`
+	Rebuild        bool                         `yaml:"rebuild,omitempty" json:"rebuild,omitempty"`
 }
 
 type NestedMap map[string]interface{}
