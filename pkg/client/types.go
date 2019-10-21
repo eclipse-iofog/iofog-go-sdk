@@ -308,30 +308,30 @@ type AgentInfo struct {
 }
 
 type AgentConfiguration struct {
-	DockerURL                 *string  `json:"dockerUrl,omitempty"`
-	DiskLimit                 *int64   `json:"diskLimit,omitempty"`
-	DiskDirectory             *string  `json:"diskDirectory,omitempty"`
-	MemoryLimit               *int64   `json:"memoryLimit,omitempty"`
-	CPULimit                  *int64   `json:"cpuLimit,omitempty"`
-	LogLimit                  *int64   `json:"logLimit,omitempty"`
-	LogDirectory              *string  `json:"logDirectory,omitempty"`
-	LogFileCount              *int64   `json:"logFileCount,omitempty"`
-	StatusFrequency           *float64 `json:"statusFrequency,omitempty"`
-	ChangeFrequency           *float64 `json:"changeFrequency,omitempty"`
-	DeviceScanFrequency       *float64 `json:"deviceScanFrequency,omitempty"`
-	BluetoothEnabled          *bool    `json:"bluetoothEnabled,omitempty"`
-	WatchdogEnabled           *bool    `json:"watchdogEnabled,omitempty"`
-	AbstractedHardwareEnabled *bool    `json:"abstractedHardwareEnabled,omitempty"`
+	DockerURL                 *string  `json:"dockerUrl,omitempty" yaml:"dockerURL"`
+	DiskLimit                 *int64   `json:"diskLimit,omitempty" yaml:"diskLimit"`
+	DiskDirectory             *string  `json:"diskDirectory,omitempty" yaml:"diskDirectory"`
+	MemoryLimit               *int64   `json:"memoryLimit,omitempty" yaml:"memoryLimit"`
+	CPULimit                  *int64   `json:"cpuLimit,omitempty" yaml:"CPULimit"`
+	LogLimit                  *int64   `json:"logLimit,omitempty" yaml:"logLimit"`
+	LogDirectory              *string  `json:"logDirectory,omitempty" yaml:"logDirectory"`
+	LogFileCount              *int64   `json:"logFileCount,omitempty" yaml:"logFileCount"`
+	StatusFrequency           *float64 `json:"statusFrequency,omitempty" yaml:"statusFrequency"`
+	ChangeFrequency           *float64 `json:"changeFrequency,omitempty" yaml:"changeFrequency"`
+	DeviceScanFrequency       *float64 `json:"deviceScanFrequency,omitempty" yaml:"deviceScanFrequency"`
+	BluetoothEnabled          *bool    `json:"bluetoothEnabled,omitempty" yaml:"bluetoothEnabled"`
+	WatchdogEnabled           *bool    `json:"watchdogEnabled,omitempty" yaml:"watchdogEnabled"`
+	AbstractedHardwareEnabled *bool    `json:"abstractedHardwareEnabled,omitempty" yaml:"abstractedHardwareEnabled"`
 }
 
 type AgentUpdateRequest struct {
 	UUID        string  `json:"-"`
-	Name        string  `json:"name,omitempty"`
-	Location    string  `json:"location,omitempty"`
-	Latitude    float64 `json:"latitude,omitempty"`
-	Longitude   float64 `json:"longitude,omitempty"`
-	Description string  `json:"description,omitempty"`
-	FogType     int64   `json:"fogType,omitempty"`
+	Name        string  `json:"name,omitempty" yaml:"name"`
+	Location    string  `json:"location,omitempty" yaml:"location"`
+	Latitude    float64 `json:"latitude,omitempty" yaml:"latitude"`
+	Longitude   float64 `json:"longitude,omitempty" yaml:"longitude"`
+	Description string  `json:"description,omitempty" yaml:"description"`
+	FogType     int64   `json:"fogType,omitempty" yaml:"agentType"`
 	AgentConfiguration
 }
 
