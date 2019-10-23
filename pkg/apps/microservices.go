@@ -100,14 +100,9 @@ func (exe *microserviceExecutor) init() (err error) {
 	if exe.msvc.Flow == nil {
 		return NewInputError("You must specify an application in order to deploy a microservice")
 	}
-	flowList, err := exe.client.GetAllFlows()
+	exe.flowInfo, err = exe.client.GetFlowByName(*exe.msvc.Flow)
 	if err != nil {
-		return
-	}
-	for _, flow := range flowList.Flows {
-		if flow.Name == *exe.msvc.Flow {
-			exe.flowInfo = &flow
-		}
+		return err
 	}
 	if exe.flowInfo == nil {
 		return NewInputError(fmt.Sprintf("Could not find application [%s]", *exe.msvc.Flow))
