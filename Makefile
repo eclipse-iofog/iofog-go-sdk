@@ -18,8 +18,12 @@ export GOARCH ?= amd64
 GOLANG_VERSION = 1.12
 GOFILES_NOVENDOR = $(shell find . -type f -name '*.go' -not -path "./vendor/*" -not -path "./client/*")
 
+.PHONY: init
+init: ## Init git repository
+	@cp gitHooks/* .git/hooks/
+
 .PHONY: all
-all: dep test## Get deps and run tests
+all: dep gen test## Get deps and run tests
 
 .PHONY: clean
 clean: ## Clean the working area and the project
@@ -29,6 +33,11 @@ clean: ## Clean the working area and the project
 .PHONY: dep
 dep: ## Install dependencies
 	@dep ensure -v -vendor-only
+
+.PHONY: gen
+gen: ## Generate code
+	@PKGS=$$(go list ./pkg/apps  | paste -sd' ' -); \
+	deepcopy-gen -i $$(echo $$PKGS | sed 's/ /,/g') -O zz_generated
 
 .PHONY: fmt
 fmt: ## Format the source

@@ -50,12 +50,22 @@ func NewAndLogin(endpoint, email, password string) (clt *Client, err error) {
 	return
 }
 
+func NewWithToken(endpoint, token string) (clt *Client, err error) {
+	clt = New(endpoint)
+	clt.SetAccessToken(token)
+	return
+}
+
 func (clt *Client) GetEndpoint() string {
 	return clt.endpoint
 }
 
 func (clt *Client) GetAccessToken() string {
 	return clt.accessToken
+}
+
+func (clt *Client) SetAccessToken(token string) {
+	clt.accessToken = token
 }
 
 func (clt *Client) makeRequestUrl(url string) string {

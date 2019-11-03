@@ -23,6 +23,12 @@ if [ -z $(command -v dep) ]; then
     go get -u github.com/golang/dep/cmd/dep
 fi
 
+# Is gengo installed?
+if [ -z $(command -v deepcopy-gen) ]; then
+    echo " Attempting to install 'gengo'"
+    go get k8s.io/gengo
+fi
+
 # Is go-junit-report installed?
 if [ -z $(command -v go-junit-report) ]; then
     echo " Attempting to install 'go-junit-report'"
