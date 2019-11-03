@@ -26,7 +26,7 @@ fi
 # Is gengo installed?
 if [ -z $(command -v deepcopy-gen) ]; then
     echo " Attempting to install 'gengo'"
-    go get k8s.io/gengo
+    go get -u k8s.io/gengo
 fi
 
 # Is go-junit-report installed?
