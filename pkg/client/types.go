@@ -265,7 +265,7 @@ type AgentInfo struct {
 	Latitude                  float64 `json:"latitude" yaml:"latitude"`
 	Longitude                 float64 `json:"longitude" yaml:"longitude"`
 	Description               string  `json:"description" yaml:"description"`
-	DockerURL                 string  `json:"dockerURL" yaml:"dockerURL"`
+	DockerURL                 string  `json:"dockerUrl" yaml:"dockerUrl"`
 	DiskLimit                 int64   `json:"diskLimit" yaml:"diskLimit"`
 	DiskDirectory             string  `json:"diskDirectory" yaml:"diskDirectory"`
 	MemoryLimit               int64   `json:"memoryLimit" yaml:"memoryLimit"`
@@ -305,7 +305,7 @@ type AgentInfo struct {
 	IsReadyToUpgrade          bool    `json:"isReadyToUpgrade" yaml:"isReadyToUpgrade"`
 	IsReadyToRollback         bool    `json:"isReadyToRollback" yaml:"isReadyToRollback"`
 	Tunnel                    string  `json:"tunnel" yaml:"tunnel"`
-	FogType                   int     `json:"fogTypeId" yaml:"fogTypeID"`
+	FogType                   int     `json:"fogTypeId" yaml:"fogTypeId"`
 }
 
 type AgentConfiguration struct {
