@@ -293,7 +293,7 @@ type AgentInfo struct {
 	MicroserviceStatus        string  `json:"microserviceStatus" yaml:"microserviceStatus"`
 	RepositoryCount           int64   `json:"repositoryCount" yaml:"repositoryCount"`
 	RepositoryStatus          string  `json:"repositoryStatus" yaml:"repositoryStatus"`
-	LastStatusTimeMsUTC       int64   `json:"lastStatusTime" yaml:"LastStatusTime"`
+	LastStatusTimeMsUTC       int64   `json:"lastStatusTime" yaml:"lastStatusTime"`
 	IPAddress                 string  `json:"ipAddress" yaml:"ipAddress"`
 	IPAddressExternal         string  `json:"ipAddressExternal" yaml:"ipAddressExternal"`
 	ProcessedMessaged         int64   `json:"processedMessages" yaml:"ProcessedMessages"`
@@ -305,7 +305,7 @@ type AgentInfo struct {
 	IsReadyToUpgrade          bool    `json:"isReadyToUpgrade" yaml:"isReadyToUpgrade"`
 	IsReadyToRollback         bool    `json:"isReadyToRollback" yaml:"isReadyToRollback"`
 	Tunnel                    string  `json:"tunnel" yaml:"tunnel"`
-	FogType                   int     `json:"fogTypeId" yaml:"fogTypeId"`
+	FogType                   int     `json:"fogTypeId" yaml:"fogTypeID"`
 }
 
 type AgentConfiguration struct {
@@ -313,7 +313,7 @@ type AgentConfiguration struct {
 	DiskLimit                 *int64   `json:"diskLimit,omitempty" yaml:"diskLimit"`
 	DiskDirectory             *string  `json:"diskDirectory,omitempty" yaml:"diskDirectory"`
 	MemoryLimit               *int64   `json:"memoryLimit,omitempty" yaml:"memoryLimit"`
-	CPULimit                  *int64   `json:"cpuLimit,omitempty" yaml:"CPULimit"`
+	CPULimit                  *int64   `json:"cpuLimit,omitempty" yaml:"cpuLimit"`
 	LogLimit                  *int64   `json:"logLimit,omitempty" yaml:"logLimit"`
 	LogDirectory              *string  `json:"logDirectory,omitempty" yaml:"logDirectory"`
 	LogFileCount              *int64   `json:"logFileCount,omitempty" yaml:"logFileCount"`
