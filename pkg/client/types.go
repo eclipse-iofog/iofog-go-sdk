@@ -309,7 +309,7 @@ type AgentInfo struct {
 }
 
 type AgentConfiguration struct {
-	DockerURL                 *string  `json:"dockerUrl,omitempty" yaml:"dockerURL"`
+	DockerURL                 *string  `json:"dockerUrl,omitempty" yaml:"dockerUrl"`
 	DiskLimit                 *int64   `json:"diskLimit,omitempty" yaml:"diskLimit"`
 	DiskDirectory             *string  `json:"diskDirectory,omitempty" yaml:"diskDirectory"`
 	MemoryLimit               *int64   `json:"memoryLimit,omitempty" yaml:"memoryLimit"`
