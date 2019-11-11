@@ -265,7 +265,7 @@ type AgentInfo struct {
 	Latitude                  float64 `json:"latitude" yaml:"latitude"`
 	Longitude                 float64 `json:"longitude" yaml:"longitude"`
 	Description               string  `json:"description" yaml:"description"`
-	DockerURL                 string  `json:"dockerURL" yaml:"dockerURL"`
+	DockerURL                 string  `json:"dockerUrl" yaml:"dockerUrl"`
 	DiskLimit                 int64   `json:"diskLimit" yaml:"diskLimit"`
 	DiskDirectory             string  `json:"diskDirectory" yaml:"diskDirectory"`
 	MemoryLimit               int64   `json:"memoryLimit" yaml:"memoryLimit"`
@@ -293,7 +293,7 @@ type AgentInfo struct {
 	MicroserviceStatus        string  `json:"microserviceStatus" yaml:"microserviceStatus"`
 	RepositoryCount           int64   `json:"repositoryCount" yaml:"repositoryCount"`
 	RepositoryStatus          string  `json:"repositoryStatus" yaml:"repositoryStatus"`
-	LastStatusTimeMsUTC       int64   `json:"lastStatusTime" yaml:"LastStatusTime"`
+	LastStatusTimeMsUTC       int64   `json:"lastStatusTime" yaml:"lastStatusTime"`
 	IPAddress                 string  `json:"ipAddress" yaml:"ipAddress"`
 	IPAddressExternal         string  `json:"ipAddressExternal" yaml:"ipAddressExternal"`
 	ProcessedMessaged         int64   `json:"processedMessages" yaml:"ProcessedMessages"`
@@ -309,11 +309,11 @@ type AgentInfo struct {
 }
 
 type AgentConfiguration struct {
-	DockerURL                 *string  `json:"dockerUrl,omitempty" yaml:"dockerURL"`
+	DockerURL                 *string  `json:"dockerUrl,omitempty" yaml:"dockerUrl"`
 	DiskLimit                 *int64   `json:"diskLimit,omitempty" yaml:"diskLimit"`
 	DiskDirectory             *string  `json:"diskDirectory,omitempty" yaml:"diskDirectory"`
 	MemoryLimit               *int64   `json:"memoryLimit,omitempty" yaml:"memoryLimit"`
-	CPULimit                  *int64   `json:"cpuLimit,omitempty" yaml:"CPULimit"`
+	CPULimit                  *int64   `json:"cpuLimit,omitempty" yaml:"cpuLimit"`
 	LogLimit                  *int64   `json:"logLimit,omitempty" yaml:"logLimit"`
 	LogDirectory              *string  `json:"logDirectory,omitempty" yaml:"logDirectory"`
 	LogFileCount              *int64   `json:"logFileCount,omitempty" yaml:"logFileCount"`

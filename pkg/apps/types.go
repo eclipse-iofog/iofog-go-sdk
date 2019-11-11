@@ -49,7 +49,7 @@ type Header struct {
 // CatalogItem contains information about a catalog item
 // +k8s:deepcopy-gen=true
 type CatalogItem struct {
-	ID            int    `yaml:"ID" json:"ID"`
+	ID            int    `yaml:"id" json:"id"`
 	X86           string `yaml:"x86" json:"x86"`
 	ARM           string `yaml:"arm" json:"arm"`
 	Registry      string `yaml:"registry" json:"registry"`
@@ -61,7 +61,7 @@ type CatalogItem struct {
 // MicroserviceImages contains information about the images for a microservice
 // +k8s:deepcopy-gen=true
 type MicroserviceImages struct {
-	CatalogID int    `yaml:"catalogID" json:"catalogID"`
+	CatalogID int    `yaml:"catalogId" json:"catalogId"`
 	X86       string `yaml:"x86" json:"x86"`
 	ARM       string `yaml:"arm" json:"arm"`
 	Registry  string `yaml:"registry" json:"registry"`
@@ -169,7 +169,7 @@ type Application struct {
 	Name          string         `yaml:"name" json:"name"`
 	Microservices []Microservice `yaml:"microservices" json:"microservices"`
 	Routes        []Route        `yaml:"routes" json:"routes"`
-	ID            int            `yaml:"ID" json:"ID"`
+	ID            int            `yaml:"id" json:"id"`
 }
 
 // Applications is a list of applications
