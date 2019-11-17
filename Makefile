@@ -41,7 +41,7 @@ fmt: ## Format the source
 test: ## Run unit tests
 	mkdir -p $(REPORTS_DIR)
 	rm -f $(REPORTS_DIR)/*
-	set -o pipefail; go list ./... | xargs -n1 go test -ldflags "$(LDFLAGS)" -v -parallel 1 2>&1 | tee $(REPORTS_DIR)/$(TEST_RESULTS)
+	set -o pipefail; go list ./... | grep iofog-go-sdk | xargs -n1 go test -ldflags "$(LDFLAGS)" -v -parallel 1 2>&1 | tee $(REPORTS_DIR)/$(TEST_RESULTS)
 	cat $(REPORTS_DIR)/$(TEST_RESULTS) | go-junit-report -set-exit-code > $(REPORTS_DIR)/$(TEST_REPORT)
 
 .PHONY: list
