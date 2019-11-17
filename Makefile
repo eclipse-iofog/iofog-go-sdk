@@ -5,11 +5,9 @@ OS = $(shell uname -s | tr '[:upper:]' '[:lower:]')
 VERSION ?= $(shell git tag | tail -1 | sed "s|v||g")-dev
 COMMIT ?= $(shell git rev-parse HEAD 2>/dev/null)
 BUILD_DATE ?= $(shell date +%FT%T%z)
-PREFIX = github.com/eclipse-iofog/iofogctl/pkg/util
-LDFLAGS += -X $(PREFIX).versionNumber=$(VERSION) -X $(PREFIX).commit=$(COMMIT) -X $(PREFIX).date=$(BUILD_DATE) -X $(PREFIX).platform=$(GOOS)/$(GOARCH)
 REPORTS_DIR ?= reports
-TEST_RESULTS ?= TEST-iofogctl.txt
-TEST_REPORT ?= TEST-iofogctl.xml
+TEST_RESULTS ?= TEST-iofog-go-sdk.txt
+TEST_REPORT ?= TEST-iofog-go-sdk.xml
 
 # Go variables
 export CGO_ENABLED ?= 0
