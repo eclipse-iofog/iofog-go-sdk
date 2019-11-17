@@ -23,16 +23,12 @@ init: ## Init git repository
 	@cp gitHooks/* .git/hooks/
 
 .PHONY: all
-all: dep gen test## Get deps and run tests
+all: gen test## Generate code and run tests
 
 .PHONY: clean
 clean: ## Clean the working area and the project
 	rm -rf vendor/
 	rm -rf $(REPORTS_DIR)
-
-.PHONY: dep
-dep: ## Install dependencies
-	@dep ensure -v -vendor-only
 
 .PHONY: gen
 gen: ## Generate code
