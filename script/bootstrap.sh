@@ -17,12 +17,6 @@ if [ -z $(command -v go) ]; then
     exit 1
 fi
 
-# Is dep installed?
-if [ -z $(command -v dep) ]; then
-    echo " Attempting to install 'go dep'"
-    go get -u github.com/golang/dep/cmd/dep
-fi
-
 # Is go-junit-report installed?
 if [ -z $(command -v go-junit-report) ]; then
     echo " Attempting to install 'go-junit-report'"

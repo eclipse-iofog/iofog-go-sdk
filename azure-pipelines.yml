@@ -48,7 +48,6 @@ jobs:
 
       - script: |
           script/bootstrap.sh
-          make dep
         workingDirectory: '$(modulePath)'
         displayName: 'Bootstrap'
 
