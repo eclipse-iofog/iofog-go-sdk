@@ -44,5 +44,6 @@ jobs:
         displayName: 'Bootstrap'
 
       - script: |
+          PATH=$PATH:$(GOBIN)
           make test
         displayName: 'Run Unit Tests'
