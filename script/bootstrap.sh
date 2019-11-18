@@ -1,15 +1,11 @@
 #!/usr/bin/env sh
 #
-# bootstrap.sh will check for and install any dependencies we have for building and using iofogctl
+# bootstrap.sh will check for and install any dependencies we have for building / developing iofog-go-sdk
 #
 # Usage: ./bootstrap.sh
 #
 
 set -e
-
-#
-# All our Go related stuff
-#
 
 # Is go installed?
 if [ -z $(command -v go) ]; then
