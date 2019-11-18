@@ -13,9 +13,9 @@ trigger:
 pr: none
 
 variables:
-  GOROOT: '/usr/local/go1.12' # Go installation path
-  GOPATH: '$(system.defaultWorkingDirectory)/gopath' # Go workspace path
-  GOBIN:  '$(GOPATH)/bin' # Go binaries path
+  GOROOT: '/usr/local/go1.12'
+  GOPATH: '/tmp/go'
+  GOBIN:  '$(GOPATH)/bin'
 
 jobs:
   - job: Test
