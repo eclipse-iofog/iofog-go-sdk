@@ -10,7 +10,7 @@
  *******************************************************************************
  */
 
-package iofog_sdk_go
+package microservices
 
 import (
 	"log"

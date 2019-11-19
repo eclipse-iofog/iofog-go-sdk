@@ -8,9 +8,9 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  *******************************************************************************
-*/
+ */
 
-package iofog_sdk_go
+package microservices
 
 import (
 	"encoding/binary"
