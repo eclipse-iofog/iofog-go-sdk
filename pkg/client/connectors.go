@@ -68,6 +68,18 @@ func (clt *Client) AddConnector(request ConnectorInfo) error {
 	return err
 }
 
+func (clt *Client) UpdateConnector(request ConnectorInfo) error {
+	if !clt.isLoggedIn() {
+		return NewError("Controller client must be logged into perform Add Connector request")
+	}
+	// Send request
+	_, err := clt.doRequest("PUT", "/connector", request)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (clt *Client) isLoggedIn() bool {
 	return clt.accessToken != ""
 }
