@@ -30,8 +30,8 @@ clean: ## Clean the working area and the project
 
 .PHONY: gen
 gen: ## Generate code
-	@PKGS=$$(go list ./pkg/apps  | paste -sd' ' -); \
-	deepcopy-gen -i $$(echo $$PKGS | sed 's/ /,/g') -O zz_generated
+	@PKGS=$$(go list -mod=vendor ./pkg/apps  | paste -sd' ' -); \
+	deepcopy-gen -i $$(echo $$PKGS | sed 's/ /,/g') -O zz_generated --go-header-file ./vendor/k8s.io/gengo/boilerplate/boilerplate.go.txt
 
 .PHONY: fmt
 fmt: ## Format the source
@@ -41,8 +41,7 @@ fmt: ## Format the source
 test: ## Run unit tests
 	mkdir -p $(REPORTS_DIR)
 	rm -f $(REPORTS_DIR)/*
-	set -o pipefail; go list ./... | xargs -n1 go test -ldflags "$(LDFLAGS)" -v -parallel 1 2>&1 | tee $(REPORTS_DIR)/$(TEST_RESULTS)
-	cat $(REPORTS_DIR)/$(TEST_RESULTS) | go-junit-report -set-exit-code > $(REPORTS_DIR)/$(TEST_REPORT)
+	set -o pipefail; go list -mod=vendor ./... | xargs -n1 go test -mod=vendor -ldflags "$(LDFLAGS)" -v -parallel 1 2>&1 | tee $(REPORTS_DIR)/$(TEST_RESULTS)
 
 .PHONY: list
 list: ## List all make targets
