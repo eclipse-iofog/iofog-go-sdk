@@ -20,12 +20,18 @@ GOFILES_NOVENDOR = $(shell find . -type f -name '*.go' -not -path "./vendor/*" -
 init: ## Init git repository
 	@cp gitHooks/* .git/hooks/
 
+.PHONY: vendor
+vendor: # Vendor all deps
+	@go mod vendor
+	@for dep in golang.org/x/tools k8s.io/gengo k8s.io/klog github.com/spf13; do \
+		git checkout -- vendor/$$dep; \
+	done \
+
 .PHONY: all
 all: gen test## Generate code and run tests
 
 .PHONY: clean
 clean: ## Clean the working area and the project
-	rm -rf vendor/
 	rm -rf $(REPORTS_DIR)
 
 .PHONY: gen
