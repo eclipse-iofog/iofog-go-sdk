@@ -216,11 +216,6 @@ func (in *Microservice) DeepCopyInto(out *Microservice) {
 	}
 	in.Container.DeepCopyInto(&out.Container)
 	out.Config = in.Config.DeepCopy()
-	if in.Ports != nil {
-		in, out := &in.Ports, &out.Ports
-		*out = make([]MicroservicePortMapping, len(*in))
-		copy(*out, *in)
-	}
 	if in.Routes != nil {
 		in, out := &in.Routes, &out.Routes
 		*out = make([]string, len(*in))
@@ -286,6 +281,11 @@ func (in *MicroserviceContainer) DeepCopyInto(out *MicroserviceContainer) {
 			*out = make([]MicroserviceEnvironment, len(*in))
 			copy(*out, *in)
 		}
+	}
+	if in.Ports != nil {
+		in, out := &in.Ports, &out.Ports
+		*out = make([]MicroservicePortMapping, len(*in))
+		copy(*out, *in)
 	}
 	return
 }
