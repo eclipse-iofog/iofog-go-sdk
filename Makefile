@@ -36,10 +36,11 @@ clean: ## Clean the working area and the project
 
 .PHONY: gen
 gen: ## Generate code
-	@cp -r pkg/apps $$GOPATH/src/github.com/eclipse-iofog/iofog-go-sdk
 	@PKGS=$$(go list -mod=vendor ./pkg/apps  | paste -sd' ' -); \
-	deepcopy-gen -i $$(echo $$PKGS | sed 's/ /,/g') -O zz_generated --go-header-file ./vendor/k8s.io/gengo/boilerplate/boilerplate.go.txt
-	@cp $$GOPATH/src/github.com/eclipse-iofog/iofog-go-sdk/pkg/apps/zz_generated.go pkg/apps
+	deepcopy-gen -i $$(echo $$PKGS | sed 's/ /,/g') -o /tmp/deepcopy --go-header-file ./vendor/k8s.io/gengo/boilerplate/boilerplate.go.txt
+	@cp /tmp/deepcopy/github.com/eclipse-iofog/iofog-go-sdk/pkg/apps/deepcopy_generated.go pkg/apps/
+	@rm -rf /tmp/deepcopy
+
 
 .PHONY: fmt
 fmt: ## Format the source
