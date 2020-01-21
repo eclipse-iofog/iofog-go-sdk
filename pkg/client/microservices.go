@@ -148,19 +148,19 @@ func (clt *Client) updateMicroservicePortMapping(UUID string, newPortMappings []
 	currentPortMappingMap := portMappingsToMap(currentPortMappings.PortMappings)
 	newPortMappingMap := portMappingsToMap(newPortMappings)
 
-	// Create missing mappings
-	for _, newMapping := range newPortMappings {
-		if currentExternal, found := currentPortMappingMap[newMapping.Internal]; !found || (found && currentExternal != newMapping.External) {
-			if err = clt.CreateMicroservicePortMapping(UUID, newMapping); err != nil {
+	// Remove outdated ports
+	for _, currentMapping := range currentPortMappings.PortMappings {
+		if newExternal, found := newPortMappingMap[currentMapping.Internal]; !found || (found && newExternal != currentMapping.External) {
+			if err = clt.DeleteMicroservicePortMapping(UUID, currentMapping); err != nil {
 				return
 			}
 		}
 	}
 
-	// Remove outdated ports
-	for _, currentMapping := range currentPortMappings.PortMappings {
-		if newExternal, found := newPortMappingMap[currentMapping.Internal]; !found || (found && newExternal != currentMapping.External) {
-			if err = clt.DeleteMicroservicePortMapping(UUID, currentMapping); err != nil {
+	// Create missing mappings
+	for _, newMapping := range newPortMappings {
+		if currentExternal, found := currentPortMappingMap[newMapping.Internal]; !found || (found && currentExternal != newMapping.External) {
+			if err = clt.CreateMicroservicePortMapping(UUID, newMapping); err != nil {
 				return
 			}
 		}
