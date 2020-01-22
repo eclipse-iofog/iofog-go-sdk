@@ -248,8 +248,7 @@ type LoginResponse struct {
 }
 
 type CreateAgentRequest struct {
-	Name    string `json:"name"`
-	FogType int32  `json:"fogType"`
+	AgentUpdateRequest `json:",inline"`
 }
 
 type CreateAgentResponse struct {
