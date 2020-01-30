@@ -371,3 +371,8 @@ type ConnectorInfo struct {
 type ConnectorInfoList struct {
 	Connectors []ConnectorInfo `json:"connectors"`
 }
+
+type Router struct {
+	RouterConfig
+	Host string `json:"host"`
+}
