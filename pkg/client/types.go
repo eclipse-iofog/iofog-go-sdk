@@ -337,7 +337,7 @@ type AgentConfiguration struct {
 	IsSystem                  *bool     `json:"isSystem,omitempty" yaml:"-"` // Can't specify system agent using yaml file.
 	UpstreamRouters           *[]string `json:"upstreamRouters,omitempty" yaml:"upstreamRouters,omitempty"`
 	Host                      *string   `json:"host,omitempty" yaml:"host,omitempty"`
-	RouterConfig
+	RouterConfig              `json:",omitempty yaml:",inline,omitempty""`
 }
 
 type AgentUpdateRequest struct {
