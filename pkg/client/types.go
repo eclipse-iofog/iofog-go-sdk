@@ -313,7 +313,7 @@ type AgentInfo struct {
 	RouterMode                string    `json:"routerMode" yaml:"routerMode"`
 	NetworkRouter             *string   `json:"networkRouter,omitempty" yaml:"networkRouter,omitempty"`
 	UpstreamRouters           *[]string `json:"upstreamRouters,omitempty" yaml:"upstreamRouters,omitempty"`
-	MessagingPort             int       `json:"messagingPort,omitempty" yaml:"messagingPort,omitempty"`
+	MessagingPort             *int      `json:"messagingPort,omitempty" yaml:"messagingPort,omitempty"`
 	EdgeRouterPort            *int      `json:"edgeRouterPort,omitempty" yaml:"edgeRouterPort,omitempty"`
 	InterRouterPort           *int      `json:"interRouterPort,omitempty" yaml:"interRouterPort,omitempty"`
 }
