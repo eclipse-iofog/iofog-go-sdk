@@ -344,7 +344,7 @@ type AgentConfiguration struct {
 	UpstreamRouters           *[]string `json:"upstreamRouters,omitempty" yaml:"upstreamRouters,omitempty"`
 	NetworkRouter             *string   `json:"networkRouter,omitempty" yaml:"networkRouter,omitempty"`
 	Host                      *string   `json:"host,omitempty" yaml:"host,omitempty"`
-	RouterConfig              `json:",omitempty" yaml:",omitempty"`
+	RouterConfig              `json:",omitempty" yaml:"routerConfig,omitempty"`
 }
 
 type AgentUpdateRequest struct {
