@@ -129,9 +129,11 @@ type CatalogListResponse struct {
 // Microservices
 
 type MicroservicePortMapping struct {
-	Internal   int  `json:"internal"`
-	External   int  `json:"external"`
-	PublicMode bool `json:"publicMode"`
+	Internal int     `json:"internal"`
+	External int     `json:"external"`
+	Public   *int    `json:"public,omitempty"`
+	Host     *string `json:"host,omitempty"`
+	Protocol *string `json:"protocol,omitempty"`
 }
 
 type MicroserviceVolumeMapping struct {
