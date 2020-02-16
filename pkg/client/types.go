@@ -229,6 +229,17 @@ type MicroservicePortMappingListResponse struct {
 	PortMappings []MicroservicePortMapping `json:"ports"`
 }
 
+type MicroservicePublicPort struct {
+	MicroserviceUUID string     `json:"microserviceUuid"`
+	PublicPort       PublicPort `json:"publicPort"`
+}
+
+type PublicPort struct {
+	Protocol  string `json:"protocol"`
+	QueueName string `json:"queueName"`
+	Port      int    `json:"publicPort"`
+}
+
 // Users
 
 type User struct {
