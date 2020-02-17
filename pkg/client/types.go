@@ -236,7 +236,7 @@ type MicroservicePublicPort struct {
 
 type PublicPort struct {
 	Protocol  string `json:"protocol"`
-	QueueName string `json:"queueName"`
+	Queue     string `json:"queueName"`
 	Port      int    `json:"publicPort"`
 }
 
