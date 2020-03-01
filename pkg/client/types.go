@@ -129,9 +129,12 @@ type CatalogListResponse struct {
 // Microservices
 
 type MicroservicePortMapping struct {
-	Internal   int  `json:"internal"`
-	External   int  `json:"external"`
-	PublicMode bool `json:"publicMode"`
+	Internal   int    `json:"internal"`
+	External   int    `json:"external"`
+	Public     int    `json:"publicPort,omitempty"`
+	Host       string `json:"host,omitempty"`
+	Protocol   string `json:"protocol,omitempty"`
+	PublicLink string `json:"publicLink,omitempty"`
 }
 
 type MicroserviceVolumeMapping struct {
@@ -204,13 +207,14 @@ type MicroserviceUpdateRequest struct {
 	FlowID            *int                         `json:"flowId,omitempty"`
 	AgentUUID         *string                      `json:"iofogUuid,omitempty"`
 	UserID            *int                         `json:"userId,omitempty"`
-	RegistryID        *int                         `json:"registryId"`
+	RegistryID        *int                         `json:"registryId,omitempty"`
+	CatalogItemID     int                          `json:"catalogItemId,omitempty"`
 	Ports             []MicroservicePortMapping    `json:"-"` // Ports are not valid in Controller PATCH call, need to use separate API calls
 	Volumes           *[]MicroserviceVolumeMapping `json:"volumeMappings,omitempty"`
 	Commands          *[]string                    `json:"cmd,omitempty"`
 	Routes            []string                     `json:"-"` // Routes are not valid in Controller PATCH call, need to use separate API calls
 	Env               *[]MicroserviceEnvironment   `json:"env,omitempty"`
-	Images            []CatalogImage               `json:"images"`
+	Images            []CatalogImage               `json:"images,omitempty"`
 	Rebuild           bool                         `json:"rebuild"`
 }
 
@@ -224,6 +228,17 @@ type MicroserviceListResponse struct {
 
 type MicroservicePortMappingListResponse struct {
 	PortMappings []MicroservicePortMapping `json:"ports"`
+}
+
+type MicroservicePublicPort struct {
+	MicroserviceUUID string     `json:"microserviceUuid"`
+	PublicPort       PublicPort `json:"publicPort"`
+}
+
+type PublicPort struct {
+	Protocol string `json:"protocol"`
+	Queue    string `json:"queueName"`
+	Port     int    `json:"publicPort"`
 }
 
 // Users
@@ -366,17 +381,6 @@ type AgentListFilter struct {
 	Key       string `json:"key"`
 	Value     string `json:"value"`
 	Condition string `json:"condition"`
-}
-
-type ConnectorInfo struct {
-	IP      string `json:"publicIp"`
-	Name    string `json:"name"`
-	Domain  string `json:"domain"`
-	DevMode bool   `json:"devMode"`
-}
-
-type ConnectorInfoList struct {
-	Connectors []ConnectorInfo `json:"connectors"`
 }
 
 type Router struct {
