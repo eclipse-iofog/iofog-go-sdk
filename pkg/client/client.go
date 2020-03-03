@@ -29,7 +29,7 @@ type Client struct {
 
 type Options struct {
 	Endpoint string
-	Retries  Retries
+	Retries  *Retries
 }
 
 var apiPrefix = "/api/v3"
@@ -43,9 +43,14 @@ func New(opt Options) *Client {
 	if !strings.Contains(endpoint, ":") {
 		endpoint = endpoint + ":" + ControllerPortString
 	}
+
+	retries := GlobalRetriesPolicy
+	if opt.Retries != nil {
+		retries = *opt.Retries
+	}
 	return &Client{
 		endpoint: endpoint,
-		retries:  opt.Retries,
+		retries:  retries,
 		baseURL:  fmt.Sprintf("http://%s%s", endpoint, apiPrefix),
 	}
 }

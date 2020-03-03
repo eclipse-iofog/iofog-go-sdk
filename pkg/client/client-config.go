@@ -20,6 +20,12 @@ func SetVerbosity(verbose bool) {
 	Verbose = verbose
 }
 
+var GlobalRetriesPolicy Retries
+
+func SetGlobalRetries(retries Retries) {
+	GlobalRetriesPolicy = retries
+}
+
 type Retries struct {
 	Timeout       int
 	CustomMessage map[string]int
