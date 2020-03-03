@@ -18,7 +18,7 @@ import (
 )
 
 func TestCreation(t *testing.T) {
-	client := New("localhost:51121")
+	client := New(Options{Endpoint: "localhost:51121"})
 	if client == nil {
 		t.Error("Client pointer is nil")
 	}
