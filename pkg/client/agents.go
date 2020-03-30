@@ -140,14 +140,14 @@ func (clt *Client) DeleteAgent(UUID string) error {
 }
 
 // GetAgentByName retrieve the agent information by getting all agents then searching for the first occurance in the list
-func (clt *Client) GetAgentByName(name string) (_ *AgentInfo, err error) {
-	list, err := clt.ListAgents(ListAgentsRequest{})
+func (clt *Client) GetAgentByName(name string, system bool) (*AgentInfo, error) {
+	list, err := clt.ListAgents(ListAgentsRequest{ System: system })
 	if err != nil {
-		return
+		return nil, err
 	}
-	for _, agent := range list.Agents {
-		if agent.Name == name {
-			return &agent, nil
+	for idx := range list.Agents {
+		if list.Agents[idx].Name == name {
+			return &list.Agents[idx], nil
 		}
 	}
 	return nil, NewNotFoundError(fmt.Sprintf("Could not find agent: %s", name))
