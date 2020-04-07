@@ -49,10 +49,19 @@ func (cl *Client) WaitForLoadBalancer(namespace, name string, timeoutSeconds int
 			continue
 		}
 
+		// Check IP
 		ip = svc.Status.LoadBalancer.Ingress[0].IP
+		if ip == "" {
+			continue
+		}
+
+		// Return ip
 		watch.Stop()
 	}
 
+	if ip == "" {
+		err = errors.New("IP address is empty")
+	}
 	return
 }
 
