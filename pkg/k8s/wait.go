@@ -21,14 +21,14 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func (cl *Client) WaitForLoadBalancer(namespace, name string, timeoutSeconds int64) (ip string, err error) {
+func (cl *Client) WaitForLoadBalancer(namespace, name string, timeoutSeconds int64) (addr string, err error) {
 	// Get watch handler to observe changes to services
 	watch, err := cl.CoreV1().Services(namespace).Watch(metav1.ListOptions{TimeoutSeconds: &timeoutSeconds})
 	if err != nil {
 		return
 	}
 
-	// Wait for Services to have IPs allocated
+	// Wait for Services to have addresses allocated
 	for event := range watch.ResultChan() {
 		if event.Type == "Error" || event.Type == "Deleted" {
 			err = errors.New("Could not wait for service " + namespace + "/" + name)
@@ -49,18 +49,26 @@ func (cl *Client) WaitForLoadBalancer(namespace, name string, timeoutSeconds int
 			continue
 		}
 
-		// Check IP
-		ip = svc.Status.LoadBalancer.Ingress[0].IP
-		if ip == "" {
+		// Check addresses
+		ip := svc.Status.LoadBalancer.Ingress[0].IP
+		host := svc.Status.LoadBalancer.Ingress[0].Hostname
+		if ip != "" {
+			addr = ip
+		}
+		if host != "" {
+			addr = host
+		}
+
+		if addr == "" {
 			continue
 		}
 
-		// Return ip
+		// Return address
 		watch.Stop()
 	}
 
-	if ip == "" {
-		err = errors.New("IP address is empty")
+	if addr == "" {
+		err = errors.New("IP and Hostname values were empty")
 	}
 	return
 }
