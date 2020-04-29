@@ -13,10 +13,9 @@ trigger:
 pr: none
 
 variables:
-  GOROOT: '/usr/local/go1.12' # Go installation path
-  GOPATH: '$(system.defaultWorkingDirectory)/gopath' # Go workspace path
-  GOBIN:  '$(GOPATH)/bin' # Go binaries path
-  modulePath: '$(GOPATH)/src/github.com/$(build.repository.name)' # Path to the module's code
+  GOROOT: '/usr/local/go1.12'
+  GOPATH: '/tmp/go'
+  GOBIN:  '$(GOPATH)/bin'
 
 jobs:
   - job: Test
@@ -27,11 +26,6 @@ jobs:
       - script: |
           mkdir -p '$(GOBIN)'
           mkdir -p '$(GOPATH)/pkg'
-          mkdir -p '$(modulePath)'
-          shopt -s extglob
-          mv !(gopath) '$(modulePath)'
-          echo '##vso[task.prependpath]$(GOBIN)'
-          echo '##vso[task.prependpath]$(GOROOT)/bin'
         displayName: 'Set up the Go workspace'
 
       - task: GoTool@0
@@ -43,16 +37,13 @@ jobs:
 
       - script: |
           ./script/check_fmt.sh
-        workingDirectory: '$(modulePath)'
         displayName: 'Check Source Format'
 
       - script: |
           script/bootstrap.sh
-          make dep
-        workingDirectory: '$(modulePath)'
         displayName: 'Bootstrap'
 
       - script: |
+          PATH=$PATH:$(GOBIN)
           make test
-        workingDirectory: '$(modulePath)'
         displayName: 'Run Unit Tests'

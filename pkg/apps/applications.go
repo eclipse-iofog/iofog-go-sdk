@@ -16,7 +16,7 @@ package apps
 import (
 	"fmt"
 
-	"github.com/eclipse-iofog/iofog-go-sdk/pkg/client"
+	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
 )
 
 type iofogUser struct {
@@ -75,9 +75,9 @@ func (exe *applicationExecutor) execute() (err error) {
 
 func (exe *applicationExecutor) init() (err error) {
 	if exe.controller.Token != "" {
-		exe.client, err = client.NewWithToken(exe.controller.Endpoint, exe.controller.Token)
+		exe.client, err = client.NewWithToken(client.Options{Endpoint: exe.controller.Endpoint}, exe.controller.Token)
 	} else {
-		exe.client, err = client.NewAndLogin(exe.controller.Endpoint, exe.controller.Email, exe.controller.Password)
+		exe.client, err = client.NewAndLogin(client.Options{Endpoint: exe.controller.Endpoint}, exe.controller.Email, exe.controller.Password)
 	}
 	if err != nil {
 		return
@@ -98,7 +98,7 @@ func (exe *applicationExecutor) init() (err error) {
 
 	exe.flowInfo = flowInfo
 
-	listAgents, err := exe.client.ListAgents()
+	listAgents, err := exe.client.ListAgents(client.ListAgentsRequest{})
 	if err != nil {
 		return
 	}
@@ -140,8 +140,8 @@ func (exe *applicationExecutor) validate() (err error) {
 	}
 
 	// Validate microservice
-	for _, msvc := range exe.app.Microservices {
-		if err = validateMicroservice(msvc, exe.agentsByName, exe.catalogByID, exe.registryByID); err != nil {
+	for idx := range exe.app.Microservices {
+		if err = validateMicroservice(&exe.app.Microservices[idx], exe.agentsByName, exe.catalogByID, exe.registryByID); err != nil {
 			return
 		}
 	}

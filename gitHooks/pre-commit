@@ -10,5 +10,5 @@ make fmt
 echo "Generating code"
 make gen
 
-echo "Adding docs to the commit..."
-git add ./pkg/apps/zz_generated.go
+echo "Testing"
+make test
