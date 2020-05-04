@@ -24,7 +24,7 @@ func SetVerbosity(verbose bool) {
 
 func Verbose(msg string) {
 	if verbose {
-		fmt.Sprintf("[HTTP]: %s", msg)
+		fmt.Println(fmt.Sprintf("[HTTP]: %s", msg))
 	}
 }
 
