@@ -34,7 +34,7 @@ func httpDo(method, url string, headers map[string]string, requestBody interface
 		jsonBody = string(jsonBodyBytes)
 	}
 
-	Verbose(fmt.Printf("===> [%s] %s \nBody: %s\n", method, url, jsonBody))
+	Verbose(fmt.Sprintf("===> [%s] %s \nBody: %s\n", method, url, jsonBody))
 
 	// Instantiate request
 	request, err := http.NewRequest(method, url, strings.NewReader(jsonBody))
@@ -71,6 +71,6 @@ func httpDo(method, url string, headers map[string]string, requestBody interface
 	buf := new(bytes.Buffer)
 	buf.ReadFrom(httpResp.Body)
 	responseBody = buf.Bytes()
-	Verbose(fmt.Printf("===> Response: %s\n\n", string(responseBody)))
+	Verbose(fmt.Sprintf("===> Response: %s\n\n", string(responseBody)))
 	return
 }
