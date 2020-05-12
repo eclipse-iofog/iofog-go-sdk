@@ -74,10 +74,10 @@ func (clt *Client) UpdateRoute(route Route) (err error) {
 	}
 
 	if _, err = clt.GetRoute(route.Name); err == nil {
-		return clt.CreateRoute(route)
+		return clt.PatchRoute(route.Name, route)
 	}
 
-	return clt.PatchRoute(route.Name, route)
+	return clt.CreateRoute(route)
 }
 
 func (clt *Client) PatchRoute(name string, route Route) (err error) {
