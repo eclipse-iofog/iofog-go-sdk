@@ -28,14 +28,14 @@ vendor: # Vendor all deps
 	done \
 
 .PHONY: all
-all: fmt gen test## Generate code and run tests
+all: test## Generate code and run tests
 
 .PHONY: clean
 clean: ## Clean the working area and the project
 	rm -rf $(REPORTS_DIR)
 
 .PHONY: gen
-gen: ## Generate code
+gen: fmt ## Generate code
 	@GOFLAGS=-mod=vendor deepcopy-gen -i ./pkg/apps -o . --go-header-file ./vendor/k8s.io/gengo/boilerplate/boilerplate.go.txt
 
 .PHONY: fmt
@@ -43,7 +43,7 @@ fmt: ## Format the source
 	@gofmt -s -w $(GOFILES_NOVENDOR)
 
 .PHONY: test
-test: ## Run unit tests
+test: gen ## Run unit tests
 	mkdir -p $(REPORTS_DIR)
 	rm -f $(REPORTS_DIR)/*
 	set -o pipefail; go list -mod=vendor ./... | xargs -n1 go test -mod=vendor -ldflags "$(LDFLAGS)" -v -parallel 1 2>&1 | tee $(REPORTS_DIR)/$(TEST_RESULTS)

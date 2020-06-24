@@ -3,12 +3,5 @@
 
 set -e
 
-echo "Pre commit:"
-echo "Formatting..."
-make fmt
-
-echo "Generating code"
-make gen
-
 echo "Testing"
 make test
