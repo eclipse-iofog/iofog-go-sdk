@@ -16,22 +16,79 @@ package apps
 import (
 	"fmt"
 	"strconv"
+	"strings"
 
-	"github.com/eclipse-iofog/iofog-go-sdk/pkg/client"
+	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
 )
 
-func validateMicroservice(msvc Microservice, agentsByName map[string]*client.AgentInfo, catalogByID map[int]*client.CatalogItemInfo, registryByID map[int]*client.RegistryInfo) (err error) {
+func validateMicroservice(msvc *Microservice, agentsByName map[string]*client.AgentInfo, catalogByID map[int]*client.CatalogItemInfo, registryByID map[int]*client.RegistryInfo) (err error) {
+	// Validate ports and update host
+	for idx, port := range msvc.Container.Ports {
+		isPublic := port.Public != 0
+		if !isPublic && port.Host != "" {
+			return NewInputError("Cannot specify a port host without specifying a public port number")
+		}
+		if port.Protocol != "" {
+			msvc.Container.Ports[idx].Protocol = strings.ToLower(msvc.Container.Ports[idx].Protocol)
+			protocol := msvc.Container.Ports[idx].Protocol
+			if protocol != "tcp" && protocol != "http" {
+				return NewInputError(fmt.Sprintf("Protocol %s is not supported. Valid protocols are tcp and http\n", protocol))
+			}
+		}
+		if port.Host != "" {
+			if port.Host != client.DefaultRouterName {
+				agent, found := agentsByName[port.Host]
+				if !found {
+					return NewNotFoundError(fmt.Sprintf("Could not find port host %s\n", port.Host))
+				}
+				msvc.Container.Ports[idx].Host = agent.UUID
+			}
+		}
+	}
+
 	// Validate microservice
-	if _, foundAgent := agentsByName[msvc.Agent.Name]; !foundAgent {
+	var agent *client.AgentInfo
+	var catalogItem *client.CatalogItemInfo
+	var foundAgent, foundCatalogItem bool
+	if agent, foundAgent = agentsByName[msvc.Agent.Name]; !foundAgent {
 		return NewNotFoundError(fmt.Sprintf("Could not find agent: %s", msvc.Agent.Name))
 	}
-	if _, foundCatalogItem := catalogByID[msvc.Images.CatalogID]; msvc.Images.CatalogID > 0 && !foundCatalogItem {
+	if catalogItem, foundCatalogItem = catalogByID[msvc.Images.CatalogID]; msvc.Images.CatalogID > 0 && !foundCatalogItem {
 		return NewNotFoundError(fmt.Sprintf("Could not find catalog item: %d", msvc.Images.CatalogID))
 	}
 	registryID, _ := strconv.Atoi(msvc.Images.Registry)
 	if _, foundRegistry := registryByID[registryID]; msvc.Images.Registry != "" && !foundRegistry {
 		if _, foundRegistry := client.RegistryTypeRegistryTypeIDDict[msvc.Images.Registry]; msvc.Images.Registry != "" && !foundRegistry {
 			return NewInputError(fmt.Sprintf("Invalid registry: %s", msvc.Images.Registry))
+		}
+	}
+
+	// Check if msvc image for the agent type is provided
+	if msvc.Images.CatalogID > 0 {
+		found := false
+		for _, img := range catalogItem.Images {
+			if img.AgentTypeID == agent.FogType {
+				found = true
+				break
+			}
+		}
+		if !found {
+			return NewInputError(fmt.Sprintf("Microservice %s does not have a valid image for the Agent %s", msvc.Name, agent.Name))
+		}
+	} else {
+		switch agent.FogType {
+		case 1:
+			if msvc.Images.X86 == "" {
+				return NewInputError(fmt.Sprintf("Microservice %s does not have a valid image for the Agent %s", msvc.Name, agent.Name))
+			}
+			break
+		case 2:
+			if msvc.Images.ARM == "" {
+				return NewInputError(fmt.Sprintf("Microservice %s does not have a valid image for the Agent %s", msvc.Name, agent.Name))
+			}
+			break
+		default:
+			break
 		}
 	}
 

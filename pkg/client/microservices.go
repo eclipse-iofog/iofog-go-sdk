@@ -58,8 +58,8 @@ func (clt *Client) CreateMicroservice(request MicroserviceCreateRequest) (*Micro
 	if request.Ports == nil {
 		request.Ports = []MicroservicePortMapping{}
 	}
-	if request.Routes == nil {
-		request.Routes = []string{}
+	if request.Commands == nil {
+		request.Commands = []string{}
 	}
 
 	// Make request
@@ -128,12 +128,26 @@ func (clt *Client) CreateMicroservicePortMapping(UUID string, portMapping Micros
 	return
 }
 
-func portMappingsToMap(mappings []MicroservicePortMapping) map[int]int {
-	response := make(map[int]int)
+func portMappingsToMap(mappings []MicroservicePortMapping) map[int]MicroservicePortMapping {
+	response := make(map[int]MicroservicePortMapping)
 	for _, port := range mappings {
-		response[port.Internal] = port.External
+		response[port.Internal] = port
 	}
 	return response
+}
+
+func samePortMapping(currentMapping, newMapping MicroservicePortMapping) bool {
+	if newMapping.Host == "" {
+		newMapping.Host = DefaultRouterName
+	}
+	if newMapping.Protocol == "" {
+		newMapping.Protocol = "http"
+	}
+	return (currentMapping.Internal == newMapping.Internal &&
+		currentMapping.Public == newMapping.Public &&
+		currentMapping.Protocol == newMapping.Protocol &&
+		currentMapping.External == newMapping.External &&
+		currentMapping.Host == newMapping.Host)
 }
 
 func (clt *Client) updateMicroservicePortMapping(UUID string, newPortMappings []MicroservicePortMapping) (err error) {
@@ -147,7 +161,7 @@ func (clt *Client) updateMicroservicePortMapping(UUID string, newPortMappings []
 
 	// Remove outdated ports
 	for _, currentMapping := range currentPortMappings.PortMappings {
-		if newExternal, found := newPortMappingMap[currentMapping.Internal]; !found || (found && newExternal != currentMapping.External) {
+		if newPortMapping, found := newPortMappingMap[currentMapping.Internal]; !found || (found && !samePortMapping(currentMapping, newPortMapping)) {
 			if err = clt.DeleteMicroservicePortMapping(UUID, currentMapping); err != nil {
 				return
 			}
@@ -156,13 +170,24 @@ func (clt *Client) updateMicroservicePortMapping(UUID string, newPortMappings []
 
 	// Create missing mappings
 	for _, newMapping := range newPortMappings {
-		if currentExternal, found := currentPortMappingMap[newMapping.Internal]; !found || (found && currentExternal != newMapping.External) {
+		if currentMapping, found := currentPortMappingMap[newMapping.Internal]; !found || (found && !samePortMapping(currentMapping, newMapping)) {
 			if err = clt.CreateMicroservicePortMapping(UUID, newMapping); err != nil {
 				return
 			}
 		}
 	}
 
+	return
+}
+
+func (clt *Client) GetAllMicroservicePublicPorts() (response []MicroservicePublicPort, err error) {
+	body, err := clt.doRequest("GET", "/microservices/public-ports", nil)
+	if err != nil {
+		return
+	}
+
+	response = make([]MicroservicePublicPort, 0)
+	err = json.Unmarshal(body, &response)
 	return
 }
 
@@ -214,20 +239,9 @@ func (clt *Client) UpdateMicroserviceRoutes(UUID string, currentRoutes, newRoute
 
 // UpdateMicroservice patches a microservice using the Controller REST API
 func (clt *Client) UpdateMicroservice(request MicroserviceUpdateRequest) (*MicroserviceInfo, error) {
-	// Get current routes
-	currentMsvc, err := clt.GetMicroserviceByID(request.UUID)
-	if err != nil {
-		return nil, err
-	}
-
 	// Update microservice
-	_, err = clt.doRequest("PATCH", fmt.Sprintf("/microservices/%s", request.UUID), request)
+	_, err := clt.doRequest("PATCH", fmt.Sprintf("/microservices/%s", request.UUID), request)
 	if err != nil {
-		return nil, err
-	}
-
-	// Update routing
-	if err = clt.UpdateMicroserviceRoutes(request.UUID, currentMsvc.Routes, request.Routes); err != nil {
 		return nil, err
 	}
 

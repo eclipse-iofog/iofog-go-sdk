@@ -17,7 +17,7 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/eclipse-iofog/iofog-go-sdk/pkg/client"
+	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
 	jsoniter "github.com/json-iterator/go"
 )
 
@@ -90,9 +90,9 @@ func (exe *microserviceExecutor) execute() (err error) {
 
 func (exe *microserviceExecutor) init() (err error) {
 	if exe.controller.Token != "" {
-		exe.client, err = client.NewWithToken(exe.controller.Endpoint, exe.controller.Token)
+		exe.client, err = client.NewWithToken(client.Options{Endpoint: exe.controller.Endpoint}, exe.controller.Token)
 	} else {
-		exe.client, err = client.NewAndLogin(exe.controller.Endpoint, exe.controller.Email, exe.controller.Password)
+		exe.client, err = client.NewAndLogin(client.Options{Endpoint: exe.controller.Endpoint}, exe.controller.Email, exe.controller.Password)
 	}
 	if err != nil {
 		return
@@ -123,7 +123,7 @@ func (exe *microserviceExecutor) init() (err error) {
 			}
 		}
 	}
-	listAgents, err := exe.client.ListAgents()
+	listAgents, err := exe.client.ListAgents(client.ListAgentsRequest{})
 	if err != nil {
 		return
 	}
@@ -156,16 +156,8 @@ func (exe *microserviceExecutor) init() (err error) {
 }
 
 func (exe *microserviceExecutor) validate() error {
-	// Validate routes
-	routes, err := validateRoutes(exe.msvc.Routes, exe.microserviceByName)
-	if err != nil {
-		return err
-	}
-
-	exe.routes = routes
-
 	// Validate microservice
-	if err := validateMicroservice(exe.msvc, exe.agentsByName, exe.catalogByID, exe.registryByID); err != nil {
+	if err := validateMicroservice(&exe.msvc, exe.agentsByName, exe.catalogByID, exe.registryByID); err != nil {
 		return err
 	}
 
@@ -233,26 +225,31 @@ func (exe *microserviceExecutor) create(config, agentUUID string, catalogID, reg
 		{ContainerImage: exe.msvc.Images.X86, AgentTypeID: client.AgentTypeAgentTypeIDDict["x86"]},
 		{ContainerImage: exe.msvc.Images.ARM, AgentTypeID: client.AgentTypeAgentTypeIDDict["arm"]},
 	}
-	volumes := mapVolumes(exe.msvc.Volumes)
+	volumes := mapVolumes(exe.msvc.Container.Volumes)
 	if volumes == nil {
 		volumes = &[]client.MicroserviceVolumeMapping{}
 	}
-	envs := mapEnvs(exe.msvc.Env)
+	envs := mapEnvs(exe.msvc.Container.Env)
 	if envs == nil {
 		envs = &[]client.MicroserviceEnvironment{}
+	}
+	extraHosts := mapExtraHosts(exe.msvc.Container.ExtraHosts)
+	if extraHosts == nil {
+		extraHosts = &[]client.MicroserviceExtraHost{}
 	}
 	return exe.client.CreateMicroservice(client.MicroserviceCreateRequest{
 		Config:         config,
 		CatalogItemID:  catalogID,
 		FlowID:         exe.flowInfo.ID,
 		Name:           exe.msvc.Name,
-		RootHostAccess: exe.msvc.RootHostAccess,
-		Ports:          mapPorts(exe.msvc.Ports),
+		RootHostAccess: exe.msvc.Container.RootHostAccess,
+		Ports:          mapPorts(exe.msvc.Container.Ports),
 		Volumes:        *volumes,
 		Env:            *envs,
+		ExtraHosts:     *extraHosts,
 		RegistryID:     registryID,
 		AgentUUID:      agentUUID,
-		Routes:         exe.routes,
+		Commands:       exe.msvc.Container.Commands,
 		Images:         images,
 	})
 }
@@ -263,17 +260,24 @@ func (exe *microserviceExecutor) update(config, agentUUID string, catalogID, reg
 		{ContainerImage: exe.msvc.Images.ARM, AgentTypeID: client.AgentTypeAgentTypeIDDict["arm"]},
 	}
 
+	var cmdPointer *[]string
+	if exe.msvc.Container.Commands != nil {
+		cmdPointer = &exe.msvc.Container.Commands
+	}
+
 	return exe.client.UpdateMicroservice(client.MicroserviceUpdateRequest{
 		UUID:           exe.msvc.UUID,
 		Config:         &config,
+		CatalogItemID:  catalogID,
 		Name:           &exe.msvc.Name,
-		RootHostAccess: &exe.msvc.RootHostAccess,
-		Ports:          mapPorts(exe.msvc.Ports),
-		Volumes:        mapVolumes(exe.msvc.Volumes),
-		Env:            mapEnvs(exe.msvc.Env),
+		RootHostAccess: &exe.msvc.Container.RootHostAccess,
+		Ports:          mapPorts(exe.msvc.Container.Ports),
+		Volumes:        mapVolumes(exe.msvc.Container.Volumes),
+		Env:            mapEnvs(exe.msvc.Container.Env),
+		ExtraHosts:     mapExtraHosts(exe.msvc.Container.ExtraHosts),
 		AgentUUID:      &agentUUID,
 		RegistryID:     &registryID,
-		Routes:         exe.routes,
+		Commands:       cmdPointer,
 		Images:         images,
 		Rebuild:        exe.msvc.Rebuild,
 	})
@@ -306,6 +310,18 @@ func mapEnvs(in *[]MicroserviceEnvironment) *[]client.MicroserviceEnvironment {
 	out := make([]client.MicroserviceEnvironment, 0)
 	for _, env := range *in {
 		out = append(out, client.MicroserviceEnvironment(env))
+	}
+	return &out
+}
+
+func mapExtraHosts(in *[]MicroserviceExtraHost) *[]client.MicroserviceExtraHost {
+	if in == nil {
+		return nil
+	}
+
+	out := make([]client.MicroserviceExtraHost, 0)
+	for _, eH := range *in {
+		out = append(out, client.MicroserviceExtraHost(eH))
 	}
 	return &out
 }

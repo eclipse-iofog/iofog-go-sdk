@@ -5,11 +5,9 @@ OS = $(shell uname -s | tr '[:upper:]' '[:lower:]')
 VERSION ?= $(shell git tag | tail -1 | sed "s|v||g")-dev
 COMMIT ?= $(shell git rev-parse HEAD 2>/dev/null)
 BUILD_DATE ?= $(shell date +%FT%T%z)
-PREFIX = github.com/eclipse-iofog/iofogctl/pkg/util
-LDFLAGS += -X $(PREFIX).versionNumber=$(VERSION) -X $(PREFIX).commit=$(COMMIT) -X $(PREFIX).date=$(BUILD_DATE) -X $(PREFIX).platform=$(GOOS)/$(GOARCH)
 REPORTS_DIR ?= reports
-TEST_RESULTS ?= TEST-iofogctl.txt
-TEST_REPORT ?= TEST-iofogctl.xml
+TEST_RESULTS ?= TEST-iofog-go-sdk.txt
+TEST_REPORT ?= TEST-iofog-go-sdk.xml
 
 # Go variables
 export CGO_ENABLED ?= 0
@@ -22,33 +20,33 @@ GOFILES_NOVENDOR = $(shell find . -type f -name '*.go' -not -path "./vendor/*" -
 init: ## Init git repository
 	@cp gitHooks/* .git/hooks/
 
+.PHONY: vendor
+vendor: # Vendor all deps
+	@go mod vendor
+	@for dep in golang.org/x/tools k8s.io/gengo k8s.io/klog github.com/spf13; do \
+		git checkout -- vendor/$$dep; \
+	done \
+
 .PHONY: all
-all: dep gen test## Get deps and run tests
+all: test## Generate code and run tests
 
 .PHONY: clean
 clean: ## Clean the working area and the project
-	rm -rf vendor/
 	rm -rf $(REPORTS_DIR)
 
-.PHONY: dep
-dep: ## Install dependencies
-	@dep ensure -v -vendor-only
-
 .PHONY: gen
-gen: ## Generate code
-	@PKGS=$$(go list ./pkg/apps  | paste -sd' ' -); \
-	deepcopy-gen -i $$(echo $$PKGS | sed 's/ /,/g') -O zz_generated
+gen: fmt ## Generate code
+	@GOFLAGS=-mod=vendor deepcopy-gen -i ./pkg/apps -o . --go-header-file ./vendor/k8s.io/gengo/boilerplate/boilerplate.go.txt
 
 .PHONY: fmt
 fmt: ## Format the source
 	@gofmt -s -w $(GOFILES_NOVENDOR)
 
 .PHONY: test
-test: ## Run unit tests
+test: gen ## Run unit tests
 	mkdir -p $(REPORTS_DIR)
 	rm -f $(REPORTS_DIR)/*
-	set -o pipefail; go list ./... | xargs -n1 go test -ldflags "$(LDFLAGS)" -v -parallel 1 2>&1 | tee $(REPORTS_DIR)/$(TEST_RESULTS)
-	cat $(REPORTS_DIR)/$(TEST_RESULTS) | go-junit-report -set-exit-code > $(REPORTS_DIR)/$(TEST_REPORT)
+	set -o pipefail; go list -mod=vendor ./... | xargs -n1 go test -mod=vendor -ldflags "$(LDFLAGS)" -v -parallel 1 2>&1 | tee $(REPORTS_DIR)/$(TEST_RESULTS)
 
 .PHONY: list
 list: ## List all make targets

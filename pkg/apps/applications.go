@@ -16,7 +16,7 @@ package apps
 import (
 	"fmt"
 
-	"github.com/eclipse-iofog/iofog-go-sdk/pkg/client"
+	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
 )
 
 type iofogUser struct {
@@ -75,9 +75,9 @@ func (exe *applicationExecutor) execute() (err error) {
 
 func (exe *applicationExecutor) init() (err error) {
 	if exe.controller.Token != "" {
-		exe.client, err = client.NewWithToken(exe.controller.Endpoint, exe.controller.Token)
+		exe.client, err = client.NewWithToken(client.Options{Endpoint: exe.controller.Endpoint}, exe.controller.Token)
 	} else {
-		exe.client, err = client.NewAndLogin(exe.controller.Endpoint, exe.controller.Email, exe.controller.Password)
+		exe.client, err = client.NewAndLogin(client.Options{Endpoint: exe.controller.Endpoint}, exe.controller.Email, exe.controller.Password)
 	}
 	if err != nil {
 		return
@@ -98,7 +98,7 @@ func (exe *applicationExecutor) init() (err error) {
 
 	exe.flowInfo = flowInfo
 
-	listAgents, err := exe.client.ListAgents()
+	listAgents, err := exe.client.ListAgents(client.ListAgentsRequest{})
 	if err != nil {
 		return
 	}
@@ -137,11 +137,14 @@ func (exe *applicationExecutor) validate() (err error) {
 		if _, foundTo := exe.microserviceByName[route.To]; !foundTo {
 			return NewNotFoundError(fmt.Sprintf("Could not find destination microservice for the route %v", route))
 		}
+		if route.Name == "" {
+			route.Name = route.From + "-to-" + route.To
+		}
 	}
 
 	// Validate microservice
-	for _, msvc := range exe.app.Microservices {
-		if err = validateMicroservice(msvc, exe.agentsByName, exe.catalogByID, exe.registryByID); err != nil {
+	for idx := range exe.app.Microservices {
+		if err = validateMicroservice(&exe.app.Microservices[idx], exe.agentsByName, exe.catalogByID, exe.registryByID); err != nil {
 			return
 		}
 	}
@@ -152,9 +155,11 @@ func (exe *applicationExecutor) validate() (err error) {
 
 func (exe *applicationExecutor) createRoutes(microserviceByName map[string]*client.MicroserviceInfo) (err error) {
 	for _, route := range exe.app.Routes {
-		fromMsvc, _ := microserviceByName[route.From]
-		toMsvc, _ := microserviceByName[route.To]
-		if err = exe.client.CreateMicroserviceRoute(fromMsvc.UUID, toMsvc.UUID); err != nil {
+		if err = exe.client.UpdateRoute(client.Route{
+			Name:                   route.Name,
+			SourceMicroserviceUUID: microserviceByName[route.From].UUID,
+			DestMicroserviceUUID:   microserviceByName[route.To].UUID,
+		}); err != nil {
 			return err
 		}
 	}
@@ -206,7 +211,6 @@ func (exe *applicationExecutor) update() (err error) {
 	// Deploy microservices
 	for _, msvc := range yamlMicroservicesPerName {
 		// Force deletion of all routes
-		msvc.Routes = []string{}
 		msvcExecutor := newMicroserviceExecutorWithApplicationDataAndClient(
 			exe.controller,
 			*msvc,
