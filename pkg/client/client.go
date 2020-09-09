@@ -22,8 +22,9 @@ import (
 )
 
 type controllerStatus struct {
-	version    string
-	versionNum int
+	version         string
+	versionNoSuffix string
+	versionNum      int
 }
 
 type Client struct {
@@ -62,13 +63,14 @@ func New(opt Options) *Client {
 	}
 	// Get Controller version
 	if status, err := client.GetStatus(); err == nil {
-		version := before(status.Versions.Controller, "-")
-		trimmedVersion := strings.ReplaceAll(version, ".", "")
-		versionNum, _ := strconv.Atoi(trimmedVersion)
+		versionNoSuffix := before(status.Versions.Controller, "-")
+		trimmedVersionNoSuffix := strings.ReplaceAll(versionNoSuffix, ".", "")
+		versionNum, _ := strconv.Atoi(trimmedVersionNoSuffix)
 
 		client.status = controllerStatus{
-			version:    status.Versions.Controller,
-			versionNum: versionNum,
+			version:         status.Versions.Controller,
+			versionNoSuffix: versionNoSuffix,
+			versionNum:      versionNum,
 		}
 	}
 	return client

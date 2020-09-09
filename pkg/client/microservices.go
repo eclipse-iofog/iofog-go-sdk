@@ -109,18 +109,15 @@ func (clt *Client) getAllMicroservicesDeprecated() (response *MicroserviceListRe
 func (clt *Client) getAllMicroservices() (response *MicroserviceListResponse, err error) {
 	body, err := clt.doRequest("GET", fmt.Sprintf("/microservices"), nil)
 	if err != nil {
-		// Controller is older version
-		if strings.Contains(err.Error(), "WHERE parameter \"id\" has invalid \"undefined\" value") {
-			return clt.getAllMicroservicesDeprecated()
-		}
 		return
 	}
 	response = new(MicroserviceListResponse)
 	err = json.Unmarshal(body, response)
 	return
 }
+
 func (clt *Client) GetAllMicroservices() (response *MicroserviceListResponse, err error) {
-	if clt.status.versionNum < 201 {
+	if strings.Contains(clt.status.version, "dev") || clt.status.versionNum < 210 {
 		return clt.getAllMicroservicesDeprecated()
 	}
 	return clt.getAllMicroservices()
