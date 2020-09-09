@@ -117,10 +117,10 @@ func (clt *Client) getAllMicroservices() (response *MicroserviceListResponse, er
 }
 
 func (clt *Client) GetAllMicroservices() (response *MicroserviceListResponse, err error) {
-	if strings.Contains(clt.status.version, "dev") || clt.status.versionNum < 210 {
-		return clt.getAllMicroservicesDeprecated()
+	if strings.Contains(clt.status.version, "dev") || clt.status.versionNum >= 210 {
+		return clt.getAllMicroservices()
 	}
-	return clt.getAllMicroservices()
+	return clt.getAllMicroservicesDeprecated()
 }
 
 // GetMicroservicePortMapping retrieves a microservice port mappings using Controller REST API
