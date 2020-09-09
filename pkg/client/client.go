@@ -16,15 +16,22 @@ package client
 import (
 	"fmt"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 )
+
+type controllerStatus struct {
+	version    string
+	versionNum int
+}
 
 type Client struct {
 	endpoint    string
 	baseURL     string
 	accessToken string
 	retries     Retries
+	status      controllerStatus
 }
 
 type Options struct {
@@ -48,11 +55,23 @@ func New(opt Options) *Client {
 	if opt.Retries != nil {
 		retries = *opt.Retries
 	}
-	return &Client{
+	client := &Client{
 		endpoint: endpoint,
 		retries:  retries,
 		baseURL:  fmt.Sprintf("http://%s%s", endpoint, apiPrefix),
 	}
+	// Get Controller version
+	if status, err := client.GetStatus(); err == nil {
+		version := before(status.Versions.Controller, "-")
+		trimmedVersion := strings.ReplaceAll(version, ".", "")
+		versionNum, _ := strconv.Atoi(trimmedVersion)
+
+		client.status = controllerStatus{
+			version:    status.Versions.Controller,
+			versionNum: versionNum,
+		}
+	}
+	return client
 }
 
 func NewAndLogin(opt Options, email, password string) (clt *Client, err error) {
