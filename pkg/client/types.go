@@ -436,14 +436,14 @@ type AgentConfiguration struct {
 }
 
 type AgentUpdateRequest struct {
-	UUID        string  `json:"-"`
-	Name        string  `json:"name,omitempty" yaml:"name"`
-	Location    string  `json:"location,omitempty" yaml:"location"`
-	Latitude    float64 `json:"latitude,omitempty" yaml:"latitude"`
-	Longitude   float64 `json:"longitude,omitempty" yaml:"longitude"`
-	Description string  `json:"description,omitempty" yaml:"description"`
-	FogType     *int64  `json:"fogType,omitempty" yaml:"agentType"`
-	Tags        *string `json:"tags,omitempty" yaml:"tags"`
+	UUID        string    `json:"-"`
+	Name        string    `json:"name,omitempty" yaml:"name"`
+	Location    string    `json:"location,omitempty" yaml:"location"`
+	Latitude    float64   `json:"latitude,omitempty" yaml:"latitude"`
+	Longitude   float64   `json:"longitude,omitempty" yaml:"longitude"`
+	Description string    `json:"description,omitempty" yaml:"description"`
+	FogType     *int64    `json:"fogType,omitempty" yaml:"agentType"`
+	Tags        *[]string `json:"tags,omitempty" yaml:"tags"`
 	AgentConfiguration
 }
 
