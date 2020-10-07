@@ -400,6 +400,7 @@ type AgentInfo struct {
 	LogLevel                  *string   `json:"logLevel" yaml:"logLevel"`
 	DockerPruningFrequency    *float64  `json:"dockerPruningFrequency" yaml:"dockerPruningFrequency"`
 	AvailableDiskThreshold    *float64  `json:"availableDiskThreshold" yaml:"availableDiskThreshold"`
+	Tags                      *[]string `json:"tags,omitempty" yaml:"tags,omitempty"`
 }
 
 type RouterConfig struct {
@@ -442,6 +443,7 @@ type AgentUpdateRequest struct {
 	Longitude   float64 `json:"longitude,omitempty" yaml:"longitude"`
 	Description string  `json:"description,omitempty" yaml:"description"`
 	FogType     *int64  `json:"fogType,omitempty" yaml:"agentType"`
+	Tags        *string `json:"tags,omitempty" yaml:"tags"`
 	AgentConfiguration
 }
 
