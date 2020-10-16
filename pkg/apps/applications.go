@@ -128,10 +128,11 @@ func (exe *applicationExecutor) update() (err error) {
 	if err != nil {
 		return err
 	}
+	routes := mapRoutesToClientRouteRequests(exe.app.Routes)
 	request := &client.ApplicationUpdateRequest{
 		Name:          &exe.app.Name,
 		Microservices: &microservices,
-		Routes:        &mapRoutesToClientRouteRequests(exe.app.Routes),
+		Routes:        &routes,
 	}
 
 	if _, err = exe.client.UpdateApplication(exe.app.Name, request); err != nil {
