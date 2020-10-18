@@ -76,6 +76,13 @@ type ApplicationUpdateRequest struct {
 	Routes        *[]ApplicationRouteCreateRequest `json:"routes,omitempty"`
 }
 
+type ApplicationPatchRequest struct {
+	Name        *string `json:"name,omitempty"`
+	Description *string `json:"description,omitempty"`
+	IsActivated *bool   `json:"isActivated,omitempty"`
+	IsSystem    *bool   `json:"isSystem,omitempty"`
+}
+
 type ApplicationListResponse struct {
 	Applications []ApplicationInfo `json:"applications"`
 }

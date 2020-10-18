@@ -283,11 +283,12 @@ func (exe *microserviceExecutor) update(config, agentUUID string, catalogID, reg
 	})
 }
 
-func mapPorts(in []MicroservicePortMapping) (out []client.MicroservicePortMapping) {
+func mapPorts(in []MicroservicePortMapping) []client.MicroservicePortMapping {
+	out := []client.MicroservicePortMapping{}
 	for _, port := range in {
 		out = append(out, client.MicroservicePortMapping(port))
 	}
-	return
+	return out
 }
 
 func mapVolumes(in *[]MicroserviceVolumeMapping) *[]client.MicroserviceVolumeMapping {
