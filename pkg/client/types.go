@@ -237,6 +237,7 @@ type MicroserviceCreateRequest struct {
 	RootHostAccess bool                        `json:"rootHostAccess"`
 	LogSize        int                         `json:"logSize"`
 	FlowID         int                         `json:"flowId"`
+	Application    string                      `json:"application"`
 	CatalogItemID  int                         `json:"catalogItemId,omitempty"`
 	AgentUUID      string                      `json:"iofogUuid"`
 	RegistryID     int                         `json:"registryId"`
@@ -257,6 +258,7 @@ type MicroserviceUpdateRequest struct {
 	Delete            *bool                        `json:"delete,omitempty"`
 	DeleteWithCleanup *bool                        `json:"deleteWithCleanup,omitempty"`
 	FlowID            *int                         `json:"flowId,omitempty"`
+	Application       *string                      `json:"application,omitempty"`
 	AgentUUID         *string                      `json:"iofogUuid,omitempty"`
 	UserID            *int                         `json:"userId,omitempty"`
 	RegistryID        *int                         `json:"registryId,omitempty"`
