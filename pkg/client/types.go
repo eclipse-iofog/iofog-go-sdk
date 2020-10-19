@@ -210,6 +210,8 @@ type MicroserviceInfo struct {
 	Delete            bool                        `json:"delete"`
 	DeleteWithCleanup bool                        `json:"deleteWithCleanup"`
 	FlowID            int                         `json:"flowId"`
+	ApplicationID     int                         `json:"applicationID"`
+	Application       string                      `json:"application"`
 	CatalogItemID     int                         `json:"catalogItemId"`
 	AgentUUID         string                      `json:"iofogUuid"`
 	UserID            int                         `json:"userId"`
