@@ -86,6 +86,17 @@ func (clt *Client) GetMicroservicesPerFlow(flowID int) (response *MicroserviceLi
 	return
 }
 
+// GetMicroservicesPerFlow returns a list of microservices in a specific flow using Controller REST API
+func (clt *Client) GetMicroserviceByApplication(application string) (response *MicroserviceListResponse, err error) {
+	body, err := clt.doRequest("GET", fmt.Sprintf("/microservices?application=%s", application), nil)
+	if err != nil {
+		return
+	}
+	response = new(MicroserviceListResponse)
+	err = json.Unmarshal(body, response)
+	return
+}
+
 // GetAllMicroservices returns all microservices on the Controller by listing all flows,
 // then getting a list of microservices per flow.
 func (clt *Client) getAllMicroservicesDeprecated() (response *MicroserviceListResponse, err error) {
