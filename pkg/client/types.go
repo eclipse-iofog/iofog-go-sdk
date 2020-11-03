@@ -505,12 +505,12 @@ type EdgeResourceDisplay struct {
 }
 
 type EdgeResourceMetadata struct {
-	Name              string              `json:"name,omitempty"`
-	Description       string              `json:"description,omitempty"`
-	Version           string              `json:"version,omitempty"`
-	InterfaceProtocol string              `json:"interfaceProtocol,omitempty"`
-	Display           EdgeResourceDisplay `json:"display,omitempty"`
-	OrchestrationTags []string            `json:"orchestrationTags,omitempty"`
+	Name              string               `json:"name,omitempty"`
+	Description       string               `json:"description,omitempty"`
+	Version           string               `json:"version,omitempty"`
+	InterfaceProtocol string               `json:"interfaceProtocol,omitempty"`
+	Display           *EdgeResourceDisplay `json:"display,omitempty"`
+	OrchestrationTags []string             `json:"orchestrationTags,omitempty"`
 }
 
 type HttpEdgeResource struct {
