@@ -18,39 +18,28 @@ import (
 	"fmt"
 )
 
-// CreateEdgeResource creates an Edge Resource using Controller REST API
-func (clt *Client) CreateHTTPBasedEdgeResource(request HTTPBasedEdgeResourceCreateRequest) (response GetEdgeResourceResponse, err error) {
+const (
+	edgeResourceLoggedInErr = "Controller client must be logged in to perform Edge Resource requests"
+)
+
+// CreateHttpEdgeResource creates an Edge Resource using Controller REST API
+func (clt *Client) CreateHttpEdgeResource(request HttpEdgeResource) error {
 	if !clt.isLoggedIn() {
-		err = NewError("Controller client must be logged into perform request")
-		return
+		return NewError(edgeResourceLoggedInErr)
 	}
 
 	// Send request
-	body, err := clt.doRequest("POST", "/edgeResource", request)
-	if err != nil {
-		return
+	if _, err := clt.doRequest("POST", "/edgeResource", request); err != nil {
+		return err
 	}
 
-	// TODO: Determine full type returned from this endpoint
-	// Read uuid from response
-	var respMap map[string]interface{}
-	if err = json.Unmarshal(body, &respMap); err != nil {
-		return
-	}
-	name, existsName := respMap["name"].(string)
-	version, existsVersion := respMap["version"].(string)
-	if !existsVersion || !existsName {
-		err = NewInternalError("Failed to get new Edge Resource name/version from Controller")
-		return
-	}
-
-	return clt.GetEdgeResourceByName(name, version)
+	return nil
 }
 
-// GetEdgeResourceByName gets an Edge Resource using Controller REST API
-func (clt *Client) GetEdgeResourceByName(name, version string) (response GetEdgeResourceResponse, err error) {
+// GetHttpEdgeResourceByName gets an Edge Resource using Controller REST API
+func (clt *Client) GetHttpEdgeResourceByName(name, version string) (response HttpEdgeResource, err error) {
 	if !clt.isLoggedIn() {
-		err = NewError("Controller client must be logged into perform request")
+		err = NewError(edgeResourceLoggedInErr)
 		return
 	}
 
@@ -69,7 +58,7 @@ func (clt *Client) GetEdgeResourceByName(name, version string) (response GetEdge
 // ListEdgeResources list all Edge Resources using Controller REST API
 func (clt *Client) ListEdgeResources() (response ListEdgeResourceResponse, err error) {
 	if !clt.isLoggedIn() {
-		err = NewError("Controller client must be logged into perform request")
+		err = NewError(edgeResourceLoggedInErr)
 		return
 	}
 
@@ -85,50 +74,60 @@ func (clt *Client) ListEdgeResources() (response ListEdgeResourceResponse, err e
 	return
 }
 
-// UpdateHTTPBasedEdgeResource updates an HTTP Based Edge Resources using Controller REST API
-func (clt *Client) UpdateHTTPBasedEdgeResource(name string, request HTTPBasedEdgeResourceCreateRequest) (err error) {
+// UpdateHttpEdgeResource updates an HTTP Based Edge Resources using Controller REST API
+func (clt *Client) UpdateHttpEdgeResource(name string, request HttpEdgeResource) error {
 	if !clt.isLoggedIn() {
-		err = NewError("Controller client must be logged into perform request")
-		return
+		return NewError(edgeResourceLoggedInErr)
 	}
 
 	// Send request
-	_, err = clt.doRequest("POST", fmt.Sprintf("/edgeResource/%s/%s", name, request.Version), request)
-	return
+	if _, err := clt.doRequest("POST", fmt.Sprintf("/edgeResource/%s/%s", name, request.Version), request); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // ListEdgeResources list all Edge Resources using Controller REST API
-func (clt *Client) DeleteEdgeResource(name, version string) (err error) {
+func (clt *Client) DeleteEdgeResource(name, version string) error {
 	if !clt.isLoggedIn() {
-		err = NewError("Controller client must be logged into perform request")
-		return
+		return NewError(edgeResourceLoggedInErr)
 	}
 
 	// Send request
-	_, err = clt.doRequest("DELETE", fmt.Sprintf("/edgeResource/%s/%s", name, version), nil)
-	return
+	if _, err := clt.doRequest("DELETE", fmt.Sprintf("/edgeResource/%s/%s", name, version), nil); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // LinkEdgeResource links an Edge Resource to an Agent using Controller REST API
-func (clt *Client) LinkEdgeResource(request LinkEdgeResourceRequest) (err error) {
+func (clt *Client) LinkEdgeResource(request LinkEdgeResourceRequest) error {
 	if !clt.isLoggedIn() {
-		err = NewError("Controller client must be logged into perform request")
-		return
+		return NewError(edgeResourceLoggedInErr)
 	}
 
 	// Send request
-	_, err = clt.doRequest("POST", fmt.Sprintf("/edgeResource/%s/%s/link", request.EdgeResourceName, request.EdgeResourceVersion), request)
-	return
+	url := fmt.Sprintf("/edgeResource/%s/%s/link", request.EdgeResourceName, request.EdgeResourceVersion)
+	if _, err := clt.doRequest("POST", url, request); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // UnlinkEdgeResource unlinks an Edge Resource from an Agent using Controller REST API
-func (clt *Client) UnlinkEdgeResource(request LinkEdgeResourceRequest) (err error) {
+func (clt *Client) UnlinkEdgeResource(request LinkEdgeResourceRequest) error {
 	if !clt.isLoggedIn() {
-		err = NewError("Controller client must be logged into perform request")
-		return
+		return NewError(edgeResourceLoggedInErr)
 	}
 
 	// Send request
-	_, err = clt.doRequest("DELETE", fmt.Sprintf("/edgeResource/%s/%s/link", request.EdgeResourceName, request.EdgeResourceVersion), request)
-	return
+	url := fmt.Sprintf("/edgeResource/%s/%s/link", request.EdgeResourceName, request.EdgeResourceVersion)
+	if _, err := clt.doRequest("DELETE", url, request); err != nil {
+		return err
+	}
+
+	return nil
 }
