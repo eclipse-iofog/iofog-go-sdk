@@ -515,10 +515,10 @@ type EdgeResourceMetadata struct {
 
 type HttpEdgeResource struct {
 	EdgeResourceMetadata `json:""`
-	Endpoints            []HttpEndpoints `json:"endpoints,omitempty"`
+	Endpoints            []HttpEndpoint `json:"endpoints,omitempty"`
 }
 
-type HttpEndpoints struct {
+type HttpEndpoint struct {
 	Name   string `json:"name,omitempty"`
 	Method string `json:"method,omitempty"`
 	URL    string `json:"url,omitempty"`
