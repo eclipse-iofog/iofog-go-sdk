@@ -19,7 +19,11 @@ import (
 	"strconv"
 )
 
-func (clt Client) GetVersion() (major, minor, patch int, err error) {
+func (clt Client) GetVersion() string {
+	return clt.status.version
+}
+
+func (clt Client) GetVersionNumbers() (major, minor, patch int, err error) {
 	errMsg := fmt.Sprintf("Controller did not return a valid API version: %s", clt.status.version)
 
 	// Split version string
@@ -42,7 +46,7 @@ func (clt Client) GetVersion() (major, minor, patch int, err error) {
 
 func (clt Client) IsEdgeResourceCapable() error {
 	// Decode version
-	major, minor, _, err := clt.GetVersion()
+	major, minor, _, err := clt.GetVersionNumbers()
 	if err != nil {
 		return err
 	}

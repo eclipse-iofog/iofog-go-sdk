@@ -128,7 +128,7 @@ func (clt *Client) getAllMicroservices() (response *MicroserviceListResponse, er
 }
 
 func (clt *Client) GetAllMicroservices() (response *MicroserviceListResponse, err error) {
-	major, minor, patch, err := clt.GetVersion()
+	major, minor, patch, err := clt.GetVersionNumbers()
 	if err != nil {
 		return
 	}
