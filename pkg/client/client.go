@@ -63,8 +63,7 @@ func New(opt Options) *Client {
 	// Get Controller version
 	if status, err := client.GetStatus(); err == nil {
 		versionNoSuffix := before(status.Versions.Controller, "-")
-		trimmedVersionNoSuffix := strings.ReplaceAll(versionNoSuffix, ".", "")
-		versionNums := strings.Split(trimmedVersionNoSuffix, ".")
+		versionNums := strings.Split(versionNoSuffix, ".")
 		client.status = controllerStatus{
 			version:         status.Versions.Controller,
 			versionNoSuffix: versionNoSuffix,
