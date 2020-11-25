@@ -35,6 +35,14 @@ type Options struct {
 var apiPrefix = "/api/v3"
 
 func New(opt Options) *Client {
+	// remember if we are using https
+	var protocol string
+	if strings.HasPrefix(opt.Endpoint, "https://") {
+		protocol = "https"
+	} else {
+		protocol = "http"
+	}
+
 	// Remove prefix
 	regex := regexp.MustCompile("https?://")
 	endpoint := regex.ReplaceAllString(opt.Endpoint, "")
@@ -51,7 +59,7 @@ func New(opt Options) *Client {
 	return &Client{
 		endpoint: endpoint,
 		retries:  retries,
-		baseURL:  fmt.Sprintf("http://%s%s", endpoint, apiPrefix),
+		baseURL:  fmt.Sprintf("%s://%s%s", protocol, endpoint, apiPrefix),
 	}
 }
 
