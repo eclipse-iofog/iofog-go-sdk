@@ -14,36 +14,24 @@ This package gives you all the functionality to interact with ioFog both via Loc
 
 Get sdk:
 ```go
-   go get github.com/eclipse-iofog/iofog-sdk-go
+go get github.com/eclipse-iofog/iofog-sdk-go
 ```
 
 Import package:
 ```go
-   import (
-   msvcs "github.com/eclipse-iofog/iofog-sdk-go/pkg/microservices"
-   )
+import (
+	msvcs "github.com/eclipse-iofog/iofog-sdk-go/pkg/microservices"
+)
 ```
 
 Create IoFog client with default settings:
 ```go
-	client, err := msvcs.NewDefaultIoFogClient()
-	if err != nil {
-		println(err.Error())
-		return
-	} else {
-	    // work with client
-	}
+client, err := msvcs.NewDefaultIoFogClient()
 ```
 
 Or specify host, port, ssl and container id explicitly:
 ```go
-	client, err := msvcs.NewIoFogClient("IoFog", 54321, false, "containerId")
-        if err != nil {
-		println(err.Error())
-		return
-	} else {
-	    // work with client
-	}
+client, err := msvcs.NewIoFogClient("IoFog", false, "containerId", 54321)
 ```
 
 
@@ -51,66 +39,33 @@ Or specify host, port, ssl and container id explicitly:
 
 Get list of next unread IoMessages:
 ```go
-	messages, err := client.GetNextMessages()
-	if err != nil {
-	    // handle bad request or error
-		println(err.Error())
-	} else {
-	    // messages array contains received
-	    // and parsed IoMessages
-	    fmt.Printf("%+v", messages)
-	}
+messages, err := client.GetNextMessages()
 ```
 
 Post new IoMessage to ioFog via REST call:
 ```go
-	postMessageResponse, err := client.PostMessage(&msvcs.IoMessage{
-		SequenceNumber:1,
-		SequenceTotal:1,
-		InfoType:"text",
-		InfoFormat:"utf-8",
-		ContentData: []byte("foo"),
-		ContextData: []byte("bar"),
-	})
-	if err != nil {
-	    // handle bad request or error
-		println(err.Error())
-	} else {
-	    // postMessageResponse contains sent message
-	    // ID and generated Timestamp 
-	    fmt.Printf("%+v", postMessageResponse)
-	}
+response, err := client.PostMessage(&msvcs.IoMessage{
+	SequenceNumber:1,
+	SequenceTotal:1,
+	InfoType:"text",
+	InfoFormat:"utf-8",
+	ContentData: []byte("foo"),
+	ContextData: []byte("bar"),
+})
 ```
 
 Get an array of IoMessages from specified publishers within given timeframe:
 ```go
-	timeFrameMessages, err := client.GetMessagesFromPublishersWithinTimeFrame(&msvcs.MessagesQueryParameters{
-		TimeFrameStart: 1234567890123,
-		TimeFrameEnd: 1234567892123,
-		Publishers: []string{"sefhuiw4984twefsdoiuhsdf", "d895y459rwdsifuhSDFKukuewf", "SESD984wtsdidsiusidsufgsdfkh"},
-
-	})
-	if err != nil {
-	    // handle bad request or error
-		println(err.Error())
-	} else {
-	    // timeFrameMessages contains fields Messages - an array of IoMessages,
-	    // TimeFrameStart and TimeFrameEnd 
-        fmt.Printf("%+v", timeFrameMessages)
-    }
+messages, err := client.GetMessagesFromPublishersWithinTimeFrame(&msvcs.MessagesQueryParameters{
+	TimeFrameStart: 1234567890123,
+	TimeFrameEnd: 1234567892123,
+	Publishers: []string{"sefhuiw4984twefsdoiuhsdf", "d895y459rwdsifuhSDFKukuewf", "SESD984wtsdidsiusidsufgsdfkh"},
+})
 ```
 
 Get container's config:
 ```go
-	config, err := client.GetConfig()
-	if err != nil {
-	    // handle bad request or error
-		println(err.Error())
-	} else {
-	    // config is plain old go map with string keys
-	    // and interface{} values
-	    fmt.Println("Config: ", config)
-	}
+config, err := client.GetConfig()
 ```
 
 #### WebSocket calls
@@ -118,40 +73,35 @@ Get container's config:
 Establish connection with message ws. This call returns two channels, so
  you can listen to incoming messages and receipts:
 ```go
-		dataChannel, receiptChannel := client.EstablishMessageWsConnection()
-		for {
-			select {
-			case msg := <-dataChannel:
-				// msg is IoMessage received
-			case r := <-receiptChannel:
-				// r is response with ID and Timestamp
-		}
+dataChannel, receiptChannel := client.EstablishMessageWsConnection()
+for {
+	select {
+	case msg := <-dataChannel:
+		// msg is IoMessage received
+	case r := <-receiptChannel:
+		// r is response with ID and Timestamp
+}
 ```
 
 After establishing this connection you can send your own message to IoFog:
 ```go
-		client.SendMessageViaSocket(&msvcs.IoMessage{
-        	Tag: "aaa",
-        	SequenceNumber: 127,
-        	ContentData: []byte("Here goes some test data"),
-        	ContextData: []byte("This one is test too"),
-        })
+client.SendMessageViaSocket(&msvcs.IoMessage{
+	Tag: "aaa",
+	SequenceNumber: 127,
+	ContentData: []byte("Here goes some test data"),
+	ContextData: []byte("This one is test too"),
+})
 ```
 
 
 Establish connection with control ws and pass channel to listen to incoming config update signals:
 ```go
-	confChannel := client.EstablishControlWsConnection()
-	for {
-		select {
-		case <-confChannel:
-		    // signal received
-		    // we can fetch new config now
-			config, err := client.GetConfig()
-			if err != nil {
-				println(err.Error())
-			} else {
-			    fmt.Println("Config: ", config)
-			}
-	}
+confChannel := client.EstablishControlWsConnection()
+for {
+	select {
+	case <-confChannel:
+		// signal received
+		// we can fetch new config now
+		config, err := client.GetConfig()
+}
 ```
