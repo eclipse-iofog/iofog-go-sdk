@@ -28,8 +28,8 @@ type testState struct {
 	host     string
 	port     int
 	agent    string
-	uuid string
-	fogType int64
+	uuid     string
+	fogType  int64
 }
 
 var state = testState{
@@ -40,7 +40,7 @@ var state = testState{
 	host:     "localhost",
 	port:     51121,
 	agent:    "agent-1",
-	fogType: 1, // x86
+	fogType:  1, // x86
 }
 
 var clt *client.Client
@@ -90,7 +90,7 @@ func TestNewAndCreate(t *testing.T) {
 	}
 
 	if err = clt.Login(client.LoginRequest{
-		Email: state.email,
+		Email:    state.email,
 		Password: state.password,
 	}); err != nil {
 		t.Fatalf(fmt.Sprintf("Failed to login: %s", err.Error()))

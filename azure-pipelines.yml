@@ -37,6 +37,22 @@ jobs:
 
       - script: |
           set -e
+          ./script/check_fmt.sh
+        displayName: 'Check Source Format'
+
+      - script: |
+          set -e
+          script/bootstrap.sh
+        displayName: 'Bootstrap'
+
+      - script: |
+          set -e
+          PATH=$PATH:$(GOBIN)
+          make test
+        displayName: 'Run Unit Tests'
+
+      - script: |
+          set -e
           test/bootstrap.bash
         displayName: 'Bootstrap tests'
 
@@ -51,17 +67,6 @@ jobs:
         displayName: 'Run tests'
 
       - script: |
-          set -e
-          ./script/check_fmt.sh
-        displayName: 'Check Source Format'
+          test/teardown.bash
+        displayName: 'Teardown test environment'
 
-      - script: |
-          set -e
-          script/bootstrap.sh
-        displayName: 'Bootstrap'
-
-      - script: |
-          set -e
-          PATH=$PATH:$(GOBIN)
-          make test
-        displayName: 'Run Unit Tests'
