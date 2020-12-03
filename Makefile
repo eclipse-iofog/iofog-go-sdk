@@ -46,7 +46,7 @@ fmt: ## Format the source
 test: gen ## Run unit tests
 	mkdir -p $(REPORTS_DIR)
 	rm -f $(REPORTS_DIR)/*
-	set -o pipefail; go list -mod=vendor ./... | xargs -n1 go test -mod=vendor -ldflags "$(LDFLAGS)" -v -parallel 1 2>&1 | tee $(REPORTS_DIR)/$(TEST_RESULTS)
+	set -o pipefail; go list -mod=vendor ./pkg/... | xargs -n1 go test -mod=vendor -ldflags "$(LDFLAGS)" -v -parallel 1 2>&1 | tee $(REPORTS_DIR)/$(TEST_RESULTS)
 
 .PHONY: list
 list: ## List all make targets
