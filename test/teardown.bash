@@ -3,5 +3,6 @@
 # Get variables
 . test/conf/vars.bash
 
-# Create namespace
+# Delete namespace
 iofogctl delete namespace "$NS" --force -v
+iofogctl disconnect -n "$NS"
