@@ -78,10 +78,8 @@ func (exe *applicationTemplateExecutor) deploy() (err error) {
 	variables := mapVariablesToClientVariables(exe.template.Variables)
 	request := &client.ApplicationTemplateUpdateRequest{
 		ApplicationTemplate: client.ApplicationTemplate{
-			ApplicationTemplateMetadata: client.ApplicationTemplateMetadata{
-				Description: exe.template.Description,
-				Name:        exe.template.Name,
-			},
+			Description: exe.template.Description,
+			Name:        exe.template.Name,
 			Application: client.ApplicationTemplateInfo{
 				Microservices: microservices,
 				Routes:        routes,

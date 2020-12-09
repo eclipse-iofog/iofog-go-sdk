@@ -89,7 +89,8 @@ type ApplicationListResponse struct {
 
 // Application Templates
 type ApplicationTemplate struct {
-	ApplicationTemplateMetadata
+	Name        string                  `json:"name,omitempty"`
+	Description string                  `json:"description,omitempty"`
 	Variables   []TemplateVariable      `json:"variables"`
 	Application ApplicationTemplateInfo `json:"application"`
 }
@@ -102,11 +103,6 @@ type TemplateVariable struct {
 	Key          string `json:"key"`
 	Description  string `json:"description"`
 	DefaultValue string `json:"defaultValue"`
-}
-
-type ApplicationTemplateMetadata struct {
-	Name        string `json:"name,omitempty"`
-	Description string `json:"description,omitempty"`
 }
 
 type ApplicationTemplateInfo struct {
