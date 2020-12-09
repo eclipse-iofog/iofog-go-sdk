@@ -135,22 +135,18 @@ func TestCreateAgent(t *testing.T) {
 func TestCreateUpdatePatchAppTemplate(t *testing.T) {
 	// Create
 	request := client.ApplicationTemplateCreateRequest{
-		ApplicationTemplate: client.ApplicationTemplate{
-			ApplicationTemplateMetadata: client.ApplicationTemplateMetadata{
-				Description: "test desc",
-				Name:        state.appTemplateName,
+		Description: "test desc",
+		Name:        state.appTemplateName,
+		Variables: []client.TemplateVariable{
+			{
+				Key:          "testkey",
+				Description:  "vartestdesc",
+				DefaultValue: "testdefaultval",
 			},
-			Variables: []client.TemplateVariable{
-				{
-					Key:          "testkey",
-					Description:  "vartestdesc",
-					DefaultValue: "testdefaultval",
-				},
-			},
-			Application: client.ApplicationTemplateInfo{
-				Microservices: []client.MicroserviceCreateRequest{},
-				Routes:        []client.ApplicationRouteCreateRequest{},
-			},
+		},
+		Application: &client.ApplicationTemplateInfo{
+			Microservices: []client.MicroserviceCreateRequest{},
+			Routes:        []client.ApplicationRouteCreateRequest{},
 		},
 	}
 	createName := "test1"
@@ -172,7 +168,7 @@ func TestCreateUpdatePatchAppTemplate(t *testing.T) {
 	request.Name = updateName
 	for _, desc := range []string{"first", "second"} {
 		request.Description = desc
-		updateResponse, err := clt.UpdateApplicationTemplate(&client.ApplicationTemplateUpdateRequest{ApplicationTemplate: request.ApplicationTemplate})
+		updateResponse, err := clt.UpdateApplicationTemplate(&request)
 		if err != nil {
 			t.Fatalf(fmt.Sprintf("Failed to update App Template: %s", err.Error()))
 		}

@@ -118,7 +118,7 @@ func (exe *applicationExecutor) create() (err error) {
 	request := &client.ApplicationCreateRequest{
 		Name:          exe.app.Name,
 		Microservices: microservices,
-		Routes:        routes,
+		Routes:        &routes,
 	}
 
 	if _, err = exe.client.CreateApplication(request); err != nil {
@@ -128,20 +128,31 @@ func (exe *applicationExecutor) create() (err error) {
 }
 
 func (exe *applicationExecutor) update() (err error) {
+	// Convert Microservices and Routes
 	microservices, err := mapMicroservicesToClientMicroserviceRequests(exe.app.Microservices, exe.agentsByName)
 	if err != nil {
 		return err
 	}
 	routes := mapRoutesToClientRouteRequests(exe.app.Routes)
 	request := &client.ApplicationUpdateRequest{
-		Name: &exe.app.Name,
+		Name:          &exe.app.Name,
+		Routes:        &routes,
+		Microservices: &microservices,
 	}
-
-	if routes != nil {
-		request.Routes = &routes
-	}
-	if microservices != nil {
-		request.Microservices = &microservices
+	// Convert Template
+	if exe.app.Template != nil {
+		request.Template = &client.ApplicationTemplate{
+			Description: exe.app.Template.Description,
+			Name:        exe.app.Template.Name,
+		}
+		for _, variable := range exe.app.Template.Variables {
+			clientVariable := client.TemplateVariable{
+				DefaultValue: variable.DefaultValue,
+				Description:  variable.Description,
+				Key:          variable.Key,
+			}
+			request.Template.Variables = append(request.Template.Variables, clientVariable)
+		}
 	}
 
 	if _, err = exe.client.UpdateApplication(exe.app.Name, request); err != nil {
@@ -151,6 +162,7 @@ func (exe *applicationExecutor) update() (err error) {
 }
 
 func (exe *applicationExecutor) deploy() (err error) {
+	// Existing app info retrieved in init
 	if exe.applicationInfo == nil {
 		if err = exe.create(); err != nil {
 			return err

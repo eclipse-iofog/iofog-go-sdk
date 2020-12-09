@@ -57,10 +57,11 @@ type ApplicationInfo struct {
 }
 
 type ApplicationCreateRequest struct {
-	Name          string                          `json:"name"`
-	Description   string                          `json:"description,omitempty"`
-	Microservices []MicroserviceCreateRequest     `json:"microservices"`
-	Routes        []ApplicationRouteCreateRequest `json:"routes"`
+	Name          string                           `json:"name"`
+	Description   string                           `json:"description,omitempty"`
+	Microservices []MicroserviceCreateRequest      `json:"microservices"`
+	Routes        *[]ApplicationRouteCreateRequest `json:"routes"`
+	Template      *ApplicationTemplate             `json:"template,omitempty" yaml:"template,omitempty" `
 }
 
 type ApplicationCreateResponse struct {
@@ -74,6 +75,7 @@ type ApplicationUpdateRequest struct {
 	IsSystem      *bool                            `json:"isSystem,omitempty"`
 	Microservices *[]MicroserviceCreateRequest     `json:"microservices,omitempty"`
 	Routes        *[]ApplicationRouteCreateRequest `json:"routes,omitempty"`
+	Template      *ApplicationTemplate             `json:"template,omitempty"`
 }
 
 type ApplicationPatchRequest struct {
@@ -89,15 +91,13 @@ type ApplicationListResponse struct {
 
 // Application Templates
 type ApplicationTemplate struct {
-	Name        string                  `json:"name,omitempty"`
-	Description string                  `json:"description,omitempty"`
-	Variables   []TemplateVariable      `json:"variables"`
-	Application ApplicationTemplateInfo `json:"application"`
+	Name        string                   `json:"name,omitempty"`
+	Description string                   `json:"description,omitempty"`
+	Variables   []TemplateVariable       `json:"variables"`
+	Application *ApplicationTemplateInfo `json:"application"`
 }
 
-type ApplicationTemplateCreateRequest struct {
-	ApplicationTemplate
-}
+type ApplicationTemplateCreateRequest = ApplicationTemplate
 
 type TemplateVariable struct {
 	Key          string `json:"key"`
@@ -115,13 +115,9 @@ type ApplicationTemplateCreateResponse struct {
 	Id   int    `json:"id"`
 }
 
-type ApplicationTemplateUpdateRequest struct {
-	ApplicationTemplate
-}
+type ApplicationTemplateUpdateRequest = ApplicationTemplate
 
-type ApplicationTemplateUpdateResponse struct {
-	ApplicationTemplateCreateResponse
-}
+type ApplicationTemplateUpdateResponse = ApplicationTemplateCreateResponse
 
 type ApplicationTemplateMetadataUpdateRequest struct {
 	Name        *string `json:"name,omitempty"`
