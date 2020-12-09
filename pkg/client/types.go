@@ -102,7 +102,8 @@ type ApplicationTemplateCreateRequest = ApplicationTemplate
 type TemplateVariable struct {
 	Key          string `json:"key"`
 	Description  string `json:"description"`
-	DefaultValue string `json:"defaultValue"`
+	DefaultValue string `json:"defaultValue,omitempty"`
+	Value        string `json:"value,omitempty"`
 }
 
 type ApplicationTemplateInfo struct {

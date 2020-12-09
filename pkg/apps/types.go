@@ -204,7 +204,8 @@ type ApplicationTemplate struct {
 type TemplateVariable struct {
 	Key          string `yaml:"key"`
 	Description  string `yaml:"description"`
-	DefaultValue string `yaml:"defaultValue"`
+	DefaultValue string `yaml:"defaultValue,omitempty"`
+	Value        string `yaml:"value,omitempty"`
 }
 
 // ApplicationTemplateInfo contains microservice and route details for template

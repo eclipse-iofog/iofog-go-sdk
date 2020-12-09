@@ -148,6 +148,7 @@ func (exe *applicationExecutor) update() (err error) {
 		for _, variable := range exe.app.Template.Variables {
 			clientVariable := client.TemplateVariable{
 				DefaultValue: variable.DefaultValue,
+				Value:        variable.Value,
 				Description:  variable.Description,
 				Key:          variable.Key,
 			}
