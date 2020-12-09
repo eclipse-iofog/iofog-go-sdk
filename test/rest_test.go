@@ -48,6 +48,8 @@ var state = testState{
 var clt *client.Client
 
 func TestNewAndLogin(t *testing.T) {
+	// client.SetVerbosity(true)
+
 	var existingState = testState{
 		email:    "user@domain.com",
 		password: "g9hr823rhuoi",

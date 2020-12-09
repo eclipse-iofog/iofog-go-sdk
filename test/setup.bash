@@ -6,7 +6,7 @@ set -e
 . test/conf/vars.bash
 
 # Create namespace
-iofogctl create namespace "$NS" -v
+iofogctl create namespace "$NS" -v || true
 iofogctl configure current-namespace "$NS" -v
 
 # Deploy local ECN

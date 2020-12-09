@@ -19,7 +19,7 @@ import (
 )
 
 func (clt *Client) IsApplicationTemplateCapable() error {
-	if _, err := clt.doRequest("HEAD", "/applicationTemplates", nil); err != nil {
+	if _, err := clt.doRequest("HEAD", "/capabilities/applicationTemplates", nil); err != nil {
 		// If 404, not capable
 		if _, ok := err.(*NotFoundError); ok {
 			return NewNotSupportedError("Application Templates")

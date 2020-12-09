@@ -128,8 +128,8 @@ type ApplicationTemplateUpdateResponse struct {
 }
 
 type ApplicationTemplateMetadataUpdateRequest struct {
-	Name        *string `json:"name"`
-	Description *string `json:"description"`
+	Name        *string `json:"name,omitempty"`
+	Description *string `json:"description,omitempty"`
 }
 
 type ApplicationTemplateListResponse struct {
