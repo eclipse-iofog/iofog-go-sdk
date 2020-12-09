@@ -115,10 +115,12 @@ func (exe *applicationExecutor) create() (err error) {
 	if routes == nil {
 		routes = []client.ApplicationRouteCreateRequest{}
 	}
+	template := mapTemplateToClientTemplate(exe.app.Template)
 	request := &client.ApplicationCreateRequest{
 		Name:          exe.app.Name,
 		Microservices: microservices,
 		Routes:        &routes,
+		Template:      template,
 	}
 
 	if _, err = exe.client.CreateApplication(request); err != nil {
@@ -134,26 +136,14 @@ func (exe *applicationExecutor) update() (err error) {
 		return err
 	}
 	routes := mapRoutesToClientRouteRequests(exe.app.Routes)
+	// Convert Template
+	template := mapTemplateToClientTemplate(exe.app.Template)
+
 	request := &client.ApplicationUpdateRequest{
 		Name:          &exe.app.Name,
 		Routes:        &routes,
 		Microservices: &microservices,
-	}
-	// Convert Template
-	if exe.app.Template != nil {
-		request.Template = &client.ApplicationTemplate{
-			Description: exe.app.Template.Description,
-			Name:        exe.app.Template.Name,
-		}
-		for _, variable := range exe.app.Template.Variables {
-			clientVariable := client.TemplateVariable{
-				DefaultValue: variable.DefaultValue,
-				Value:        variable.Value,
-				Description:  variable.Description,
-				Key:          variable.Key,
-			}
-			request.Template.Variables = append(request.Template.Variables, clientVariable)
-		}
+		Template:      template,
 	}
 
 	if _, err = exe.client.UpdateApplication(exe.app.Name, request); err != nil {

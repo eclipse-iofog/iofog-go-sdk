@@ -93,8 +93,8 @@ type ApplicationListResponse struct {
 type ApplicationTemplate struct {
 	Name        string                   `json:"name,omitempty"`
 	Description string                   `json:"description,omitempty"`
-	Variables   []TemplateVariable       `json:"variables"`
-	Application *ApplicationTemplateInfo `json:"application"`
+	Variables   []TemplateVariable       `json:"variables,omitempty"`
+	Application *ApplicationTemplateInfo `json:"application,omitempty"`
 }
 
 type ApplicationTemplateCreateRequest = ApplicationTemplate
