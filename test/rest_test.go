@@ -31,7 +31,7 @@ type testState struct {
 	uuid            string
 	fogType         int64
 	appTemplateName string
-	appName string
+	appName         string
 }
 
 var state = testState{
@@ -44,7 +44,7 @@ var state = testState{
 	agent:           "agent-1",
 	fogType:         1, // x86
 	appTemplateName: "apptemplate1",
-	appName: "app-1",
+	appName:         "app-1",
 }
 
 var clt *client.Client
@@ -224,7 +224,7 @@ func TestCreateTemplatedApp(t *testing.T) {
 			Name: state.appTemplateName,
 			Variables: []client.TemplateVariable{
 				{
-					Key: "agent-name",
+					Key:   "agent-name",
 					Value: state.agent,
 				},
 			},
