@@ -21,31 +21,35 @@ import (
 )
 
 type testState struct {
-	email    string
-	password string
-	name     string
-	surname  string
-	host     string
-	port     int
-	agent    string
-	uuid     string
-	fogType  int64
+	email           string
+	password        string
+	name            string
+	surname         string
+	host            string
+	port            int
+	agent           string
+	uuid            string
+	fogType         int64
+	appTemplateName string
 }
 
 var state = testState{
-	email:    "serge@edgeworx.io",
-	password: "wfhoi982bv1sfdjoi",
-	name:     "Serge",
-	surname:  "Radinovich",
-	host:     "localhost",
-	port:     51121,
-	agent:    "agent-1",
-	fogType:  1, // x86
+	email:           "serge@edgeworx.io",
+	password:        "wfhoi982bv1sfdjoi",
+	name:            "Serge",
+	surname:         "Radinovich",
+	host:            "localhost",
+	port:            51121,
+	agent:           "agent-1",
+	fogType:         1, // x86
+	appTemplateName: "apptemplate1",
 }
 
 var clt *client.Client
 
 func TestNewAndLogin(t *testing.T) {
+	// client.SetVerbosity(true)
+
 	var existingState = testState{
 		email:    "user@domain.com",
 		password: "g9hr823rhuoi",
@@ -126,6 +130,95 @@ func TestCreateAgent(t *testing.T) {
 		t.Fatalf("Failed to get Agent by UUID: %s", err.Error())
 	}
 	state.uuid = idInfo.UUID
+}
+
+func TestCreateUpdatePatchAppTemplate(t *testing.T) {
+	// Create
+	request := client.ApplicationTemplateCreateRequest{
+		Description: "test desc",
+		Name:        state.appTemplateName,
+		Variables: []client.TemplateVariable{
+			{
+				Key:          "testkey",
+				Description:  "vartestdesc",
+				DefaultValue: "testdefaultval",
+			},
+		},
+		Application: &client.ApplicationTemplateInfo{
+			Microservices: []client.MicroserviceCreateRequest{},
+			Routes:        []client.ApplicationRouteCreateRequest{},
+		},
+	}
+	createName := "test1"
+	request.Name = createName
+	request.Description = "test2"
+	response, err := clt.CreateApplicationTemplate(&request)
+	if err != nil {
+		t.Fatalf(fmt.Sprintf("Failed to create App Template: %s", err.Error()))
+	}
+	if response.Id == 0 {
+		t.Fatalf("Create App Template returned 0 Id")
+	}
+	if response.Name != request.Name {
+		t.Fatalf(fmt.Sprintf("Create App Template returned wrong name: %s", response.Name))
+	}
+
+	// Update new and old
+	updateName := "test123"
+	request.Name = updateName
+	for _, desc := range []string{"first", "second"} {
+		request.Description = desc
+		updateResponse, err := clt.UpdateApplicationTemplate(&request)
+		if err != nil {
+			t.Fatalf(fmt.Sprintf("Failed to update App Template: %s", err.Error()))
+		}
+		if updateResponse.Name != updateName {
+			t.Fatalf(fmt.Sprintf("Update App Template returned wrong name: %s", updateResponse.Name))
+		}
+		getUpdateResponse, err := clt.GetApplicationTemplate(updateName)
+		if err != nil {
+			t.Fatalf(fmt.Sprintf("Failed to get updated App Template: %s", err.Error()))
+		}
+		if getUpdateResponse.Description != request.Description {
+			t.Fatalf(fmt.Sprintf("Get updated App Template returned wrong description: %s", getUpdateResponse.Description))
+		}
+	}
+
+	// Patch created
+	if err := clt.UpdateApplicationTemplateMetadata(createName, &client.ApplicationTemplateMetadataUpdateRequest{
+		Name: &state.appTemplateName,
+	}); err != nil {
+		t.Fatalf(fmt.Sprintf("Patch App Template failed: %s", err.Error()))
+	}
+}
+
+func TestListAppTemplates(t *testing.T) {
+	response, err := clt.ListApplicationTemplates()
+	if err != nil {
+		t.Fatalf(fmt.Sprintf("List App Templates failed: %s", err.Error()))
+	}
+	if len(response.ApplicationTemplates) != 2 {
+		t.Fatalf(fmt.Sprintf("List App Templates returned incorrect count: %d", len(response.ApplicationTemplates)))
+	}
+	if response.ApplicationTemplates[0].Name != state.appTemplateName {
+		t.Fatalf(fmt.Sprintf("List App Templates returned incorrect name: %s", response.ApplicationTemplates[0].Name))
+	}
+}
+
+func TestGetAppTemplate(t *testing.T) {
+	response, err := clt.GetApplicationTemplate(state.appTemplateName)
+	if err != nil {
+		t.Fatalf(fmt.Sprintf("Get App Template failed: %s", err.Error()))
+	}
+	if response.Name != state.appTemplateName {
+		t.Fatalf(fmt.Sprintf("Get App Template returned incorrect name: %s", response.Name))
+	}
+}
+
+func TestDeleteAppTemplate(t *testing.T) {
+	if err := clt.DeleteApplicationTemplate(state.appTemplateName); err != nil {
+		t.Fatalf("Failed to delete App Template: %s", err.Error())
+	}
 }
 
 func TestDeleteAgent(t *testing.T) {
