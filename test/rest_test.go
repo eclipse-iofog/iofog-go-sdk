@@ -31,6 +31,7 @@ type testState struct {
 	uuid            string
 	fogType         int64
 	appTemplateName string
+	appName string
 }
 
 var state = testState{
@@ -43,6 +44,7 @@ var state = testState{
 	agent:           "agent-1",
 	fogType:         1, // x86
 	appTemplateName: "apptemplate1",
+	appName: "app-1",
 }
 
 var clt *client.Client
@@ -212,6 +214,25 @@ func TestGetAppTemplate(t *testing.T) {
 	}
 	if response.Name != state.appTemplateName {
 		t.Fatalf(fmt.Sprintf("Get App Template returned incorrect name: %s", response.Name))
+	}
+}
+
+func TestCreateTemplatedApp(t *testing.T) {
+	request := client.ApplicationCreateRequest{
+		Name: state.appName,
+		Template: &client.ApplicationTemplate{
+			Name: state.appTemplateName,
+			Variables: []client.TemplateVariable{
+				{
+					Key: "agent-name",
+					Value: state.agent,
+				},
+			},
+		},
+	}
+	_, err := clt.CreateApplication(&request)
+	if err != nil {
+		t.Fatalf(fmt.Sprintf("Create Templated Application failed: %s", err.Error()))
 	}
 }
 
