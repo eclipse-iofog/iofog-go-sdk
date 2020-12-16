@@ -36,7 +36,11 @@ clean: ## Clean the working area and the project
 
 .PHONY: gen
 gen: fmt ## Generate code
+	@sed -i '' -E "s|(	DefaultValue.*interface{})|//\1|g" pkg/apps/types.go
+	@sed -i '' -E "s|(	Value.*interface{})|//\1|g" pkg/apps/types.go
 	@GOFLAGS=-mod=vendor deepcopy-gen -i ./pkg/apps -o . --go-header-file ./vendor/k8s.io/gengo/boilerplate/boilerplate.go.txt
+	@sed -i '' -E "s|//(	DefaultValue.*interface{})|\1|g" pkg/apps/types.go
+	@sed -i '' -E "s|//(	Value.*interface{})|\1|g" pkg/apps/types.go
 
 .PHONY: fmt
 fmt: ## Format the source
