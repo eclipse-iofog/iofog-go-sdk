@@ -28,7 +28,7 @@ vendor: # Vendor all deps
 	done \
 
 .PHONY: all
-all: test## Generate code and run tests
+all: test ## Generate code and run tests
 
 .PHONY: clean
 clean: ## Clean the working area and the project
