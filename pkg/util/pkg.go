@@ -19,6 +19,6 @@ var pkg struct {
 }
 
 func init() {
-	pkg.errorVariableNotInteger = "Variable is not of type integer"
-	pkg.errorVariableNotBool = "Variable is not of type bool"
+	pkg.errorVariableNotInteger = "Variable (%s) is not of type integer"
+	pkg.errorVariableNotBool = "Variable (%s) is not of type bool"
 }
