@@ -276,7 +276,7 @@ type MicroserviceExtraHost struct {
 type MicroserviceCreateRequest struct {
 	Config         string                      `json:"config"`
 	Name           string                      `json:"name"`
-	RootHostAccess bool                        `json:"rootHostAccess"`
+	RootHostAccess interface{}                 `json:"rootHostAccess"`
 	LogSize        int                         `json:"logSize"`
 	FlowID         int                         `json:"flowId"`
 	Application    string                      `json:"application"`

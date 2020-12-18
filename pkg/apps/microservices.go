@@ -18,7 +18,6 @@ import (
 	"strconv"
 
 	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
-	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/util"
 	jsoniter "github.com/json-iterator/go"
 )
 
@@ -265,7 +264,7 @@ func (exe *microserviceExecutor) create(config, agentUUID string, catalogID, reg
 		FlowID:         flowId,
 		Application:    application,
 		Name:           exe.msvc.Name,
-		RootHostAccess: util.AssertBool(exe.msvc.Container.RootHostAccess),
+		RootHostAccess: exe.msvc.Container.RootHostAccess,
 		Ports:          mapPorts(exe.msvc.Container.Ports),
 		Volumes:        *volumes,
 		Env:            *envs,

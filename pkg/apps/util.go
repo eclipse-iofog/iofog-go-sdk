@@ -19,7 +19,6 @@ import (
 	"strings"
 
 	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
-	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/util"
 	jsoniter "github.com/json-iterator/go"
 )
 
@@ -265,7 +264,7 @@ func mapMicroserviceToClientMicroserviceRequest(microservice Microservice) (requ
 		Config:         config,
 		CatalogItemID:  microservice.Images.CatalogID,
 		Name:           microservice.Name,
-		RootHostAccess: util.AssertBool(microservice.Container.RootHostAccess),
+		RootHostAccess: microservice.Container.RootHostAccess,
 		Ports:          mapPorts(microservice.Container.Ports),
 		Volumes:        *volumes,
 		Env:            *envs,
