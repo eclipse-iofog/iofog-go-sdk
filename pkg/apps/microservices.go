@@ -288,13 +288,12 @@ func (exe *microserviceExecutor) update(config, agentUUID string, catalogID, reg
 		cmdPointer = &exe.msvc.Container.Commands
 	}
 
-	rootHostAccess := util.AssertBool(exe.msvc.Container.RootHostAccess)
 	return exe.client.UpdateMicroservice(client.MicroserviceUpdateRequest{
 		UUID:           exe.msvc.UUID,
 		Config:         &config,
 		CatalogItemID:  catalogID,
 		Name:           &exe.msvc.Name,
-		RootHostAccess: &rootHostAccess,
+		RootHostAccess: exe.msvc.Container.RootHostAccess,
 		Ports:          mapPorts(exe.msvc.Container.Ports),
 		Volumes:        mapVolumes(exe.msvc.Container.Volumes),
 		Env:            mapEnvs(exe.msvc.Container.Env),
@@ -303,7 +302,7 @@ func (exe *microserviceExecutor) update(config, agentUUID string, catalogID, reg
 		RegistryID:     &registryID,
 		Commands:       cmdPointer,
 		Images:         images,
-		Rebuild:        util.AssertBool(exe.msvc.Rebuild),
+		Rebuild:        exe.msvc.Rebuild,
 	})
 }
 

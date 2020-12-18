@@ -296,7 +296,7 @@ type MicroserviceUpdateRequest struct {
 	UUID              string                       `json:"-"`
 	Config            *string                      `json:"config,omitempty"`
 	Name              *string                      `json:"name,omitempty"`
-	RootHostAccess    *bool                        `json:"rootHostAccess,omitempty"`
+	RootHostAccess    interface{}                  `json:"rootHostAccess,omitempty"`
 	LogSize           *int                         `json:"logSize,omitempty"`
 	Delete            *bool                        `json:"delete,omitempty"`
 	DeleteWithCleanup *bool                        `json:"deleteWithCleanup,omitempty"`
@@ -313,7 +313,7 @@ type MicroserviceUpdateRequest struct {
 	Env               *[]MicroserviceEnvironment   `json:"env,omitempty"`
 	ExtraHosts        *[]MicroserviceExtraHost     `json:"extraHosts,omitempty"`
 	Images            []CatalogImage               `json:"images,omitempty"`
-	Rebuild           bool                         `json:"rebuild"`
+	Rebuild           interface{}                  `json:"rebuild"`
 }
 
 type MicroserviceCreateResponse struct {
