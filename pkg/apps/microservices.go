@@ -18,6 +18,7 @@ import (
 	"strconv"
 
 	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
+	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/util"
 	jsoniter "github.com/json-iterator/go"
 )
 
@@ -264,7 +265,7 @@ func (exe *microserviceExecutor) create(config, agentUUID string, catalogID, reg
 		FlowID:         flowId,
 		Application:    application,
 		Name:           exe.msvc.Name,
-		RootHostAccess: exe.msvc.Container.RootHostAccess,
+		RootHostAccess: util.AssertBool(exe.msvc.Container.RootHostAccess),
 		Ports:          mapPorts(exe.msvc.Container.Ports),
 		Volumes:        *volumes,
 		Env:            *envs,
@@ -287,12 +288,13 @@ func (exe *microserviceExecutor) update(config, agentUUID string, catalogID, reg
 		cmdPointer = &exe.msvc.Container.Commands
 	}
 
+	rootHostAccess := util.AssertBool(exe.msvc.Container.RootHostAccess)
 	return exe.client.UpdateMicroservice(client.MicroserviceUpdateRequest{
 		UUID:           exe.msvc.UUID,
 		Config:         &config,
 		CatalogItemID:  catalogID,
 		Name:           &exe.msvc.Name,
-		RootHostAccess: &exe.msvc.Container.RootHostAccess,
+		RootHostAccess: &rootHostAccess,
 		Ports:          mapPorts(exe.msvc.Container.Ports),
 		Volumes:        mapVolumes(exe.msvc.Container.Volumes),
 		Env:            mapEnvs(exe.msvc.Container.Env),
@@ -301,7 +303,7 @@ func (exe *microserviceExecutor) update(config, agentUUID string, catalogID, reg
 		RegistryID:     &registryID,
 		Commands:       cmdPointer,
 		Images:         images,
-		Rebuild:        exe.msvc.Rebuild,
+		Rebuild:        util.AssertBool(exe.msvc.Rebuild),
 	})
 }
 

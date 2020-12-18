@@ -11,12 +11,24 @@
  *
  */
 
-package client
+package util
 
-var pkg struct {
-	errorVariableNotAnInteger string
+func AssertInt(in interface{}) int {
+	out, ok := in.(int)
+	if !ok {
+		floatOut, ok := in.(float64)
+		if ok {
+			return int(floatOut)
+		}
+		panic(pkg.errorVariableNotInteger)
+	}
+	return out
 }
 
-func init() {
-	pkg.errorVariableNotAnInteger = "Variable is not of type integer"
+func AssertBool(in interface{}) bool {
+	out, ok := in.(bool)
+	if !ok {
+		panic(pkg.errorVariableNotBool)
+	}
+	return out
 }
