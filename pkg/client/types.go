@@ -313,7 +313,7 @@ type MicroserviceUpdateRequest struct {
 	Env               *[]MicroserviceEnvironment   `json:"env,omitempty"`
 	ExtraHosts        *[]MicroserviceExtraHost     `json:"extraHosts,omitempty"`
 	Images            []CatalogImage               `json:"images,omitempty"`
-	Rebuild           interface{}                  `json:"rebuild"`
+	Rebuild           interface{}                  `json:"rebuild,omitempty"`
 }
 
 type MicroserviceCreateResponse struct {
