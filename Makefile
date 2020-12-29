@@ -41,6 +41,10 @@ gen: ## Generate code
 	@GOFLAGS=-mod=vendor deepcopy-gen -i ./pkg/apps -o . --go-header-file ./vendor/k8s.io/gengo/boilerplate/boilerplate.go.txt
 	@sed -i'' -E "s|//(.*// \+k8s:deepcopy-gen=ignore)|\1|g" pkg/apps/types.go
 
+.PHONY: lint
+lint: fmt
+	@golangci-lint run --timeout 5m0s
+
 .PHONY: fmt
 fmt: ## Format the source
 	@gofmt -s -w $(GOFILES_NOVENDOR)

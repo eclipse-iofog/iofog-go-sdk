@@ -96,17 +96,17 @@ type Microservice struct {
 type NestedMap map[string]interface{}
 
 func (j NestedMap) DeepCopy() NestedMap {
-	copy := make(NestedMap)
-	deepCopyNestedMap(j, copy)
-	return copy
+	newMap := make(NestedMap)
+	deepCopyNestedMap(j, newMap)
+	return newMap
 }
 
-func deepCopyNestedMap(src NestedMap, dest NestedMap) {
-	for key, value := range src {
-		switch src[key].(type) {
+func deepCopyNestedMap(src, dest NestedMap) {
+	for key := range src {
+		switch value := src[key].(type) {
 		case NestedMap:
 			dest[key] = NestedMap{}
-			deepCopyNestedMap(src[key].(NestedMap), dest[key].(NestedMap))
+			deepCopyNestedMap(value, dest[key].(NestedMap))
 		default:
 			dest[key] = value
 		}

@@ -76,7 +76,7 @@ func (cl *Client) WaitForLoadBalancer(namespace, name string, timeoutSeconds int
 	if addr == "" {
 		err = errors.New("IP and Hostname values were empty")
 	}
-	return
+	return addr, err
 }
 
 func (cl *Client) WaitForPod(namespace, name string, timeoutSeconds int64) error {
