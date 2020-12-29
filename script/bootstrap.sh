@@ -13,6 +13,16 @@ if [ -z $(command -v go) ]; then
     exit 1
 fi
 
+# Is go lint installed?
+if [ ! "$(command -v golangci-lint)" ]; then
+    if [ "$(uname -s)" = "Darwin" ]; then
+        brew install golangci-lint
+        brew upgrade golangci-lint
+    else
+        curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.33.0
+    fi
+fi
+
 # Leave gengo last!!
 
 # Is gengo installed?

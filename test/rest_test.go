@@ -104,7 +104,7 @@ func TestNewAndCreate(t *testing.T) {
 }
 
 func TestCreateAgent(t *testing.T) {
-	request := client.CreateAgentRequest{}
+	request := &client.CreateAgentRequest{}
 	request.FogType = &state.fogType
 	request.Name = state.agent
 	request.Host = &state.host
@@ -158,7 +158,7 @@ func TestCreateUpdatePatchAppTemplate(t *testing.T) {
 	if err != nil {
 		t.Fatalf(fmt.Sprintf("Failed to create App Template: %s", err.Error()))
 	}
-	if response.Id == 0 {
+	if response.ID == 0 {
 		t.Fatalf("Create App Template returned 0 Id")
 	}
 	if response.Name != request.Name {

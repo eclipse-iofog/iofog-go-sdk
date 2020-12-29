@@ -10,8 +10,6 @@ trigger:
     exclude:
       - README.md
 
-pr: none
-
 variables:
   GOROOT: '/usr/local/go1.12'
   GOPATH: '/tmp/go'
@@ -48,8 +46,8 @@ jobs:
       - script: |
           set -e
           PATH=$PATH:$(GOBIN)
-          make test
-        displayName: 'Run Unit Tests'
+          make lint test
+        displayName: 'Lint and Unit Test'
 
       - script: |
           set -e
@@ -69,4 +67,3 @@ jobs:
       - script: |
           test/teardown.bash
         displayName: 'Teardown test environment'
-
