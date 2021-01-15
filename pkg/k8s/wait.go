@@ -14,6 +14,7 @@
 package k8s
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"strings"
@@ -29,7 +30,7 @@ func getErrorMsg(resource, namespace, name, event string) string {
 
 func (cl *Client) WaitForLoadBalancer(namespace, name string, timeoutSeconds int64) (addr string, err error) {
 	// Get watch handler to observe changes to services
-	watch, err := cl.CoreV1().Services(namespace).Watch(metav1.ListOptions{TimeoutSeconds: &timeoutSeconds})
+	watch, err := cl.CoreV1().Services(namespace).Watch(context.Background(), metav1.ListOptions{TimeoutSeconds: &timeoutSeconds})
 	if err != nil {
 		return
 	}
@@ -81,7 +82,7 @@ func (cl *Client) WaitForLoadBalancer(namespace, name string, timeoutSeconds int
 
 func (cl *Client) WaitForPod(namespace, name string, timeoutSeconds int64) error {
 	// Get watch handler to observe changes to pods
-	watch, err := cl.CoreV1().Pods(namespace).Watch(metav1.ListOptions{TimeoutSeconds: &timeoutSeconds})
+	watch, err := cl.CoreV1().Pods(namespace).Watch(context.Background(), metav1.ListOptions{TimeoutSeconds: &timeoutSeconds})
 	if err != nil {
 		return err
 	}
