@@ -4,6 +4,10 @@ This SDK contains a set of Golang packages developers can use for the purposes o
 * Developing your own edge microservices that run on ioFog Edge Compute Networks
 * Interacting with ioFog Controller REST API
 
+#### Golang v1.15+
+
+The SDK is tested against Golang v1.15 environments.
+
 ## Packages
 
 The following is a high-level overview of the functionality provided by each package.
