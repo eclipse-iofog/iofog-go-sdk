@@ -14,13 +14,13 @@ This package gives you all the functionality to interact with ioFog both via Loc
 
 Get sdk:
 ```go
-   go get github.com/eclipse-iofog/iofog-sdk-go
+   go get github.com/eclipse-iofog/iofog-go-sdk
 ```
 
 Import package:
 ```go
    import (
-   msvcs "github.com/eclipse-iofog/iofog-sdk-go/pkg/microservices"
+   msvcs "github.com/eclipse-iofog/iofog-go-sdk/pkg/microservices"
    )
 ```
 
