@@ -32,11 +32,13 @@ type Client struct {
 	accessToken string
 	retries     Retries
 	status      controllerStatus
+	timeout     int
 }
 
 type Options struct {
 	Endpoint string
 	Retries  *Retries
+	Timeout  int
 }
 
 var apiPrefix = "/api/v3"
@@ -59,6 +61,9 @@ func New(opt Options) *Client {
 		endpoint = endpoint + ":" + ControllerPortString
 	}
 
+	if opt.Timeout == 0 {
+		opt.Timeout = 5
+	}
 	retries := GlobalRetriesPolicy
 	if opt.Retries != nil {
 		retries = *opt.Retries
@@ -67,6 +72,7 @@ func New(opt Options) *Client {
 		endpoint: endpoint,
 		retries:  retries,
 		baseURL:  fmt.Sprintf("%s://%s%s", protocol, endpoint, apiPrefix),
+		timeout:  opt.Timeout,
 	}
 	// Get Controller version
 	if status, err := client.GetStatus(); err == nil {
@@ -124,7 +130,8 @@ func (clt *Client) makeRequestURL(url string) string {
 
 func (clt *Client) doRequestWithRetries(currentRetries Retries, method, requestURL string, headers map[string]string, request interface{}) ([]byte, error) {
 	// Send request
-	bytes, err := httpDo(method, requestURL, headers, request)
+	httpDo := httpDo{timeout: clt.timeout}
+	bytes, err := httpDo.do(method, requestURL, headers, request)
 	if err != nil {
 		httpErr, ok := err.(*HTTPError)
 		// If HTTP Error

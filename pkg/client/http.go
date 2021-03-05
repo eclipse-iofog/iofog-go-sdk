@@ -23,7 +23,11 @@ import (
 	json "github.com/json-iterator/go"
 )
 
-func httpDo(method, url string, headers map[string]string, requestBody interface{}) (responseBody []byte, err error) {
+type httpDo struct {
+	timeout int
+}
+
+func (hd *httpDo) do(method, url string, headers map[string]string, requestBody interface{}) (responseBody []byte, err error) {
 	// Encode body
 	jsonBody := ""
 	if requestBody != nil {
@@ -53,7 +57,7 @@ func httpDo(method, url string, headers map[string]string, requestBody interface
 
 	// Perform request
 	client := &http.Client{
-		Timeout: time.Second * 4,
+		Timeout: time.Second * time.Duration(hd.timeout),
 	}
 
 	httpResp, err := client.Do(request)
