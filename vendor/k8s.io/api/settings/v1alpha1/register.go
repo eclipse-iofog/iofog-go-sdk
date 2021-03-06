@@ -1,5 +1,5 @@
 /*
-Copyright 2019 The Kubernetes Authors.
+Copyright 2017 The Kubernetes Authors.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ import (
 )
 
 // GroupName is the group name use in this package
-const GroupName = "internal.apiserver.k8s.io"
+const GroupName = "settings.k8s.io"
 
 // SchemeGroupVersion is group version used to register these objects
 var SchemeGroupVersion = schema.GroupVersion{Group: GroupName, Version: "v1alpha1"}
@@ -34,14 +34,18 @@ func Resource(resource string) schema.GroupResource {
 }
 
 var (
-	SchemeBuilder = runtime.NewSchemeBuilder(addKnownTypes)
-	AddToScheme   = SchemeBuilder.AddToScheme
+	// TODO: move SchemeBuilder with zz_generated.deepcopy.go to k8s.io/api.
+	// localSchemeBuilder and AddToScheme will stay in k8s.io/kubernetes.
+	SchemeBuilder      = runtime.NewSchemeBuilder(addKnownTypes)
+	localSchemeBuilder = &SchemeBuilder
+	AddToScheme        = localSchemeBuilder.AddToScheme
 )
 
+// Adds the list of known types to the given scheme.
 func addKnownTypes(scheme *runtime.Scheme) error {
 	scheme.AddKnownTypes(SchemeGroupVersion,
-		&StorageVersion{},
-		&StorageVersionList{},
+		&PodPreset{},
+		&PodPresetList{},
 	)
 	metav1.AddToGroupVersion(scheme, SchemeGroupVersion)
 	return nil
