@@ -9,6 +9,7 @@ trigger:
   paths:
     exclude:
       - README.md
+      - CHANGELOG.md
 
 variables:
   GOROOT: '/usr/local/go1.15'
