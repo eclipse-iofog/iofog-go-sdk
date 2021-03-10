@@ -16,7 +16,7 @@ package apps
 import (
 	"fmt"
 
-	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/client"
+	"github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/client"
 )
 
 func (exe *applicationExecutor) initLegacy() (err error) {

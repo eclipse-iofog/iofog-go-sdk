@@ -18,7 +18,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/eclipse-iofog/iofog-go-sdk/v2/pkg/util"
+	"github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/util"
 )
 
 // GetMicroserviceByName retrieves a microservice information using Controller REST API
