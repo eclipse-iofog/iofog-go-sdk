@@ -18,7 +18,7 @@ import (
 	"fmt"
 )
 
-func (clt *Client) IsApplicationTemplateCapable() error {
+func (clt *Client) HasApplicationTemplates() error {
 	if _, err := clt.doRequest("HEAD", "/capabilities/applicationTemplates", nil); err != nil {
 		// If 404, not capable
 		if _, ok := err.(*NotFoundError); ok {
@@ -31,7 +31,7 @@ func (clt *Client) IsApplicationTemplateCapable() error {
 
 func (clt *Client) applicationTemplatePreflight() error {
 	// Check capability
-	if err := clt.IsApplicationTemplateCapable(); err != nil {
+	if err := clt.HasApplicationTemplates(); err != nil {
 		return err
 	}
 

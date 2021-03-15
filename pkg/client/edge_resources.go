@@ -22,7 +22,7 @@ const (
 	edgeResourceLoggedInErr = "Controller client must be logged in to perform Edge Resource requests"
 )
 
-func (clt *Client) IsEdgeResourceCapable() error {
+func (clt *Client) HasEdgeResources() error {
 	if _, err := clt.doRequest("HEAD", "/capabilities/edgeResources", nil); err != nil {
 		// If 404, not capable
 		if _, ok := err.(*NotFoundError); ok {
@@ -35,7 +35,7 @@ func (clt *Client) IsEdgeResourceCapable() error {
 
 func (clt *Client) edgeResourcePreflight() error {
 	// Check capability
-	if err := clt.IsEdgeResourceCapable(); err != nil {
+	if err := clt.HasEdgeResources(); err != nil {
 		return err
 	}
 
