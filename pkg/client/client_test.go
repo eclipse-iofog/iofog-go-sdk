@@ -14,11 +14,18 @@
 package client
 
 import (
+	"net/url"
 	"testing"
 )
 
 func TestCreation(t *testing.T) {
-	client := New(Options{Endpoint: "localhost:51121"})
+	baseURL, err := url.Parse("http://localhost:51121/api/v3")
+	if err != nil {
+		t.Error(err)
+	}
+	client := New(Options{
+		BaseURL: *baseURL,
+	})
 	if client == nil {
 		t.Error("Client pointer is nil")
 	}
