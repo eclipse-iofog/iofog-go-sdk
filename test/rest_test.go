@@ -15,6 +15,7 @@ package resttest
 
 import (
 	"fmt"
+	"net/url"
 	"testing"
 
 	"github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/client"
@@ -25,8 +26,7 @@ type testState struct {
 	password        string
 	name            string
 	surname         string
-	host            string
-	port            int
+	url             *url.URL
 	agent           string
 	uuid            string
 	fogType         int64
@@ -39,8 +39,6 @@ var state = testState{
 	password:        "wfhoi982bv1sfdjoi",
 	name:            "Serge",
 	surname:         "Radinovich",
-	host:            "localhost",
-	port:            51121,
 	agent:           "agent-1",
 	fogType:         1, // x86
 	appTemplateName: "apptemplate1",
@@ -57,11 +55,14 @@ func TestNewAndLogin(t *testing.T) {
 		password: "g9hr823rhuoi",
 		name:     "Foo",
 		surname:  "Bar",
-		host:     "localhost",
-		port:     51121,
+	}
+	var err error
+	state.url, err = url.Parse("http://localhost:51121/api/v3")
+	if err != nil {
+		t.Error(err)
 	}
 	opt := client.Options{
-		Endpoint: fmt.Sprintf("%s:%d", existingState.host, existingState.port),
+		BaseURL: state.url,
 	}
 
 	clt, err := client.NewAndLogin(opt, existingState.email, existingState.password)
@@ -77,7 +78,7 @@ func TestNewAndLogin(t *testing.T) {
 
 func TestNewAndCreate(t *testing.T) {
 	opt := client.Options{
-		Endpoint: fmt.Sprintf("%s:%d", state.host, state.port),
+		BaseURL: state.url,
 	}
 	clt = client.New(opt)
 
@@ -107,7 +108,8 @@ func TestCreateAgent(t *testing.T) {
 	request := &client.CreateAgentRequest{}
 	request.FogType = &state.fogType
 	request.Name = state.agent
-	request.Host = &state.host
+	host := "localhost"
+	request.Host = &host
 
 	response, err := clt.CreateAgent(request)
 	if err != nil {

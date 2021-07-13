@@ -1,6 +1,6 @@
 module github.com/eclipse-iofog/iofog-go-sdk/v3
 
-go 1.15
+go 1.16
 
 require (
 	github.com/eapache/channels v1.1.0
