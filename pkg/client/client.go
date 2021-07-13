@@ -156,7 +156,7 @@ func (clt *Client) doRequest(method, requestPath string, request interface{}) ([
 		requestURL.Path = path.Join(requestURL.Path, qpSplit[0])
 		requestURL.RawQuery = qpSplit[1]
 	default:
-		return nil, fmt.Errorf("Failed to parse request URL %s", requestPath)
+		return nil, fmt.Errorf("failed to parse request URL %s", requestPath)
 	}
 	// Set headers
 	headers := map[string]string{
