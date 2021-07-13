@@ -24,7 +24,7 @@ func TestCreation(t *testing.T) {
 		t.Error(err)
 	}
 	client := New(Options{
-		BaseURL: *baseURL,
+		BaseURL: baseURL,
 	})
 	if client == nil {
 		t.Error("Client pointer is nil")

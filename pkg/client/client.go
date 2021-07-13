@@ -28,7 +28,7 @@ type controllerStatus struct {
 }
 
 type Client struct {
-	baseURL     url.URL
+	baseURL     *url.URL
 	accessToken string
 	retries     Retries
 	status      controllerStatus
@@ -36,7 +36,7 @@ type Client struct {
 }
 
 type Options struct {
-	BaseURL url.URL
+	BaseURL *url.URL
 	Retries *Retries
 	Timeout int
 }
