@@ -26,7 +26,7 @@ type testState struct {
 	password        string
 	name            string
 	surname         string
-	url *url.URL
+	url             *url.URL
 	agent           string
 	uuid            string
 	fogType         int64
