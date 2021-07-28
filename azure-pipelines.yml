@@ -10,16 +10,17 @@ trigger:
     exclude:
       - README.md
       - CHANGELOG.md
+      - LICENSE
 
 variables:
-  GOROOT: '/usr/local/go1.15'
+  GOROOT: '/usr/local/go1.16'
   GOPATH: '/tmp/go'
   GOBIN:  '$(GOPATH)/bin'
 
 jobs:
   - job: Test
     pool:
-      vmImage: 'Ubuntu-16.04'
+      vmImage: 'Ubuntu-18.04'
 
     steps:
       - script: |
@@ -29,7 +30,7 @@ jobs:
 
       - task: GoTool@0
         inputs:
-          version: '1.15'
+          version: '1.16'
           goPath: $(GOPATH)
           goBin: $(GOBIN)
         displayName: 'Install Golang'

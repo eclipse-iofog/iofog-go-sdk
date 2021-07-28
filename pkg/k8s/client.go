@@ -31,7 +31,7 @@ func New(kubeConfig string) (*Client, error) {
 		return nil, err
 	}
 
-	return new(config)
+	return newClient(config)
 }
 
 func NewInCluster() (*Client, error) {
@@ -41,10 +41,10 @@ func NewInCluster() (*Client, error) {
 		return nil, err
 	}
 
-	return new(config)
+	return newClient(config)
 }
 
-func new(config *rest.Config) (*Client, error) {
+func newClient(config *rest.Config) (*Client, error) {
 	clientset, err := kubernetes.NewForConfig(config)
 	if err != nil {
 		return nil, err

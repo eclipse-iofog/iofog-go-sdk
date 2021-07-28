@@ -1,6 +1,11 @@
 # Changelog
 
-## [v3.0.0-alpha] - 11 March 2021
+## [v3.0.0-alpha2] - 28 July 2021
+
+* REST client initialized with Controller base URL
+* Go 1.16
+
+## [v3.0.0-alpha1] - 11 March 2021
 
 * Add k8s/operator pkg for operator SDK helpers
 * Decrease default timeout for Controller REST client (120s->4s)
