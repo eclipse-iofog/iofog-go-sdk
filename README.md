@@ -1,12 +1,12 @@
-# iofog-sdk-go
+# ioFog Go SDK
 
 This SDK contains a set of Golang packages developers can use for the purposes of:
 * Developing your own edge microservices that run on ioFog Edge Compute Networks
 * Interacting with ioFog Controller REST API
 
-#### Golang v1.15+
+#### Golang v1.16+
 
-The SDK is tested against Golang v1.15 environments.
+The SDK is tested against Golang v1.16 environments.
 
 ## Packages
 
