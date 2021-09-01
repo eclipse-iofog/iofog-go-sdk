@@ -235,7 +235,7 @@ type MicroserviceEnvironment struct {
 
 type MicroserviceStatus struct {
 	Status            string  `json:"status"`
-	StartTimne        int64   `json:"startTime"`
+	StartTime         int64   `json:"startTime"`
 	OperatingDuration int64   `json:"operatingDuration"`
 	MemoryUsage       float64 `json:"memoryUsage"`
 	CPUUsage          float64 `json:"cpuUsage"`
@@ -530,11 +530,15 @@ type RouteListResponse struct {
 	Routes []Route `json:"routes"`
 }
 
+// Route still has deprecated Dest/SourceUUID for retro compatibility
+// Prefer From and To
 type Route struct {
 	Name                   string `json:"name"`
 	Application            string `json:"application"`
 	SourceMicroserviceUUID string `json:"sourceMicroserviceUuid"`
 	DestMicroserviceUUID   string `json:"destMicroserviceUuid"`
+	From                   string `json:"from"`
+	To                     string `json:"to"`
 }
 
 type ApplicationRouteCreateRequest struct {
