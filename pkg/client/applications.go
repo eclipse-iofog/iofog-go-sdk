@@ -14,8 +14,11 @@
 package client
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
+	"mime/multipart"
 )
 
 // GetApplicationByName retrieve application information using the Controller REST API
@@ -41,12 +44,56 @@ func (clt *Client) CreateApplication(request *ApplicationCreateRequest) (*Applic
 	if err := json.Unmarshal(body, &response); err != nil {
 		return nil, err
 	}
-	return clt.GetApplicationByName(request.Name)
+	return clt.GetApplicationByName(response.Name)
+}
+
+// CreateApplicationFromYAML creates a new application using the Controller REST API
+// It sends the yaml file to Controller REST API
+func (clt *Client) CreateApplicationFromYAML(file io.Reader) (*ApplicationInfo, error) {
+	requestBody := &bytes.Buffer{}
+	writer := multipart.NewWriter(requestBody)
+	part, _ := writer.CreateFormFile("application", "application.yaml")
+	io.Copy(part, file)
+	writer.Close()
+
+	headers := map[string]string{
+		"Content-Type": writer.FormDataContentType(),
+	}
+	body, err := clt.doRequestWithHeaders("POST", "/application/yaml", requestBody, headers)
+
+	if err != nil {
+		return nil, err
+	}
+	response := FlowCreateResponse{}
+	if err := json.Unmarshal(body, &response); err != nil {
+		return nil, err
+	}
+	return clt.GetApplicationByName(response.Name)
 }
 
 // UpdateApplication updates an application using the Controller REST API
 func (clt *Client) UpdateApplication(name string, request *ApplicationUpdateRequest) (*ApplicationInfo, error) {
 	_, err := clt.doRequest("PUT", fmt.Sprintf("/application/%s", name), *request)
+	if err != nil {
+		return nil, err
+	}
+	return clt.GetApplicationByName(name)
+}
+
+// UpdateApplicationFromYAML updates an application using the Controller REST API
+// It sends the yaml file to Controller REST API
+func (clt *Client) UpdateApplicationFromYAML(name string, file io.Reader) (*ApplicationInfo, error) {
+	requestBody := &bytes.Buffer{}
+	writer := multipart.NewWriter(requestBody)
+	part, _ := writer.CreateFormFile("application", "application.yaml")
+	io.Copy(part, file)
+	writer.Close()
+
+	headers := map[string]string{
+		"Content-Type": writer.FormDataContentType(),
+	}
+
+	_, err := clt.doRequestWithHeaders("PUT", fmt.Sprintf("/application/yaml/%s", name), requestBody, headers)
 	if err != nil {
 		return nil, err
 	}
