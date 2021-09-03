@@ -106,7 +106,11 @@ func (clt *Client) PatchApplication(name string, request *ApplicationPatchReques
 	if err != nil {
 		return nil, err
 	}
-	return clt.GetApplicationByName(name)
+	newName := name
+	if request.Name != nil {
+		newName = *request.Name
+	}
+	return clt.GetApplicationByName(newName)
 }
 
 // StartApplication set the application as active using the Controller REST API
