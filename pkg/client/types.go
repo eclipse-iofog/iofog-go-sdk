@@ -30,7 +30,7 @@ type FlowCreateRequest struct {
 
 type FlowCreateResponse struct {
 	ID   int    `json:"id"`
-	Name string `json: "name"`
+	Name string `json:"name"`
 }
 
 type FlowUpdateRequest struct {

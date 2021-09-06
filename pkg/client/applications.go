@@ -53,7 +53,10 @@ func (clt *Client) CreateApplicationFromYAML(file io.Reader) (*ApplicationInfo, 
 	requestBody := &bytes.Buffer{}
 	writer := multipart.NewWriter(requestBody)
 	part, _ := writer.CreateFormFile("application", "application.yaml")
-	io.Copy(part, file)
+	_, err := io.Copy(part, file)
+	if err != nil {
+		return nil, err
+	}
 	writer.Close()
 
 	headers := map[string]string{
@@ -86,14 +89,17 @@ func (clt *Client) UpdateApplicationFromYAML(name string, file io.Reader) (*Appl
 	requestBody := &bytes.Buffer{}
 	writer := multipart.NewWriter(requestBody)
 	part, _ := writer.CreateFormFile("application", "application.yaml")
-	io.Copy(part, file)
+	_, err := io.Copy(part, file)
+	if err != nil {
+		return nil, err
+	}
 	writer.Close()
 
 	headers := map[string]string{
 		"Content-Type": writer.FormDataContentType(),
 	}
 
-	_, err := clt.doRequestWithHeaders("PUT", fmt.Sprintf("/application/yaml/%s", name), requestBody, headers)
+	_, err = clt.doRequestWithHeaders("PUT", fmt.Sprintf("/application/yaml/%s", name), requestBody, headers)
 	if err != nil {
 		return nil, err
 	}

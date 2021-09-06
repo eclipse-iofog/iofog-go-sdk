@@ -31,7 +31,7 @@ type httpDo struct {
 func (hd *httpDo) do(method, url string, headers map[string]string, requestBody interface{}) (responseBody []byte, err error) {
 	body, isIoReader := requestBody.(io.Reader)
 	// If body is not an io.Reader and the content type is json, do the marshalling
-	if encodeType, ok := headers["Content-Type"]; !isIoReader && ok == true && encodeType == "application/json" {
+	if encodeType, ok := headers["Content-Type"]; !isIoReader && ok && encodeType == "application/json" {
 		jsonBody := ""
 		if requestBody != nil {
 			var jsonBodyBytes []byte
@@ -44,10 +44,8 @@ func (hd *httpDo) do(method, url string, headers map[string]string, requestBody 
 
 		Verbose(fmt.Sprintf("===> [%s] %s \nBody: %s\n", method, url, jsonBody))
 		body = strings.NewReader(jsonBody)
-	} else {
-		if !isIoReader {
-			return nil, NewInternalError("Failed to convert request body to io.Reader")
-		}
+	} else if !isIoReader {
+		return nil, NewInternalError("Failed to convert request body to io.Reader")
 	}
 
 	// Instantiate request
