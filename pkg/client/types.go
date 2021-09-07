@@ -417,6 +417,8 @@ type AgentInfo struct {
 	MemoryUsage               float64   `json:"memoryUsage" yaml:"memoryUsage"`
 	DiskUsage                 float64   `json:"diskUsage" yaml:"diskUsage"`
 	CPUUsage                  float64   `json:"cpuUsage" yaml:"cpuUsage"`
+	SystemAvailableMemory     float64   `json:"systemAvailableMemory" yaml:"systemAvailableMemory"`
+	SystemAvailableDisk       float64   `json:"systemAvailableDisk" yaml:"systemAvailableDisk"`
 	MemoryViolation           string    `json:"memoryViolation" yaml:"memoryViolation"`
 	DiskViolation             string    `json:"diskViolation" yaml:"diskViolation"`
 	CPUViolation              string    `json:"cpuViolation" yaml:"cpuViolation"`
