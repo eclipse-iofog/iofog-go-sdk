@@ -36,7 +36,7 @@ func createRoutes(routes []Route, microserviceByName map[string]*client.Microser
 		fromMsvc := microserviceByName[route.From]
 		toMsvc := microserviceByName[route.To]
 		if err = clt.CreateMicroserviceRoute(fromMsvc.UUID, toMsvc.UUID); err != nil {
-			return
+			return err
 		}
 	}
 	return nil

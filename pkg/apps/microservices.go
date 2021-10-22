@@ -72,12 +72,12 @@ func newMicroserviceExecutor(controller IofogController, msvc interface{}, appNa
 func (exe *microserviceExecutor) execute() (err error) {
 	// Init remote resources
 	if err = exe.init(); err != nil {
-		return
+		return err
 	}
 
 	// Deploy microservice
 	if _, err = exe.deploy(); err != nil {
-		return
+		return err
 	}
 	return nil
 }
@@ -93,13 +93,13 @@ func (exe *microserviceExecutor) init() (err error) {
 		exe.client, err = client.NewAndLogin(client.Options{BaseURL: baseURL}, exe.controller.Email, exe.controller.Password)
 	}
 	if err != nil {
-		return
+		return err
 	}
 	var listMsvcs *client.MicroserviceListResponse
 	if exe.appName != "" {
 		listMsvcs, err = exe.client.GetMicroservicesByApplication(exe.appName)
 		if err != nil {
-			return
+			return err
 		}
 	}
 
