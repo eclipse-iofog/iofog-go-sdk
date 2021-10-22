@@ -136,35 +136,6 @@ func TestCreateAgent(t *testing.T) {
 	state.uuid = idInfo.UUID
 }
 
-func TestListAppTemplates(t *testing.T) {
-	response, err := clt.ListApplicationTemplates()
-	if err != nil {
-		t.Fatalf(fmt.Sprintf("List App Templates failed: %s", err.Error()))
-	}
-	if len(response.ApplicationTemplates) != 2 {
-		t.Fatalf(fmt.Sprintf("List App Templates returned incorrect count: %d", len(response.ApplicationTemplates)))
-	}
-	if response.ApplicationTemplates[0].Name != state.appTemplateName {
-		t.Fatalf(fmt.Sprintf("List App Templates returned incorrect name: %s", response.ApplicationTemplates[0].Name))
-	}
-}
-
-func TestGetAppTemplate(t *testing.T) {
-	response, err := clt.GetApplicationTemplate(state.appTemplateName)
-	if err != nil {
-		t.Fatalf(fmt.Sprintf("Get App Template failed: %s", err.Error()))
-	}
-	if response.Name != state.appTemplateName {
-		t.Fatalf(fmt.Sprintf("Get App Template returned incorrect name: %s", response.Name))
-	}
-}
-
-func TestDeleteAppTemplate(t *testing.T) {
-	if err := clt.DeleteApplicationTemplate(state.appTemplateName); err != nil {
-		t.Fatalf("Failed to delete App Template: %s", err.Error())
-	}
-}
-
 func TestDeleteAgent(t *testing.T) {
 	if err := clt.DeleteAgent(state.uuid); err != nil {
 		t.Fatalf("Failed to delete Agent: %s", err.Error())
