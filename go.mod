@@ -7,6 +7,7 @@ require (
 	github.com/eapache/queue v1.1.0 // indirect
 	github.com/gorilla/websocket v1.4.2
 	github.com/json-iterator/go v1.1.10
+	gopkg.in/yaml.v2 v2.3.0
 	k8s.io/api v0.19.4
 	k8s.io/apimachinery v0.19.4
 	k8s.io/client-go v0.19.4

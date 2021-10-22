@@ -34,19 +34,6 @@ func (clt *Client) GetApplicationByName(name string) (application *ApplicationIn
 	return
 }
 
-// CreateApplication creates a new application using the Controller REST API
-func (clt *Client) CreateApplication(request *ApplicationCreateRequest) (*ApplicationInfo, error) {
-	response := FlowCreateResponse{}
-	body, err := clt.doRequest("POST", "/application", request)
-	if err != nil {
-		return nil, err
-	}
-	if err := json.Unmarshal(body, &response); err != nil {
-		return nil, err
-	}
-	return clt.GetApplicationByName(response.Name)
-}
-
 // CreateApplicationFromYAML creates a new application using the Controller REST API
 // It sends the yaml file to Controller REST API
 func (clt *Client) CreateApplicationFromYAML(file io.Reader) (*ApplicationInfo, error) {
@@ -72,15 +59,6 @@ func (clt *Client) CreateApplicationFromYAML(file io.Reader) (*ApplicationInfo, 
 		return nil, err
 	}
 	return clt.GetApplicationByName(response.Name)
-}
-
-// UpdateApplication updates an application using the Controller REST API
-func (clt *Client) UpdateApplication(name string, request *ApplicationUpdateRequest) (*ApplicationInfo, error) {
-	_, err := clt.doRequest("PUT", fmt.Sprintf("/application/%s", name), *request)
-	if err != nil {
-		return nil, err
-	}
-	return clt.GetApplicationByName(name)
 }
 
 // UpdateApplicationFromYAML updates an application using the Controller REST API

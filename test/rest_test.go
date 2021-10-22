@@ -136,66 +136,6 @@ func TestCreateAgent(t *testing.T) {
 	state.uuid = idInfo.UUID
 }
 
-func TestCreateUpdatePatchAppTemplate(t *testing.T) {
-	// Create
-	request := client.ApplicationTemplateCreateRequest{
-		Description: "test desc",
-		Name:        state.appTemplateName,
-		Variables: []client.TemplateVariable{
-			{
-				Key:          "testkey",
-				Description:  "vartestdesc",
-				DefaultValue: "testdefaultval",
-			},
-		},
-		Application: &client.ApplicationTemplateInfo{
-			Microservices: []client.MicroserviceCreateRequest{},
-			Routes:        []client.ApplicationRouteCreateRequest{},
-		},
-	}
-	createName := "test1"
-	request.Name = createName
-	request.Description = "test2"
-	response, err := clt.CreateApplicationTemplate(&request)
-	if err != nil {
-		t.Fatalf(fmt.Sprintf("Failed to create App Template: %s", err.Error()))
-	}
-	if response.ID == 0 {
-		t.Fatalf("Create App Template returned 0 Id")
-	}
-	if response.Name != request.Name {
-		t.Fatalf(fmt.Sprintf("Create App Template returned wrong name: %s", response.Name))
-	}
-
-	// Update new and old
-	updateName := "test123"
-	request.Name = updateName
-	for _, desc := range []string{"first", "second"} {
-		request.Description = desc
-		updateResponse, err := clt.UpdateApplicationTemplate(&request)
-		if err != nil {
-			t.Fatalf(fmt.Sprintf("Failed to update App Template: %s", err.Error()))
-		}
-		if updateResponse.Name != updateName {
-			t.Fatalf(fmt.Sprintf("Update App Template returned wrong name: %s", updateResponse.Name))
-		}
-		getUpdateResponse, err := clt.GetApplicationTemplate(updateName)
-		if err != nil {
-			t.Fatalf(fmt.Sprintf("Failed to get updated App Template: %s", err.Error()))
-		}
-		if getUpdateResponse.Description != request.Description {
-			t.Fatalf(fmt.Sprintf("Get updated App Template returned wrong description: %s", getUpdateResponse.Description))
-		}
-	}
-
-	// Patch created
-	if err := clt.UpdateApplicationTemplateMetadata(createName, &client.ApplicationTemplateMetadataUpdateRequest{
-		Name: &state.appTemplateName,
-	}); err != nil {
-		t.Fatalf(fmt.Sprintf("Patch App Template failed: %s", err.Error()))
-	}
-}
-
 func TestListAppTemplates(t *testing.T) {
 	response, err := clt.ListApplicationTemplates()
 	if err != nil {
@@ -216,25 +156,6 @@ func TestGetAppTemplate(t *testing.T) {
 	}
 	if response.Name != state.appTemplateName {
 		t.Fatalf(fmt.Sprintf("Get App Template returned incorrect name: %s", response.Name))
-	}
-}
-
-func TestCreateTemplatedApp(t *testing.T) {
-	request := client.ApplicationCreateRequest{
-		Name: state.appName,
-		Template: &client.ApplicationTemplate{
-			Name: state.appTemplateName,
-			Variables: []client.TemplateVariable{
-				{
-					Key:   "agent-name",
-					Value: state.agent,
-				},
-			},
-		},
-	}
-	_, err := clt.CreateApplication(&request)
-	if err != nil {
-		t.Fatalf(fmt.Sprintf("Create Templated Application failed: %s", err.Error()))
 	}
 }
 
