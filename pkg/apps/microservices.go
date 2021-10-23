@@ -72,14 +72,14 @@ func newMicroserviceExecutor(controller IofogController, msvc interface{}, appNa
 	return exe
 }
 
-func (exe *microserviceExecutor) execute() (err error) {
+func (exe *microserviceExecutor) execute() error {
 	// Init remote resources
-	if err = exe.init(); err != nil {
+	if err := exe.init(); err != nil {
 		return err
 	}
 
 	// Deploy microservice
-	if _, err = exe.deploy(); err != nil {
+	if _, err := exe.deploy(); err != nil {
 		return err
 	}
 	return nil
