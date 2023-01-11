@@ -13,14 +13,14 @@ trigger:
 pr: none
 
 variables:
-  GOROOT: '/usr/local/go1.12'
+  GOROOT: '/usr/local/go1.19'
   GOPATH: '/tmp/go'
   GOBIN:  '$(GOPATH)/bin'
 
 jobs:
   - job: Test
     pool:
-      vmImage: 'Ubuntu-16.04'
+      vmImage: 'Ubuntu-22.04'
 
     steps:
       - script: |
@@ -30,7 +30,7 @@ jobs:
 
       - task: GoTool@0
         inputs:
-          version: '1.12.1'
+          version: '1.19'
           goPath: $(GOPATH)
           goBin: $(GOBIN)
         displayName: 'Install Golang'
