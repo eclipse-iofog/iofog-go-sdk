@@ -13,7 +13,7 @@ TEST_REPORT ?= TEST-iofog-go-sdk.xml
 export CGO_ENABLED ?= 0
 export GOOS ?= $(OS)
 export GOARCH ?= amd64
-GOLANG_VERSION = 1.12
+GOLANG_VERSION = 1.19
 GOFILES_NOVENDOR = $(shell find . -type f -name '*.go' -not -path "./vendor/*" -not -path "./client/*")
 
 .PHONY: init
