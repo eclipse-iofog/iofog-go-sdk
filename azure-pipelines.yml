@@ -48,7 +48,6 @@ jobs:
       - script: |
           set -e
           PATH=$PATH:$(GOBIN)
-          # make lint test
           make test
         displayName: 'Lint and Unit Test'
 
