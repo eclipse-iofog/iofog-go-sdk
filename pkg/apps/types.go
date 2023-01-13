@@ -78,7 +78,7 @@ type MicroserviceContainer struct {
 	Env            *[]MicroserviceEnvironment   `yaml:"env,omitempty" json:"env,omitempty"`
 	ExtraHosts     *[]MicroserviceExtraHost     `yaml:"extraHosts,omitempty" json:"extraHosts,omitempty"`
 	Ports          []MicroservicePortMapping    `yaml:"ports" json:"ports"`
-//	RootHostAccess interface{}                  `yaml:"rootHostAccess" json:"rootHostAccess"` // +k8s:deepcopy-gen=ignore
+	RootHostAccess interface{}                  `yaml:"rootHostAccess" json:"rootHostAccess"` // +k8s:deepcopy-gen=ignore
 }
 
 // Microservice contains information for configuring a microservice
@@ -93,7 +93,7 @@ type Microservice struct {
 	Flow        *string               `yaml:"flow,omitempty" json:"flow,omitempty"`
 	Application *string               `yaml:"application,omitempty" json:"application,omitempty"`
 	Created     string                `yaml:"created,omitempty" json:"created,omitempty"`
-//	Rebuild     interface{}           `yaml:"rebuild,omitempty" json:"rebuild,omitempty"` // +k8s:deepcopy-gen=ignore
+	Rebuild     interface{}           `yaml:"rebuild,omitempty" json:"rebuild,omitempty"` // +k8s:deepcopy-gen=ignore
 }
 
 type NestedMap map[string]interface{}
@@ -220,8 +220,8 @@ type ApplicationTemplate struct {
 type TemplateVariable struct {
 	Key          string      `yaml:"key"`
 	Description  string      `yaml:"description"`
-//	DefaultValue interface{} `yaml:"defaultValue,omitempty"` // +k8s:deepcopy-gen=ignore
-//	Value        interface{} `yaml:"value,omitempty"`        // +k8s:deepcopy-gen=ignore
+	DefaultValue interface{} `yaml:"defaultValue,omitempty"` // +k8s:deepcopy-gen=ignore
+	Value        interface{} `yaml:"value,omitempty"`        // +k8s:deepcopy-gen=ignore
 }
 
 // ApplicationTemplateInfo contains microservice and route details for template
