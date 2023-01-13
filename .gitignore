@@ -4,3 +4,6 @@ reports/*
 
 test.txt
 test-report.xml
+.DS_Store
+/*.iml
+/.vscode
