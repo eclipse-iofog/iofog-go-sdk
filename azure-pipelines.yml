@@ -20,7 +20,7 @@ variables:
 jobs:
   - job: Test
     pool:
-      vmImage: 'Ubuntu-22.04'
+      vmImage: 'Ubuntu-20.04'
 
     steps:
       - script: |
