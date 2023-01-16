@@ -11,7 +11,7 @@ spec:
     password: g9hr823rhuoi
   controller:
     container:
-      image: gcr.io/focal-freedom-236620/controller:develop
+      image: gcr.io/focal-freedom-236620/controller:3.0.1
 ---
 apiVersion: iofog.org/v3
 kind: LocalAgent
@@ -19,4 +19,4 @@ metadata:
   name: local-1
 spec:
   container:
-    image: gcr.io/focal-freedom-236620/agent:develop
+    image: gcr.io/focal-freedom-236620/agent:3.0.1
