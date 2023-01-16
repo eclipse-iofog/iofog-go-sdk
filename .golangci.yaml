@@ -113,9 +113,9 @@ issues:
         - funlen
 
     - linters:
-      - gosec
-      text: "G[202]"
-      text: "G[101]"
+#      - gosec
+#        text: "G[202]"
+#        text: "G[101]"
 
 
 run:
