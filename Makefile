@@ -67,6 +67,6 @@ varexport-%: ; @echo $*=$($*)
 
 .PHONE: install-tools
 install-tools:
-	go install -v k8s.io/code-generator/cmd/deepcopy-gen@v0.24
+	go install -v k8s.io/code-generator/cmd/deepcopy-gen@v0.26
 
 # echo "export PATH=$PATH:/go/bin/linux_amd64" >> ~/.bashrc
