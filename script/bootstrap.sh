@@ -19,7 +19,7 @@ if [ ! "$(command -v golangci-lint)" ]; then
       brew install golangci-lint
       brew upgrade golangci-lint
     else
-      curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.33.0
+      go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.50.1
     fi
 fi
 

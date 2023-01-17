@@ -38,8 +38,20 @@ gen: install-tools ## Generate code
 	@sed -i'' -E "s|//(.*// \+k8s:deepcopy-gen=ignore)|\1|g" pkg/apps/types.go
 
 .PHONY: lint
-lint: fmt
-	@golangci-lint run --timeout 5m0s
+lint: export GOFLAGS=-mod=vendor
+lint: golangci-lint fmt ## Lint the source
+	@$(GOLANGCI_LINT) run --timeout 5m0s
+
+golangci-lint: ## Install golangci
+ifeq (, $(shell which golangci-lint))
+	@{ \
+	set -e ;\
+	go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.50.1 ;\
+	}
+GOLANGCI_LINT=$(GOBIN)/golangci-lint
+else
+GOLANGCI_LINT=$(shell which golangci-lint)
+endif
 
 .PHONY: fmt
 fmt: ## Format the source
