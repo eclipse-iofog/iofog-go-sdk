@@ -47,7 +47,7 @@ jobs:
 
       - script: |
           set -e
-          make lint test
+          make lint
         displayName: 'Lint Source'
 
       - script: |
