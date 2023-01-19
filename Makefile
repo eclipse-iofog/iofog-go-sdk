@@ -70,6 +70,5 @@ varexport-%: ; @echo $*=$($*)
 install-tools:
 	go install -v k8s.io/code-generator/cmd/deepcopy-gen@v0.26
 	env | grep GO
-	echo $PATH
-	deepcopy-gen version
+	echo "PATH: $PATH"
 	which deepcopy-gen
