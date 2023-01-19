@@ -40,16 +40,20 @@ jobs:
           ./script/check_fmt.sh
         displayName: 'Check Source Format'
 
-      - script: |
-          set -e
-          script/bootstrap.sh
-        displayName: 'Bootstrap'
+#      - script: |
+#          set -e
+#          script/bootstrap.sh
+#        displayName: 'Bootstrap'
 
       - script: |
           set -e
-          PATH=$PATH:$(GOBIN)
           make lint test
-        displayName: 'Lint and Unit Test'
+        displayName: 'Lint Source'
+
+      - script: |
+          set -e
+          make test
+        displayName: 'Unit Test'
 
       - script: |
           set -e
