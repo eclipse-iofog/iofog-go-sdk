@@ -12,33 +12,16 @@ trigger:
       - CHANGELOG.md
       - LICENSE
 
-variables:
-#  GOROOT: '/usr/local/go1.18'
-#  GOPATH: '/tmp/go'
-#  GOBIN:  '$(GOPATH)/bin'
-
 jobs:
   - job: Test
     pool:
       vmImage: 'Ubuntu-20.04'
 
     steps:
-#      - script: |
-#          mkdir -p '$(GOBIN)'
-#          mkdir -p '$(GOPATH)/pkg'
-#        displayName: 'Set up the Go workspace'
-
       - task: GoTool@0
         inputs:
           version: '1.18'
-#          goPath: $(GOPATH)
-#          goBin: $(GOBIN)
         displayName: 'Install Golang'
-
-#      - script: |
-#          set -e
-#          script/bootstrap.sh
-#        displayName: 'Bootstrap'
 
       - script: |
           set -e
