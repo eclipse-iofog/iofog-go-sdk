@@ -68,7 +68,4 @@ varexport-%: ; @echo $*=$($*)
 
 .PHONE: install-tools
 install-tools:
-	env | grep GO
-	env | grep PATH
 	go install -v k8s.io/code-generator/cmd/deepcopy-gen@v0.26
-	which deepcopy-gen

@@ -38,11 +38,6 @@ jobs:
           goBin: $(GOBIN)
         displayName: 'Install Golang'
 
-#      - script: |
-#          set -e
-#          script/bootstrap.sh
-#        displayName: 'Bootstrap'
-
       - script: |
           set -e
           make lint
