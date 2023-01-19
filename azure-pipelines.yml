@@ -35,15 +35,10 @@ jobs:
           goBin: $(GOBIN)
         displayName: 'Install Golang'
 
-#      - script: |
-#          set -e
-#          ./script/check_fmt.sh
-#        displayName: 'Check Source Format'
-
-#      - script: |
-#          set -e
-#          script/bootstrap.sh
-#        displayName: 'Bootstrap'
+      - script: |
+          set -e
+          script/bootstrap.sh
+        displayName: 'Bootstrap'
 
       - script: |
           set -e

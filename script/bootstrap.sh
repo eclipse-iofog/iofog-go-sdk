@@ -28,7 +28,7 @@ fi
 # Is gengo installed?
 if [ -z $(command -v deepcopy-gen) ]; then
     echo " Attempting to install 'gengo'"
-    go install -v k8s.io/code-generator/cmd/deepcopy-gen@v0.24
+    go install -v k8s.io/code-generator/cmd/deepcopy-gen@v0.26
 #    go install -mod=vendor k8s.io/gengo/examples/deepcopy-gen/
 fi
 
