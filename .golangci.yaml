@@ -202,12 +202,6 @@ issues:
         - funlen
 
 run:
-  modules-download-mode: vendor
-  skip-dirs:
-    # auto-generated
-    # vendors
-    - vendor
-
   skip-files:
     # auto-generated
     - ".*_test.go"

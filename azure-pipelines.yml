@@ -24,8 +24,11 @@ jobs:
 
     steps:
       - script: |
+          set -e
           mkdir -p '$(GOBIN)'
           mkdir -p '$(GOPATH)/pkg'
+          echo '##vso[task.prependpath]$(GOBIN)'
+          echo '##vso[task.prependpath]$(GOROOT)/bin'
         displayName: 'Set up the Go workspace'
 
       - task: GoTool@0
@@ -37,19 +40,13 @@ jobs:
 
       - script: |
           set -e
-          ./script/check_fmt.sh
-        displayName: 'Check Source Format'
+          make lint
+        displayName: 'Lint Source'
 
       - script: |
           set -e
-          script/bootstrap.sh
-        displayName: 'Bootstrap'
-
-      - script: |
-          set -e
-          PATH=$PATH:$(GOBIN)
-          make lint test
-        displayName: 'Lint and Unit Test'
+          make test
+        displayName: 'Unit Test'
 
       - script: |
           set -e
