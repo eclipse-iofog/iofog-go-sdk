@@ -9,22 +9,9 @@ REPORTS_DIR ?= reports
 TEST_RESULTS ?= TEST-iofog-go-sdk.txt
 TEST_REPORT ?= TEST-iofog-go-sdk.xml
 
-# Go variables
-export CGO_ENABLED ?= 0
-export GOOS ?= $(OS)
-export GOARCH ?= amd64
-GOFILES_NOVENDOR = $(shell find . -type f -name '*.go' -not -path "./vendor/*" -not -path "./client/*")
-
 .PHONY: init
 init: ## Init git repository
 	@cp gitHooks/* .git/hooks/
-
-.PHONY: vendor
-vendor: # Vendor all deps
-	@go mod vendor
-	@for dep in golang.org/x/tools k8s.io/gengo k8s.io/klog github.com/spf13; do \
-		git checkout -- vendor/$$dep; \
-	done \
 
 .PHONY: all
 all: test ## Generate code and run tests
@@ -34,25 +21,36 @@ clean: ## Clean the working area and the project
 	rm -rf $(REPORTS_DIR)
 
 .PHONY: gen
-gen: ## Generate code
+gen: install-tools ## Generate code
 	@sed -i'' -E "s|//(.*// \+k8s:deepcopy-gen=ignore)|\1|g" pkg/apps/types.go
 	@sed -i'' -E "s|(.*// \+k8s:deepcopy-gen=ignore)|//\1|g" pkg/apps/types.go
-	@GOFLAGS=-mod=vendor deepcopy-gen -i ./pkg/apps -o . --go-header-file ./vendor/k8s.io/gengo/boilerplate/boilerplate.go.txt
+	deepcopy-gen -i ./pkg/apps -o . --go-header-file ./boilerplate.go.txt
 	@sed -i'' -E "s|//(.*// \+k8s:deepcopy-gen=ignore)|\1|g" pkg/apps/types.go
 
 .PHONY: lint
-lint: fmt
-	@golangci-lint run --timeout 5m0s
+lint: golangci-lint fmt ## Lint the source
+	@$(GOLANGCI_LINT) run --timeout 5m0s
+
+golangci-lint: ## Install golangci
+ifeq (, $(shell which golangci-lint))
+	@{ \
+	set -e ;\
+	go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.50.1 ;\
+	}
+GOLANGCI_LINT=$(GOBIN)/golangci-lint
+else
+GOLANGCI_LINT=$(shell which golangci-lint)
+endif
 
 .PHONY: fmt
 fmt: ## Format the source
-	@gofmt -s -w $(GOFILES_NOVENDOR)
+	@gofmt -s -w .
 
 .PHONY: test
 test: gen fmt ## Run unit tests
 	mkdir -p $(REPORTS_DIR)
 	rm -f $(REPORTS_DIR)/*
-	set -o pipefail; go list -mod=vendor ./pkg/... | xargs -n1 go test -mod=vendor -ldflags "$(LDFLAGS)" -v -parallel 1 2>&1 | tee $(REPORTS_DIR)/$(TEST_RESULTS)
+	set -o pipefail; go list ./pkg/... | xargs -n1 go test -ldflags "$(LDFLAGS)" -v -parallel 1 2>&1 | tee $(REPORTS_DIR)/$(TEST_RESULTS)
 
 .PHONY: list
 list: ## List all make targets
@@ -66,3 +64,8 @@ help: ## Get help output
 # Variable outputting/exporting rules
 var-%: ; @echo $($*)
 varexport-%: ; @echo $*=$($*)
+
+
+.PHONE: install-tools
+install-tools:
+	go install -v k8s.io/code-generator/cmd/deepcopy-gen@v0.26
