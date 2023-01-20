@@ -29,6 +29,8 @@
 * Update ListAgents and allow users to specify filters and system flag
 * Remove iofogctl resource kinds
 * Update AgentConfiguration for configuring docker frequency
+### Bugs
+
 * Stop passing ListAgentsRequest into body of request
 
 ## [v2.0.0-alpha] - 2020-03-10
@@ -69,4 +71,3 @@
 [v2.0.0-beta]: https://github.com/eclipse-iofog/iofog-go-sdk/compare/v2.0.0-alpha..v2.0.0-beta2
 [v2.0.0-alpha]: https://github.com/eclipse-iofog/iofog-go-sdk/compare/v1.3.0..v2.0.0-beta
 [v1.3.0]: https://github.com/eclipse-iofog/iofog-go-sdk/tree/v1.3.0
-
