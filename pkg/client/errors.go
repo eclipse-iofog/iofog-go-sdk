@@ -48,7 +48,7 @@ func (err *NotFoundError) Error() string {
 	return fmt.Sprintf("Unknown resource error\n%s", err.msg)
 }
 
-//ConflictError export
+// ConflictError export
 type ConflictError struct {
 	msg string
 }
@@ -70,7 +70,7 @@ type InputError struct {
 	message string
 }
 
-//NewInputError export
+// NewInputError export
 func NewInputError(message string) (err *InputError) {
 	err = new(InputError)
 	err.message = message
@@ -116,4 +116,21 @@ func NewHTTPError(message string, code int) (err *HTTPError) {
 // Error export
 func (err *HTTPError) Error() string {
 	return "Unexpected HTTP response\n" + err.message
+}
+
+// NotSupported export
+type NotSupportedError struct {
+	capability string
+}
+
+// NewNotSupported export
+func NewNotSupportedError(capability string) (err *NotSupportedError) {
+	err = new(NotSupportedError)
+	err.capability = capability
+	return err
+}
+
+// Error export
+func (err *NotSupportedError) Error() string {
+	return "Controller API does not support " + err.capability
 }

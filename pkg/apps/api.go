@@ -13,12 +13,21 @@
 
 package apps
 
-func DeployApplication(controller IofogController, application Application) error {
-	exe := newApplicationExecutor(controller, application)
+import (
+	"net/url"
+)
+
+func DeployApplicationTemplate(controller IofogController, controllerBaseURL *url.URL, template interface{}, name string) error {
+	exe := newApplicationTemplateExecutor(controller, controllerBaseURL, template, name)
 	return exe.execute()
 }
 
-func DeployMicroservice(controller IofogController, microservice Microservice) error {
-	exe := newMicroserviceExecutor(controller, microservice)
+func DeployApplication(controller IofogController, application interface{}, name string) error {
+	exe := newApplicationExecutor(controller, application, name)
+	return exe.execute()
+}
+
+func DeployMicroservice(controller IofogController, microservice interface{}, appName, name string) error {
+	exe := newMicroserviceExecutor(controller, microservice, appName, name)
 	return exe.execute()
 }

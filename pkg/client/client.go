@@ -15,44 +15,62 @@ package client
 
 import (
 	"fmt"
-	"regexp"
+	"net/url"
+	"path"
 	"strings"
 	"time"
 )
 
+type controllerStatus struct {
+	version         string
+	versionNoSuffix string
+	versionNums     []string
+}
+
 type Client struct {
-	endpoint    string
-	baseURL     string
+	baseURL     *url.URL
 	accessToken string
 	retries     Retries
+	status      controllerStatus
+	timeout     int
 }
 
 type Options struct {
-	Endpoint string
-	Retries  *Retries
+	BaseURL *url.URL
+	Retries *Retries
+	Timeout int
 }
 
-var apiPrefix = "/api/v3"
-
 func New(opt Options) *Client {
-	// Remove prefix
-	regex := regexp.MustCompile("https?://")
-	endpoint := regex.ReplaceAllString(opt.Endpoint, "")
-
-	// Add default port if none specified
-	if !strings.Contains(endpoint, ":") {
-		endpoint = endpoint + ":" + ControllerPortString
+	if opt.Timeout == 0 {
+		opt.Timeout = 5
 	}
-
 	retries := GlobalRetriesPolicy
 	if opt.Retries != nil {
 		retries = *opt.Retries
 	}
-	return &Client{
-		endpoint: endpoint,
-		retries:  retries,
-		baseURL:  fmt.Sprintf("http://%s%s", endpoint, apiPrefix),
+	client := &Client{
+		retries: retries,
+		baseURL: opt.BaseURL,
+		timeout: opt.Timeout,
 	}
+	if client.baseURL.Scheme == "" {
+		client.baseURL.Path = "http"
+	}
+	if client.baseURL.Path == "" {
+		client.baseURL.Path = "api/v3"
+	}
+	// Get Controller version
+	if status, err := client.GetStatus(); err == nil {
+		versionNoSuffix := before(status.Versions.Controller, "-")
+		versionNums := strings.Split(versionNoSuffix, ".")
+		client.status = controllerStatus{
+			version:         status.Versions.Controller,
+			versionNoSuffix: versionNoSuffix,
+			versionNums:     versionNums,
+		}
+	}
+	return client
 }
 
 func NewAndLogin(opt Options, email, password string) (clt *Client, err error) {
@@ -69,8 +87,8 @@ func NewWithToken(opt Options, token string) (clt *Client, err error) {
 	return
 }
 
-func (clt *Client) GetEndpoint() string {
-	return clt.endpoint
+func (clt *Client) GetBaseURL() string {
+	return clt.baseURL.String()
 }
 
 func (clt *Client) GetRetries() Retries {
@@ -89,16 +107,10 @@ func (clt *Client) SetAccessToken(token string) {
 	clt.accessToken = token
 }
 
-func (clt *Client) makeRequestUrl(url string) string {
-	if !strings.HasPrefix(url, "/") {
-		url = "/" + url
-	}
-	return clt.baseURL + url
-}
-
 func (clt *Client) doRequestWithRetries(currentRetries Retries, method, requestURL string, headers map[string]string, request interface{}) ([]byte, error) {
 	// Send request
-	bytes, err := httpDo(method, requestURL, headers, request)
+	httpDo := httpDo{timeout: clt.timeout}
+	bytes, err := httpDo.do(method, requestURL, headers, request)
 	if err != nil {
 		httpErr, ok := err.(*HTTPError)
 		// If HTTP Error
@@ -129,13 +141,26 @@ func (clt *Client) doRequestWithRetries(currentRetries Retries, method, requestU
 	return bytes, err
 }
 
-func (clt *Client) doRequest(method, url string, request interface{}) ([]byte, error) {
-	// Prepare request
-	requestURL := clt.makeRequestUrl(url)
-	headers := map[string]string{
-		"Content-Type":  "application/json",
-		"Authorization": clt.accessToken,
+func (clt *Client) doRequestWithHeaders(method, requestPath string, request interface{}, headers map[string]string) ([]byte, error) {
+	// Copy the base URL
+	requestURL, err := url.Parse(clt.baseURL.String())
+	if err != nil {
+		return nil, err
 	}
+	// Get query params
+	qpSplit := strings.Split(requestPath, "?")
+	switch len(qpSplit) {
+	case 1:
+		requestURL.Path = path.Join(requestURL.Path, requestPath)
+	case 2:
+		requestURL.Path = path.Join(requestURL.Path, qpSplit[0])
+		requestURL.RawQuery = qpSplit[1]
+	default:
+		return nil, fmt.Errorf("failed to parse request URL %s", requestPath)
+	}
+
+	// Set auth header
+	headers["Authorization"] = clt.accessToken
 
 	currentRetries := Retries{CustomMessage: make(map[string]int)}
 	if clt.retries.CustomMessage != nil {
@@ -144,7 +169,14 @@ func (clt *Client) doRequest(method, url string, request interface{}) ([]byte, e
 		}
 	}
 
-	return clt.doRequestWithRetries(currentRetries, method, requestURL, headers, request)
+	return clt.doRequestWithRetries(currentRetries, method, requestURL.String(), headers, request)
+}
+
+func (clt *Client) doRequest(method, requestPath string, request interface{}) ([]byte, error) {
+	headers := map[string]string{
+		"Content-Type": "application/json",
+	}
+	return clt.doRequestWithHeaders(method, requestPath, request, headers)
 }
 
 func (clt *Client) isLoggedIn() bool {

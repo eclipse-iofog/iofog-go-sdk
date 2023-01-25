@@ -15,29 +15,47 @@ package client
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"strings"
 	"time"
+
+	json "github.com/json-iterator/go"
 )
 
-func httpDo(method, url string, headers map[string]string, requestBody interface{}) (responseBody []byte, err error) {
-	// Encode body
-	jsonBody := ""
-	if requestBody != nil {
-		var jsonBodyBytes []byte
-		jsonBodyBytes, err = json.Marshal(requestBody)
-		if err != nil {
-			return
+type httpDo struct {
+	timeout int
+}
+
+func (hd *httpDo) do(method, url string, headers map[string]string, requestBody interface{}) (responseBody []byte, err error) {
+	body, isIoReader := requestBody.(io.Reader)
+	encodeType, ok := headers["Content-Type"]
+	if ok && encodeType == "application/json" {
+		// If body is not an io.Reader and the content type is json, do the marshalling
+		if !isIoReader {
+			jsonBody := ""
+			if requestBody != nil {
+				var jsonBodyBytes []byte
+				jsonBodyBytes, err = json.Marshal(requestBody)
+				if err != nil {
+					return
+				}
+				jsonBody = string(jsonBodyBytes)
+			}
+
+			Verbose(fmt.Sprintf("===> [%s] %s \nBody: %s\n", method, url, jsonBody))
+			body = strings.NewReader(jsonBody)
 		}
-		jsonBody = string(jsonBodyBytes)
+	} else {
+		if !isIoReader {
+			return nil, NewInternalError("Failed to convert request body to io.Reader")
+		}
+		Verbose(fmt.Sprintf("===> [%s] %s \nContent-Type: %s\n", method, url, encodeType))
 	}
 
-	Verbose(fmt.Sprintf("===> [%s] %s \nBody: %s\n", method, url, jsonBody))
-
 	// Instantiate request
-	request, err := http.NewRequest(method, url, strings.NewReader(jsonBody))
+	request, err := http.NewRequest(method, url, body)
 	if err != nil {
 		return
 	}
@@ -46,21 +64,20 @@ func httpDo(method, url string, headers map[string]string, requestBody interface
 	request.Close = true
 
 	// Set headers on request
-	if headers != nil {
-		for key, val := range headers {
-			request.Header.Set(key, val)
-		}
+	for key, val := range headers {
+		request.Header.Set(key, val)
 	}
 
 	// Perform request
 	client := &http.Client{
-		Timeout: time.Second * 120,
+		Timeout: time.Second * time.Duration(hd.timeout),
 	}
 
 	httpResp, err := client.Do(request)
 	if err != nil {
 		return
 	}
+	defer httpResp.Body.Close()
 
 	// Check response
 	if err = checkStatusCode(httpResp.StatusCode, method, url, httpResp.Body); err != nil {
@@ -69,8 +86,10 @@ func httpDo(method, url string, headers map[string]string, requestBody interface
 
 	// Return body
 	buf := new(bytes.Buffer)
-	buf.ReadFrom(httpResp.Body)
+	if _, err := buf.ReadFrom(httpResp.Body); err != nil {
+		return nil, err
+	}
 	responseBody = buf.Bytes()
 	Verbose(fmt.Sprintf("===> Response: %s\n\n", string(responseBody)))
-	return
+	return responseBody, err
 }

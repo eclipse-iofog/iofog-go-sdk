@@ -20,19 +20,18 @@ type HeaderMetadata struct {
 	Namespace string `yaml:"namespace" json:"namespace"`
 }
 
-// Deployable can be deployed using iofogctl deploy
-type Deployable interface {
-	Deploy(namespace string) error
-}
-
 // Kind contains available types
 type Kind string
 
+// IofogHeader represent the file structure
+type IofogHeader Header
+
 // Available kind of deploy
 const (
-	ApplicationKind  Kind = "Application"
-	MicroserviceKind Kind = "Microservice"
-	RouteKind        Kind = "Route"
+	ApplicationKind         Kind = "Application"
+	ApplicationTemplateKind Kind = "ApplicationTemplate"
+	MicroserviceKind        Kind = "Microservice"
+	RouteKind               Kind = "Route"
 )
 
 // Header contains k8s yaml header
@@ -79,37 +78,38 @@ type MicroserviceContainer struct {
 	Env            *[]MicroserviceEnvironment   `yaml:"env,omitempty" json:"env,omitempty"`
 	ExtraHosts     *[]MicroserviceExtraHost     `yaml:"extraHosts,omitempty" json:"extraHosts,omitempty"`
 	Ports          []MicroservicePortMapping    `yaml:"ports" json:"ports"`
-	RootHostAccess bool                         `yaml:"rootHostAccess" json:"rootHostAccess"`
+	RootHostAccess interface{}                  `yaml:"rootHostAccess" json:"rootHostAccess"` // +k8s:deepcopy-gen=ignore
 }
 
 // Microservice contains information for configuring a microservice
 // +k8s:deepcopy-gen=true
 type Microservice struct {
-	UUID      string                `yaml:"uuid" json:"uuid"`
-	Name      string                `yaml:"name" json:"name"`
-	Agent     MicroserviceAgent     `yaml:"agent" json:"agent"`
-	Images    *MicroserviceImages   `yaml:"images,omitempty" json:"images,omitempty"`
-	Container MicroserviceContainer `yaml:"container,omitempty" json:"container,omitempty"`
-	Config    NestedMap             `yaml:"config" json:"config"`
-	Flow      *string               `yaml:"application,omitempty" json:"application,omitempty"`
-	Created   string                `yaml:"created,omitempty" json:"created,omitempty"`
-	Rebuild   bool                  `yaml:"rebuild,omitempty" json:"rebuild,omitempty"`
+	UUID        string                `yaml:"uuid" json:"uuid"`
+	Name        string                `yaml:"name" json:"name"`
+	Agent       MicroserviceAgent     `yaml:"agent" json:"agent"`
+	Images      *MicroserviceImages   `yaml:"images,omitempty" json:"images,omitempty"`
+	Container   MicroserviceContainer `yaml:"container,omitempty" json:"container,omitempty"`
+	Config      NestedMap             `yaml:"config" json:"config"`
+	Flow        *string               `yaml:"flow,omitempty" json:"flow,omitempty"`
+	Application *string               `yaml:"application,omitempty" json:"application,omitempty"`
+	Created     string                `yaml:"created,omitempty" json:"created,omitempty"`
+	Rebuild     interface{}           `yaml:"rebuild,omitempty" json:"rebuild,omitempty"` // +k8s:deepcopy-gen=ignore
 }
 
 type NestedMap map[string]interface{}
 
 func (j NestedMap) DeepCopy() NestedMap {
-	copy := make(NestedMap)
-	deepCopyNestedMap(j, copy)
-	return copy
+	newMap := make(NestedMap)
+	deepCopyNestedMap(j, newMap)
+	return newMap
 }
 
-func deepCopyNestedMap(src NestedMap, dest NestedMap) {
-	for key, value := range src {
-		switch src[key].(type) {
+func deepCopyNestedMap(src, dest NestedMap) {
+	for key := range src {
+		switch value := src[key].(type) {
 		case NestedMap:
 			dest[key] = NestedMap{}
-			deepCopyNestedMap(src[key].(NestedMap), dest[key].(NestedMap))
+			deepCopyNestedMap(value, dest[key].(NestedMap))
 		default:
 			dest[key] = value
 		}
@@ -117,13 +117,26 @@ func deepCopyNestedMap(src NestedMap, dest NestedMap) {
 }
 
 // +k8s:deepcopy-gen=true
+type MicroservicePublicPortRouterInfo struct {
+	Port int64  `json:"port"`
+	Host string `json:"host"`
+}
+
+// +k8s:deepcopy-gen=true
+type MicroservicePublicPortInfo struct {
+	Schemes  []string                          `json:"schemes"`
+	Links    []string                          `json:"links"`
+	Protocol string                            `json:"protocol"`
+	Enabled  bool                              `json:"enabled"`
+	Router   *MicroservicePublicPortRouterInfo `yaml:"router,omitempty" json:"router,omitempty"`
+}
+
+// +k8s:deepcopy-gen=true
 type MicroservicePortMapping struct {
-	Internal   int    `yaml:"internal" json:"internal"`
-	External   int    `yaml:"external" json:"external"`
-	Public     int    `yaml:"public,omitempty" json:"publicPort"`
-	Host       string `yaml:"host,omitempty" json:"host"`
-	Protocol   string `yaml:"protocol,omitempty" json:"protocol"`
-	PublicLink string `yaml:"publicLink,omitempty" json:"publicLink"`
+	Internal int64                       `json:"internal"`
+	External int64                       `json:"external"`
+	Public   *MicroservicePublicPortInfo `yaml:"public,omitempty" json:"public,omitempty"`
+	Protocol string                      `json:"protocol,omitempty"`
 }
 
 // +k8s:deepcopy-gen=true
@@ -186,10 +199,36 @@ type Route struct {
 // Application contains information for configuring an application
 // +k8s:deepcopy-gen=true
 type Application struct {
-	Name          string         `yaml:"name" json:"name"`
-	Microservices []Microservice `yaml:"microservices" json:"microservices"`
-	Routes        []Route        `yaml:"routes" json:"routes"`
-	ID            int            `yaml:"id" json:"id"`
+	Name          string               `yaml:"name" json:"name"`
+	Microservices []Microservice       `yaml:"microservices,omitempty" json:"microservices,omitempty"`
+	Routes        []Route              `yaml:"routes,omitempty" json:"routes,omitempty"`
+	ID            int                  `yaml:"id,omitempty" json:"id,omitempty"`
+	Template      *ApplicationTemplate `yaml:"template,omitempty" json:"template,omitempty"`
+}
+
+// ApplicationTemplate contains information for configuring an application template
+// +k8s:deepcopy-gen=true
+type ApplicationTemplate struct {
+	Name        string                   `yaml:"name,omitempty"`
+	Description string                   `yaml:"description,omitempty"`
+	Variables   []TemplateVariable       `yaml:"variables,omitempty"`
+	Application *ApplicationTemplateInfo `yaml:"application,omitempty"`
+}
+
+// TemplateVariable contains a key-value pair
+// +k8s:deepcopy-gen=true
+type TemplateVariable struct {
+	Key          string      `yaml:"key"`
+	Description  string      `yaml:"description"`
+	DefaultValue interface{} `yaml:"defaultValue,omitempty"` // +k8s:deepcopy-gen=ignore
+	Value        interface{} `yaml:"value,omitempty"`        // +k8s:deepcopy-gen=ignore
+}
+
+// ApplicationTemplateInfo contains microservice and route details for template
+// +k8s:deepcopy-gen=true
+type ApplicationTemplateInfo struct {
+	Microservices []Microservice `yaml:"microservices"`
+	Routes        []Route        `yaml:"routes"`
 }
 
 // Applications is a list of applications

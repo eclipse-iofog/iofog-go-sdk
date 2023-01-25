@@ -11,30 +11,16 @@
  *
  */
 
-package client
+package k8s
 
-import "fmt"
+import (
+	"testing"
+)
 
-// IsVerbose will Toggle HTTP output
-var IsVerbose bool
-
-func SetVerbosity(verbose bool) {
-	IsVerbose = verbose
-}
-
-func Verbose(msg string) {
-	if IsVerbose {
-		fmt.Printf("[HTTP]: %s\n", msg)
+func TestCreation(t *testing.T) {
+	// Here just to test compilation
+	client := &Client{}
+	if client == nil {
+		t.Error("This is impossible")
 	}
-}
-
-var GlobalRetriesPolicy Retries
-
-func SetGlobalRetries(retries Retries) {
-	GlobalRetriesPolicy = retries
-}
-
-type Retries struct {
-	Timeout       int
-	CustomMessage map[string]int
 }

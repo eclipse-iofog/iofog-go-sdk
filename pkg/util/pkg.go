@@ -11,30 +11,14 @@
  *
  */
 
-package client
+package util
 
-import "fmt"
-
-// IsVerbose will Toggle HTTP output
-var IsVerbose bool
-
-func SetVerbosity(verbose bool) {
-	IsVerbose = verbose
+var pkg struct {
+	errorVariableNotInteger string
+	errorVariableNotBool    string
 }
 
-func Verbose(msg string) {
-	if IsVerbose {
-		fmt.Printf("[HTTP]: %s\n", msg)
-	}
-}
-
-var GlobalRetriesPolicy Retries
-
-func SetGlobalRetries(retries Retries) {
-	GlobalRetriesPolicy = retries
-}
-
-type Retries struct {
-	Timeout       int
-	CustomMessage map[string]int
+func init() {
+	pkg.errorVariableNotInteger = "Variable (%s) is not of type integer"
+	pkg.errorVariableNotBool = "Variable (%s) is not of type bool"
 }

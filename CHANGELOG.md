@@ -1,26 +1,34 @@
 # Changelog
 
-## [Unreleased]
+## [v3.0.0-beta1] - 13 Auguest 2021
 
+* No changes since alpha2
 
-## [v2.0.0-rc1] - 2020-04-29
+## [v3.0.0-alpha2] - 28 July 2021
+
+* REST client initialized with Controller base URL
+* Go 1.16
+
+## [v3.0.0-alpha1] - 11 March 2021
+
+* Add k8s/operator pkg for operator SDK helpers
+* Decrease default timeout for Controller REST client (120s->4s)
+* Allow users to specify timeout seconds for Controller REST client
+* Add support for EdgeResources
+* Add support for Application Templates
+* Add supports for Agent upgrade and rollback in Controller REST client
+* Update Controller REST client to be aware of backend version
+* Add support for new Application routes in Controller REST client
+
+## [v2.0.0]
 
 * Added type to volume mapping
-
-## [v2.0.0-beta3] - 2020-04-23
-
 * Update WaitForLoadBalancer to get hostname too
 * Fix error reporting in WaitForLoadBalancer func
-
-## [v2.0.0-beta2] - 2020-04-06
-
-### Features
-
 * Update GetAgentByName to take system flag
 * Update ListAgents and allow users to specify filters and system flag
 * Remove iofogctl resource kinds
 * Update AgentConfiguration for configuring docker frequency
-
 ### Bugs
 
 * Stop passing ListAgentsRequest into body of request

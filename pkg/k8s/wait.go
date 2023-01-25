@@ -14,29 +14,36 @@
 package k8s
 
 import (
+	"context"
 	"errors"
+	"fmt"
 	"strings"
 
-	"k8s.io/api/core/v1"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	k8swatch "k8s.io/apimachinery/pkg/watch"
 )
+
+func getErrorMsg(resource, namespace, name, event string) string {
+	return fmt.Sprintf("Failed to wait for %s %s/%s because it is %s", resource, namespace, name, event)
+}
 
 func (cl *Client) WaitForLoadBalancer(namespace, name string, timeoutSeconds int64) (addr string, err error) {
 	// Get watch handler to observe changes to services
-	watch, err := cl.CoreV1().Services(namespace).Watch(metav1.ListOptions{TimeoutSeconds: &timeoutSeconds})
+	watch, err := cl.CoreV1().Services(namespace).Watch(context.Background(), metav1.ListOptions{TimeoutSeconds: &timeoutSeconds})
 	if err != nil {
 		return
 	}
 
 	// Wait for Services to have addresses allocated
 	for event := range watch.ResultChan() {
-		if event.Type == "Error" || event.Type == "Deleted" {
-			err = errors.New("Could not wait for service " + namespace + "/" + name)
+		if event.Type == k8swatch.Error || event.Type == k8swatch.Deleted {
+			err = errors.New(getErrorMsg("service", namespace, name, string(event.Type)))
 			return
 		}
-		svc, ok := event.Object.(*v1.Service)
+		svc, ok := event.Object.(*corev1.Service)
 		if !ok {
-			err = errors.New("Could not wait for service " + namespace + "/" + name)
+			err = errors.New(getErrorMsg("service", namespace, name, string(event.Type)))
 			return
 		}
 
@@ -70,25 +77,25 @@ func (cl *Client) WaitForLoadBalancer(namespace, name string, timeoutSeconds int
 	if addr == "" {
 		err = errors.New("IP and Hostname values were empty")
 	}
-	return
+	return addr, err
 }
 
 func (cl *Client) WaitForPod(namespace, name string, timeoutSeconds int64) error {
 	// Get watch handler to observe changes to pods
-	watch, err := cl.CoreV1().Pods(namespace).Watch(metav1.ListOptions{TimeoutSeconds: &timeoutSeconds})
+	watch, err := cl.CoreV1().Pods(namespace).Watch(context.Background(), metav1.ListOptions{TimeoutSeconds: &timeoutSeconds})
 	if err != nil {
 		return err
 	}
 
 	// Wait for pod events
 	for event := range watch.ResultChan() {
-		if event.Type == "Error" || event.Type == "Deleted" {
-			return errors.New("Failed to wait for pod " + namespace + "/" + name)
+		if event.Type == k8swatch.Error || event.Type == k8swatch.Deleted {
+			return errors.New(getErrorMsg("pod", namespace, name, string(event.Type)))
 		}
 		// Get the pod
-		pod, ok := event.Object.(*v1.Pod)
+		pod, ok := event.Object.(*corev1.Pod)
 		if !ok {
-			return errors.New("Failed to wait for pod " + namespace + "/" + name)
+			return errors.New(getErrorMsg("pod", namespace, name, string(event.Type)))
 		}
 		// Check pod is in running state
 		splitName := strings.Split(pod.Name, "-")
@@ -101,10 +108,10 @@ func (cl *Client) WaitForPod(namespace, name string, timeoutSeconds int64) error
 			continue
 		}
 
-		if pod.Status.Phase == "Running" {
+		if pod.Status.Phase == corev1.PodRunning {
 			ready := true
 			for _, cond := range pod.Status.Conditions {
-				if cond.Status != "True" {
+				if cond.Status != corev1.ConditionTrue {
 					ready = false
 					break
 				}
