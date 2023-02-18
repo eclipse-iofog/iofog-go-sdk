@@ -209,6 +209,7 @@ type MicroserviceProxyPortInfo struct {
 	Host     string `json:"host"`
 	Port     int64  `json:"port"`
 	Protocol string `json:"protocol"`
+	Scheme   string `json:"scheme"`
 }
 
 type MicroservicePortMappingInfo struct {
