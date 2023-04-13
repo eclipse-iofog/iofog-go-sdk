@@ -19,8 +19,6 @@ on:
       - CHANGELOG.md
       - LICENSE
 
-env:
-
 jobs:
   Tests:
     runs-on: ubuntu-latest
