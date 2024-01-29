@@ -301,6 +301,7 @@ type User struct {
 	Name     string `json:"firstName"`
 	Surname  string `json:"lastName"`
 	Email    string `json:"email"`
+	subscriptionKey string `json:"subscriptionKey"`
 	Password string `json:"password"`
 }
 
