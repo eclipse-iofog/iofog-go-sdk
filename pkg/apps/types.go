@@ -77,24 +77,25 @@ type MicroserviceAgent struct {
 // MicroserviceContainer contains information for configuring a microservice container
 // +k8s:deepcopy-gen=true
 type MicroserviceContainer struct {
-	Commands       []string                     `yaml:"commands,omitempty" json:"commands,omitempty"`
-	Volumes        *[]MicroserviceVolumeMapping `yaml:"volumes,omitempty" json:"volumes,omitempty"`
-	Env            *[]MicroserviceEnvironment   `yaml:"env,omitempty" json:"env,omitempty"`
-	ExtraHosts     *[]MicroserviceExtraHost     `yaml:"extraHosts,omitempty" json:"extraHosts,omitempty"`
-	Ports          []MicroservicePortMapping    `yaml:"ports" json:"ports"`
-	RootHostAccess bool                         `yaml:"rootHostAccess" json:"rootHostAccess"`
-	PidMode        string                       `yaml:"pidMode,omitempty" json:"pidMode,omitempty"`
-	IpcMode        string                       `yaml:"ipcMode,omitempty" json:"ipcMode,omitempty"`
-	Runtime        string                       `yaml:"runtime,omitempty" json:"runtime,omitempty"`
-	Platform       string                       `yaml:"platform,omitempty" json:"platform,omitempty"`
-	RunAsUser      string                       `yaml:"runAsUser,omitempty" json:"runAsUser,omitempty"`
-	CdiDevices     []string                     `yaml:"cdiDevices,omitempty" json:"cdiDevices,omitempty"`
-	CapAdd         []string                     `yaml:"capAdd,omitempty" json:"capAdd,omitempty"`
-	CapDrop        []string                     `yaml:"capDrop,omitempty" json:"capDrop,omitempty"`
-	Annotations    NestedMap                    `yaml:"annotations,omitempty" json:"annotations,omitempty"`
-	CpuSetCpus     string                       `yaml:"cpuSetCpus,omitempty" json:"cpuSetCpus,omitempty"`
-	MemoryLimit    *int64                       `yaml:"memoryLimit,omitempty" json:"memoryLimit,omitempty"`
-	HealthCheck    *MicroserviceHealthCheck     `yaml:"healthCheck,omitempty" json:"healthCheck,omitempty"`
+	Commands        []string                     `yaml:"commands,omitempty" json:"commands,omitempty"`
+	Volumes         *[]MicroserviceVolumeMapping `yaml:"volumes,omitempty" json:"volumes,omitempty"`
+	Env             *[]MicroserviceEnvironment   `yaml:"env,omitempty" json:"env,omitempty"`
+	ExtraHosts      *[]MicroserviceExtraHost     `yaml:"extraHosts,omitempty" json:"extraHosts,omitempty"`
+	Ports           []MicroservicePortMapping    `yaml:"ports" json:"ports"`
+	HostNetworkMode bool                         `yaml:"hostNetworkMode" json:"hostNetworkMode"`
+	IsPrivileged    bool                         `yaml:"isPrivileged" json:"isPrivileged"`
+	PidMode         string                       `yaml:"pidMode,omitempty" json:"pidMode,omitempty"`
+	IpcMode         string                       `yaml:"ipcMode,omitempty" json:"ipcMode,omitempty"`
+	Runtime         string                       `yaml:"runtime,omitempty" json:"runtime,omitempty"`
+	Platform        string                       `yaml:"platform,omitempty" json:"platform,omitempty"`
+	RunAsUser       string                       `yaml:"runAsUser,omitempty" json:"runAsUser,omitempty"`
+	CdiDevices      []string                     `yaml:"cdiDevices,omitempty" json:"cdiDevices,omitempty"`
+	CapAdd          []string                     `yaml:"capAdd,omitempty" json:"capAdd,omitempty"`
+	CapDrop         []string                     `yaml:"capDrop,omitempty" json:"capDrop,omitempty"`
+	Annotations     NestedMap                    `yaml:"annotations,omitempty" json:"annotations,omitempty"`
+	CpuSetCpus      string                       `yaml:"cpuSetCpus,omitempty" json:"cpuSetCpus,omitempty"`
+	MemoryLimit     *int64                       `yaml:"memoryLimit,omitempty" json:"memoryLimit,omitempty"`
+	HealthCheck     *MicroserviceHealthCheck     `yaml:"healthCheck,omitempty" json:"healthCheck,omitempty"`
 }
 
 // MicroserviceHealthCheck contains information about the health check of a microservice
