@@ -237,7 +237,8 @@ type MicroserviceInfo struct {
 	UUID              string                          `json:"uuid"`
 	Config            string                          `json:"config"`
 	Name              string                          `json:"name"`
-	RootHostAccess    bool                            `json:"rootHostAccess"`
+	HostNetworkMode   bool                            `json:"hostNetworkMode"`
+	IsPrivileged      bool                            `json:"isPrivileged"`
 	Schedule          int                             `json:"schedule"`
 	PidMode           string                          `json:"pidMode,omitempty"`
 	IpcMode           string                          `json:"ipcMode,omitempty"`
