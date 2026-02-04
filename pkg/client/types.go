@@ -122,6 +122,7 @@ type RegistryInfo struct {
 	RequiresCert bool   `json:"requiresCert"`
 	Username     string `json:"username"`
 	Email        string `json:"userEmail"`
+	Password     string `json:"password"`
 }
 
 type RegistryCreateRequest struct {
@@ -151,6 +152,124 @@ type RegistryUpdateRequest struct {
 
 type RegistryListResponse struct {
 	Registries []RegistryInfo `json:"registries"`
+}
+
+// RBAC
+
+// RBACRule is a single rule in a Role (apiGroups, resources, verbs, optional resourceNames)
+type RBACRule struct {
+	APIGroups     []string `json:"apiGroups"`
+	Resources     []string `json:"resources"`
+	Verbs         []string `json:"verbs"`
+	ResourceNames []string `json:"resourceNames,omitempty"`
+}
+
+// RoleRef references a Role by kind and name
+type RoleRef struct {
+	Kind     string `json:"kind"`
+	Name     string `json:"name"`
+	APIGroup string `json:"apiGroup,omitempty"`
+}
+
+// Subject is a user, group, or service account in a RoleBinding
+type Subject struct {
+	Kind     string `json:"kind"`
+	Name     string `json:"name"`
+	APIGroup string `json:"apiGroup,omitempty"`
+}
+
+// RoleInfo is a Role as returned by the API
+type RoleInfo struct {
+	Name  string     `json:"name"`
+	Kind  string     `json:"kind,omitempty"`
+	Rules []RBACRule `json:"rules"`
+}
+
+// RoleCreateRequest is the request body for creating a Role
+type RoleCreateRequest struct {
+	Name  string     `json:"name"`
+	Kind  string     `json:"kind,omitempty"`
+	Rules []RBACRule `json:"rules"`
+}
+
+// RoleUpdateRequest is the request body for updating a Role
+type RoleUpdateRequest struct {
+	Name  *string    `json:"name,omitempty"`
+	Kind  string     `json:"kind,omitempty"`
+	Rules []RBACRule `json:"rules"`
+}
+
+// RoleListResponse is the response for listing roles
+type RoleListResponse struct {
+	Roles []RoleInfo `json:"roles"`
+}
+
+// RoleResponse is the response for get/create/update role (single role wrapped)
+type RoleResponse struct {
+	Role RoleInfo `json:"role"`
+}
+
+// RoleBindingInfo is a RoleBinding as returned by the API
+type RoleBindingInfo struct {
+	Name     string    `json:"name"`
+	Kind     string    `json:"kind,omitempty"`
+	RoleRef  RoleRef   `json:"roleRef"`
+	Subjects []Subject `json:"subjects"`
+}
+
+// RoleBindingCreateRequest is the request body for creating a RoleBinding
+type RoleBindingCreateRequest struct {
+	Name     string    `json:"name"`
+	Kind     string    `json:"kind,omitempty"`
+	RoleRef  RoleRef   `json:"roleRef"`
+	Subjects []Subject `json:"subjects"`
+}
+
+// RoleBindingUpdateRequest is the request body for updating a RoleBinding
+type RoleBindingUpdateRequest struct {
+	Name     *string   `json:"name,omitempty"`
+	Kind     string    `json:"kind,omitempty"`
+	RoleRef  RoleRef   `json:"roleRef"`
+	Subjects []Subject `json:"subjects"`
+}
+
+// RoleBindingListResponse is the response for listing role bindings
+type RoleBindingListResponse struct {
+	Bindings []RoleBindingInfo `json:"bindings"`
+}
+
+// RoleBindingResponse is the response for get/create/update role binding
+type RoleBindingResponse struct {
+	Binding RoleBindingInfo `json:"binding"`
+}
+
+// ServiceAccountInfo is a ServiceAccount as returned by the API
+type ServiceAccountInfo struct {
+	ID      int     `json:"id,omitempty"`
+	Name    string  `json:"name"`
+	RoleRef RoleRef `json:"roleRef"`
+}
+
+// ServiceAccountCreateRequest is the request body for creating a ServiceAccount
+type ServiceAccountCreateRequest struct {
+	Name    string  `json:"name"`
+	RoleRef RoleRef `json:"roleRef"`
+}
+
+// ServiceAccountUpdateRequest is the request body for updating a ServiceAccount
+type ServiceAccountUpdateRequest struct {
+	Name    string  `json:"name"`
+	RoleRef RoleRef `json:"roleRef"`
+}
+
+// ServiceAccountListResponse is the response for listing service accounts
+type ServiceAccountListResponse struct {
+	ServiceAccounts []ServiceAccountInfo `json:"serviceAccounts"`
+}
+
+// ServiceAccountResponse is the response for get/create/update service account
+type ServiceAccountResponse struct {
+	ServiceAccount ServiceAccountInfo `json:"serviceAccount"`
 }
 
 // Catalog (Keeping it basic, because it will be reworked soon)

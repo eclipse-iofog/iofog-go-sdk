@@ -40,6 +40,19 @@ func (clt *Client) UpdateRegistry(request RegistryUpdateRequest) error {
 	return nil
 }
 
+// GetRegistry retrieves a single registry by ID from the Controller REST API
+func (clt *Client) GetRegistry(id int) (*RegistryInfo, error) {
+	body, err := clt.doRequest("GET", fmt.Sprintf("/registries/%d", id), nil)
+	if err != nil {
+		return nil, err
+	}
+	registry := new(RegistryInfo)
+	if err := json.Unmarshal(body, registry); err != nil {
+		return nil, err
+	}
+	return registry, nil
+}
+
 // ListRegistries retrieve all registries information from the Controller REST API
 func (clt *Client) ListRegistries() (response RegistryListResponse, err error) {
 	body, err := clt.doRequest("GET", "/registries", nil)
