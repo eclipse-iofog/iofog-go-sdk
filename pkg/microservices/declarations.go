@@ -62,11 +62,15 @@ type getConfigResponse struct {
 	Config string `json:"config"`
 }
 
+// PostMessageResponse is the response from posting a message to the agent messagebus.
+// Deprecated: The internal messagebus is deprecated in favor of NATS.
 type PostMessageResponse struct {
 	ID        string `json:"id"`
 	Timestamp int64  `json:"timestamp"`
 }
 
+// MessagesQueryParameters specifies query parameters for message retrieval.
+// Deprecated: The internal messagebus is deprecated in favor of NATS.
 type MessagesQueryParameters struct {
 	ID             string   `json:"id"`
 	TimeFrameStart int64    `json:"timeframestart"`

@@ -8,6 +8,7 @@ require (
 	github.com/eapache/channels v1.1.0
 	github.com/gorilla/websocket v1.5.0
 	github.com/json-iterator/go v1.1.12
+	golang.org/x/term v0.25.0
 	gopkg.in/yaml.v2 v2.4.0
 	k8s.io/api v0.32.0
 	k8s.io/apiextensions-apiserver v0.26.0
@@ -51,7 +52,6 @@ require (
 	golang.org/x/net v0.30.0 // indirect
 	golang.org/x/oauth2 v0.23.0 // indirect
 	golang.org/x/sys v0.26.0 // indirect
-	golang.org/x/term v0.25.0 // indirect
 	golang.org/x/text v0.19.0 // indirect
 	golang.org/x/time v0.7.0 // indirect
 	gomodules.xyz/jsonpatch/v2 v2.2.0 // indirect

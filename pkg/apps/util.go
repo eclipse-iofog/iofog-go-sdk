@@ -19,8 +19,9 @@ import (
 	"github.com/datasance/iofog-go-sdk/v3/pkg/client"
 )
 
+// validateRoutes validates route names against existing microservices.
+// Deprecated: Controller routing is deprecated; use NATS for messaging.
 func validateRoutes(routes []string, microserviceByName map[string]*client.MicroserviceInfo) (routesUUIDs []string, err error) { // nolint:deadcode,unused
-	// Validate routes
 	for _, route := range routes {
 		msvc, foundTo := microserviceByName[route]
 		if !foundTo {
@@ -31,13 +32,9 @@ func validateRoutes(routes []string, microserviceByName map[string]*client.Micro
 	return routesUUIDs, nil
 }
 
+// createRoutes creates microservice routes via the Controller API.
+// Deprecated: Controller no longer exposes route endpoints; use NATS for messaging.
+// createRoutes returns client.ErrRoutesNotSupported.
 func createRoutes(routes []Route, microserviceByName map[string]*client.MicroserviceInfo, clt *client.Client) error { // nolint:deadcode,unused
-	for _, route := range routes {
-		fromMsvc := microserviceByName[route.From]
-		toMsvc := microserviceByName[route.To]
-		if err := clt.CreateMicroserviceRoute(fromMsvc.UUID, toMsvc.UUID); err != nil {
-			return err
-		}
-	}
-	return nil
+	return client.ErrRoutesNotSupported
 }

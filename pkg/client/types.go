@@ -47,16 +47,22 @@ type FlowListResponse struct {
 	Flows []FlowInfo `json:"flows"`
 }
 
+// ApplicationNatsConfig holds NATS configuration for an application (Controller applicationNatsConfig).
+type ApplicationNatsConfig struct {
+	NatsAccess bool   `json:"natsAccess"`
+	NatsRule   string `json:"natsRule,omitempty"`
+}
+
 // Applications
 type ApplicationInfo struct {
-	Name          string             `json:"name"`
-	Description   string             `json:"description"`
-	IsActivated   bool               `json:"isActivated"`
-	IsSystem      bool               `json:"isSystem"`
-	UserID        int                `json:"userId"`
-	ID            int                `json:"id"`
-	Microservices []MicroserviceInfo `json:"microservices"`
-	Routes        []Route            `json:"routes"`
+	Name          string                 `json:"name"`
+	Description   string                 `json:"description"`
+	IsActivated   bool                   `json:"isActivated"`
+	IsSystem      bool                   `json:"isSystem"`
+	UserID        int                    `json:"userId"`
+	ID            int                    `json:"id"`
+	Microservices []MicroserviceInfo     `json:"microservices"`
+	NatsConfig    *ApplicationNatsConfig `json:"natsConfig,omitempty"`
 }
 
 type ApplicationCreateResponse struct {
@@ -64,10 +70,11 @@ type ApplicationCreateResponse struct {
 }
 
 type ApplicationPatchRequest struct {
-	Name        *string `json:"name,omitempty"`
-	Description *string `json:"description,omitempty"`
-	IsActivated *bool   `json:"isActivated,omitempty"`
-	IsSystem    *bool   `json:"isSystem,omitempty"`
+	Name        *string                `json:"name,omitempty"`
+	Description *string                `json:"description,omitempty"`
+	IsActivated *bool                  `json:"isActivated,omitempty"`
+	IsSystem    *bool                  `json:"isSystem,omitempty"`
+	NatsConfig  *ApplicationNatsConfig `json:"natsConfig,omitempty"`
 }
 
 type ApplicationListResponse struct {
@@ -92,8 +99,8 @@ type TemplateVariable struct {
 }
 
 type ApplicationTemplateInfo struct {
-	Microservices []interface{} `json:"microservices"`
-	Routes        []interface{} `json:"routes"`
+	Microservices []interface{}          `json:"microservices"`
+	NatsConfig    *ApplicationNatsConfig `json:"natsConfig,omitempty"`
 }
 
 type ApplicationTemplateCreateResponse struct {
@@ -391,6 +398,7 @@ type MicroserviceInfo struct {
 	CpuSetCpus        string                          `json:"cpuSetCpus,omitempty"`
 	MemoryLimit       int64                           `json:"memoryLimit,omitempty"`
 	HealthCheck       MicroserviceHealthCheck         `json:"healthCheck,omitempty"`
+	NatsConfig        *MicroserviceNatsConfig         `json:"natsConfig,omitempty"`
 }
 
 type MicroserviceHealthCheck struct {
@@ -400,6 +408,12 @@ type MicroserviceHealthCheck struct {
 	Retries       *int     `json:"retries,omitempty"`
 	StartPeriod   *int64   `json:"startPeriod,omitempty"`
 	StartInterval *int64   `json:"startInterval,omitempty"`
+}
+
+// MicroserviceNatsConfig holds NATS configuration for a microservice (Controller microserviceNatsConfig).
+type MicroserviceNatsConfig struct {
+	NatsAccess bool   `json:"natsAccess"`
+	NatsRule   string `json:"natsRule,omitempty"`
 }
 
 type MicroserviceExtraHost struct {
@@ -568,6 +582,16 @@ type AgentInfo struct {
 	SecurityViolationInfo     string            `json:"securityViolationInfo" yaml:"securityViolationInfo"`
 	WarningMessage            string            `json:"warningMessage" yaml:"warningMessage"`
 	GpsStatus                 string            `json:"gpsStatus" yaml:"gpsStatus"`
+	// NATS-related fields (Controller iofog schema)
+	NatsMode            *string   `json:"natsMode,omitempty" yaml:"natsMode,omitempty"` // none, leaf, server
+	NatsServerPort      *int      `json:"natsServerPort,omitempty" yaml:"natsServerPort,omitempty"`
+	NatsLeafPort        *int      `json:"natsLeafPort,omitempty" yaml:"natsLeafPort,omitempty"`
+	NatsClusterPort     *int      `json:"natsClusterPort,omitempty" yaml:"natsClusterPort,omitempty"`
+	NatsMqttPort        *int      `json:"natsMqttPort,omitempty" yaml:"natsMqttPort,omitempty"`
+	NatsHttpPort        *int      `json:"natsHttpPort,omitempty" yaml:"natsHttpPort,omitempty"`
+	UpstreamNatsServers *[]string `json:"upstreamNatsServers,omitempty" yaml:"upstreamNatsServers,omitempty"`
+	JsStorageSize       *string   `json:"jsStorageSize,omitempty" yaml:"jsStorageSize,omitempty"`
+	JsMemoryStoreSize   *string   `json:"jsMemoryStoreSize,omitempty" yaml:"jsMemoryStoreSize,omitempty"`
 }
 
 type RouterConfig struct {
@@ -608,6 +632,16 @@ type AgentConfiguration struct {
 	DockerPruningFrequency    *float64 `json:"dockerPruningFrequency,omitempty" yaml:"dockerPruningFrequency"`
 	AvailableDiskThreshold    *float64 `json:"availableDiskThreshold,omitempty" yaml:"availableDiskThreshold"`
 	TimeZone                  string   `json:"timeZone,omitempty" yaml:"timeZone"`
+	// NATS-related fields (Controller iofog schema)
+	NatsMode            *string   `json:"natsMode,omitempty" yaml:"natsMode,omitempty"` // none, leaf, server
+	NatsServerPort      *int      `json:"natsServerPort,omitempty" yaml:"natsServerPort,omitempty"`
+	NatsLeafPort        *int      `json:"natsLeafPort,omitempty" yaml:"natsLeafPort,omitempty"`
+	NatsClusterPort     *int      `json:"natsClusterPort,omitempty" yaml:"natsClusterPort,omitempty"`
+	NatsMqttPort        *int      `json:"natsMqttPort,omitempty" yaml:"natsMqttPort,omitempty"`
+	NatsHttpPort        *int      `json:"natsHttpPort,omitempty" yaml:"natsHttpPort,omitempty"`
+	UpstreamNatsServers *[]string `json:"upstreamNatsServers,omitempty" yaml:"upstreamNatsServers,omitempty"`
+	JsStorageSize       *string   `json:"jsStorageSize,omitempty" yaml:"jsStorageSize,omitempty"`
+	JsMemoryStoreSize   *string   `json:"jsMemoryStoreSize,omitempty" yaml:"jsMemoryStoreSize,omitempty"`
 }
 
 type AgentUpdateRequest struct {
@@ -642,10 +676,16 @@ type UpdateConfigRequest struct {
 	Value string `json:"value"`
 }
 
+// RouteListResponse is the response for listing routes.
+//
+// Deprecated: Controller no longer exposes /api/v3/routes. Use NATS for messaging.
 type RouteListResponse struct {
 	Routes []Route `json:"routes"`
 }
 
+// Route represents a route from one microservice to another.
+//
+// Deprecated: Controller no longer exposes routing endpoints. Use NATS for messaging.
 type Route struct {
 	Name        string `json:"name"`
 	Application string `json:"application"`
@@ -653,6 +693,9 @@ type Route struct {
 	To          string `json:"to"`
 }
 
+// ApplicationRouteCreateRequest is the request body for creating a route.
+//
+// Deprecated: Controller no longer exposes /api/v3/routes. Use NATS for messaging.
 type ApplicationRouteCreateRequest struct {
 	Name string `json:"name"`
 	From string `json:"from"`
@@ -926,3 +969,170 @@ type AttachExecToAgentRequest struct {
 type DetachExecFromAgentRequest struct {
 	UUID string `json:"uuid"`
 }
+
+// NATS API types (Controller /api/v3/nats/*)
+
+// NatsOperatorResponse is the response for GET /nats/operator.
+type NatsOperatorResponse struct {
+	Name      string `json:"name"`
+	PublicKey string `json:"publicKey"`
+	JWT       string `json:"jwt"`
+}
+
+// NatsHubResponse is the response for GET/PUT /nats/hub.
+type NatsHubResponse struct {
+	Host        string `json:"host"`
+	ServerPort  int    `json:"serverPort"`
+	ClusterPort int    `json:"clusterPort"`
+	LeafPort    int    `json:"leafPort"`
+	MqttPort    int    `json:"mqttPort"`
+	HttpPort    int    `json:"httpPort"`
+}
+
+// NatsHubRequest is the request body for PUT /nats/hub.
+type NatsHubRequest struct {
+	Host        *string `json:"host,omitempty"`
+	ServerPort  *int    `json:"serverPort,omitempty"`
+	ClusterPort *int    `json:"clusterPort,omitempty"`
+	LeafPort    *int    `json:"leafPort,omitempty"`
+	MqttPort    *int    `json:"mqttPort,omitempty"`
+	HttpPort    *int    `json:"httpPort,omitempty"`
+}
+
+// NatsBootstrapResponse is the response for GET /nats/bootstrap.
+// Used by the K8s operator when the Controller runs on the Kubernetes control plane.
+// Contains operator JWT/publicKey/seed and system account JWT/publicKey and system user creds (base64) for NATS bootstrap.
+type NatsBootstrapResponse struct {
+	OperatorJwt            string `json:"operatorJwt"`
+	OperatorPublicKey      string `json:"operatorPublicKey"`
+	OperatorSeed           string `json:"operatorSeed"`
+	SystemAccountJwt       string `json:"systemAccountJwt"`
+	SystemAccountPublicKey string `json:"systemAccountPublicKey"`
+	SysUserCredsBase64     string `json:"sysUserCredsBase64"`
+}
+
+// NatsAccountInfo is a single NATS account (list or get by app).
+type NatsAccountInfo struct {
+	ID            int    `json:"id"`
+	Name          string `json:"name"`
+	PublicKey     string `json:"publicKey"`
+	JWT           string `json:"jwt"`
+	IsSystem      bool   `json:"isSystem"`
+	IsLeafSystem  bool   `json:"isLeafSystem,omitempty"`
+	ApplicationID int    `json:"applicationId,omitempty"`
+}
+
+// NatsListAccountsResponse is the response for GET /nats/accounts.
+type NatsListAccountsResponse struct {
+	Accounts []NatsAccountInfo `json:"accounts"`
+}
+
+// NatsUserInfo is a single NATS user (list or create).
+type NatsUserInfo struct {
+	ID               int    `json:"id"`
+	Name             string `json:"name"`
+	PublicKey        string `json:"publicKey"`
+	JWT              string `json:"jwt"`
+	IsBearer         bool   `json:"isBearer"`
+	AccountID        int    `json:"accountId,omitempty"`
+	AccountName      string `json:"accountName,omitempty"`
+	ApplicationID    int    `json:"applicationId,omitempty"`
+	ApplicationName  string `json:"applicationName,omitempty"`
+	MicroserviceUUID string `json:"microserviceUuid,omitempty"`
+}
+
+// NatsListUsersResponse is the response for GET /nats/users.
+type NatsListUsersResponse struct {
+	Users []NatsUserInfo `json:"users"`
+}
+
+// NatsListAccountUsersResponse is the response for GET /nats/accounts/:appName/users.
+type NatsListAccountUsersResponse struct {
+	Users []NatsUserInfo `json:"users"`
+}
+
+// NatsCreateUserRequest is the request body for POST /nats/accounts/:appName/users.
+type NatsCreateUserRequest struct {
+	Name      string `json:"name"`
+	ExpiresIn *int64 `json:"expiresIn,omitempty"`
+	NatsRule  string `json:"natsRule,omitempty"`
+}
+
+// NatsEnsureAccountRequest is the request body for POST /nats/accounts/:appName (ensure account).
+type NatsEnsureAccountRequest struct {
+	NatsRule string `json:"natsRule,omitempty"`
+}
+
+// NatsUserCredsResponse is the response for GET /nats/accounts/:appName/users/:userName/creds.
+type NatsUserCredsResponse struct {
+	CredsBase64 string `json:"credsBase64"`
+}
+
+// NatsCreateMqttBearerRequest is the request body for POST /nats/accounts/:appName/mqtt-bearer.
+type NatsCreateMqttBearerRequest struct {
+	Name      string `json:"name"`
+	ExpiresIn *int64 `json:"expiresIn,omitempty"`
+	NatsRule  string `json:"natsRule,omitempty"`
+}
+
+// NatsRuleInfo is a generic NATS account or user rule (list responses).
+// Rule payloads from the Controller can have many optional fields; use map or extend as needed.
+type NatsRuleInfo struct {
+	ID                     int         `json:"id"`
+	Name                   string      `json:"name"`
+	Description            string      `json:"description,omitempty"`
+	IsSystem               bool        `json:"isSystem,omitempty"`
+	InfoUrl                string      `json:"infoUrl,omitempty"`
+	MaxConnections         *int        `json:"maxConnections,omitempty"`
+	MaxLeafNodeConnections *int        `json:"maxLeafNodeConnections,omitempty"`
+	MaxData                *int64      `json:"maxData,omitempty"`
+	MaxExports             *int        `json:"maxExports,omitempty"`
+	MaxImports             *int        `json:"maxImports,omitempty"`
+	MaxMsgPayload          *int64      `json:"maxMsgPayload,omitempty"`
+	MaxSubscriptions       *int        `json:"maxSubscriptions,omitempty"`
+	ExportsAllowWildcards  *bool       `json:"exportsAllowWildcards,omitempty"`
+	DisallowBearer         *bool       `json:"disallowBearer,omitempty"`
+	ResponsePermissions    interface{} `json:"responsePermissions,omitempty"`
+	RespMax                *int        `json:"respMax,omitempty"`
+	RespTtl                *int64      `json:"respTtl,omitempty"`
+	Imports                interface{} `json:"imports,omitempty"`
+	Exports                interface{} `json:"exports,omitempty"`
+	MemStorage             *int64      `json:"memStorage,omitempty"`
+	DiskStorage            *int64      `json:"diskStorage,omitempty"`
+	Streams                interface{} `json:"streams,omitempty"`
+	Consumer               interface{} `json:"consumer,omitempty"`
+	MaxAckPending          *int        `json:"maxAckPending,omitempty"`
+	MemMaxStreamBytes      *int64      `json:"memMaxStreamBytes,omitempty"`
+	DiskMaxStreamBytes     *int64      `json:"diskMaxStreamBytes,omitempty"`
+	MaxBytesRequired       *bool       `json:"maxBytesRequired,omitempty"`
+	TieredLimits           interface{} `json:"tieredLimits,omitempty"`
+	MaxPayload             *int64      `json:"maxPayload,omitempty"`
+	BearerToken            *bool       `json:"bearerToken,omitempty"`
+	ProxyRequired          *bool       `json:"proxyRequired,omitempty"`
+	AllowedConnectionTypes interface{} `json:"allowedConnectionTypes,omitempty"`
+	Src                    interface{} `json:"src,omitempty"`
+	Times                  interface{} `json:"times,omitempty"`
+	TimesLocation          string      `json:"timesLocation,omitempty"`
+	PubAllow               interface{} `json:"pubAllow,omitempty"`
+	PubDeny                interface{} `json:"pubDeny,omitempty"`
+	SubAllow               interface{} `json:"subAllow,omitempty"`
+	SubDeny                interface{} `json:"subDeny,omitempty"`
+	Tags                   interface{} `json:"tags,omitempty"`
+}
+
+// NatsListAccountRulesResponse is the response for GET /nats/account-rules.
+type NatsListAccountRulesResponse struct {
+	Rules []NatsRuleInfo `json:"rules"`
+}
+
+// NatsListUserRulesResponse is the response for GET /nats/user-rules.
+type NatsListUserRulesResponse struct {
+	Rules []NatsRuleInfo `json:"rules"`
+}
+
+// NatsAccountRulePayload is the request body for creating/patching an account rule (JSON).
+// Omit empty fields; Controller validates per schema.
+type NatsAccountRulePayload map[string]interface{}
+
+// NatsUserRulePayload is the request body for creating/patching a user rule (JSON).
+type NatsUserRulePayload map[string]interface{}
