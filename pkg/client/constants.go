@@ -15,8 +15,8 @@ package client
 
 // String and numeric values of TCP ports used accross ioFog
 const (
-	ControllerPort       = 51121
-	ControllerPortString = "51121"
-	DefaultRouterName    = "default-router"
-	VanillaNatsAgentName = "default-nats-hub"
+	ControllerPort        = 51121
+	ControllerPortString  = "51121"
+	DefaultRouterName     = "default-router"
+	DefaultNatsServerName = "default-nats-hub"
 )
