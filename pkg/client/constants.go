@@ -18,4 +18,5 @@ const (
 	ControllerPort       = 51121
 	ControllerPortString = "51121"
 	DefaultRouterName    = "default-router"
+	VanillaNatsAgentName = "default-nats-hub"
 )

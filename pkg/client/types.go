@@ -601,6 +601,17 @@ type RouterConfig struct {
 	InterRouterPort *int    `json:"interRouterPort,omitempty" yaml:"interRouterPort,omitempty"`
 }
 
+type NatsConfig struct {
+	NatsMode          *string `json:"natsMode,omitempty" yaml:"natsMode,omitempty"` // none, leaf, server
+	NatsServerPort    *int    `json:"natsServerPort,omitempty" yaml:"natsServerPort,omitempty"`
+	NatsLeafPort      *int    `json:"natsLeafPort,omitempty" yaml:"natsLeafPort,omitempty"`
+	NatsClusterPort   *int    `json:"natsClusterPort,omitempty" yaml:"natsClusterPort,omitempty"`
+	NatsMqttPort      *int    `json:"natsMqttPort,omitempty" yaml:"natsMqttPort,omitempty"`
+	NatsHttpPort      *int    `json:"natsHttpPort,omitempty" yaml:"natsHttpPort,omitempty"`
+	JsStorageSize     *string `json:"jsStorageSize,omitempty" yaml:"jsStorageSize,omitempty"`
+	JsMemoryStoreSize *string `json:"jsMemoryStoreSize,omitempty" yaml:"jsMemoryStoreSize,omitempty"`
+}
+
 type AgentConfiguration struct {
 	NetworkInterface          *string   `json:"networkInterface,omitempty" yaml:"networkInterface"`
 	DockerURL                 *string   `json:"dockerUrl,omitempty" yaml:"dockerUrl"`
@@ -628,20 +639,12 @@ type AgentConfiguration struct {
 	NetworkRouter             *string   `json:"networkRouter,omitempty" yaml:"networkRouter,omitempty"`
 	Host                      *string   `json:"host,omitempty" yaml:"host,omitempty"`
 	RouterConfig              `json:",omitempty" yaml:"routerConfig,omitempty"`
-	LogLevel                  *string  `json:"logLevel,omitempty" yaml:"logLevel"`
-	DockerPruningFrequency    *float64 `json:"dockerPruningFrequency,omitempty" yaml:"dockerPruningFrequency"`
-	AvailableDiskThreshold    *float64 `json:"availableDiskThreshold,omitempty" yaml:"availableDiskThreshold"`
-	TimeZone                  string   `json:"timeZone,omitempty" yaml:"timeZone"`
-	// NATS-related fields (Controller iofog schema)
-	NatsMode            *string   `json:"natsMode,omitempty" yaml:"natsMode,omitempty"` // none, leaf, server
-	NatsServerPort      *int      `json:"natsServerPort,omitempty" yaml:"natsServerPort,omitempty"`
-	NatsLeafPort        *int      `json:"natsLeafPort,omitempty" yaml:"natsLeafPort,omitempty"`
-	NatsClusterPort     *int      `json:"natsClusterPort,omitempty" yaml:"natsClusterPort,omitempty"`
-	NatsMqttPort        *int      `json:"natsMqttPort,omitempty" yaml:"natsMqttPort,omitempty"`
-	NatsHttpPort        *int      `json:"natsHttpPort,omitempty" yaml:"natsHttpPort,omitempty"`
-	UpstreamNatsServers *[]string `json:"upstreamNatsServers,omitempty" yaml:"upstreamNatsServers,omitempty"`
-	JsStorageSize       *string   `json:"jsStorageSize,omitempty" yaml:"jsStorageSize,omitempty"`
-	JsMemoryStoreSize   *string   `json:"jsMemoryStoreSize,omitempty" yaml:"jsMemoryStoreSize,omitempty"`
+	LogLevel                  *string   `json:"logLevel,omitempty" yaml:"logLevel"`
+	DockerPruningFrequency    *float64  `json:"dockerPruningFrequency,omitempty" yaml:"dockerPruningFrequency"`
+	AvailableDiskThreshold    *float64  `json:"availableDiskThreshold,omitempty" yaml:"availableDiskThreshold"`
+	TimeZone                  string    `json:"timeZone,omitempty" yaml:"timeZone"`
+	UpstreamNatsServers       *[]string `json:"upstreamNatsServers,omitempty" yaml:"upstreamNatsServers,omitempty"`
+	NatsConfig                `json:"natsConfig,omitempty" yaml:"natsConfig,omitempty"`
 }
 
 type AgentUpdateRequest struct {
