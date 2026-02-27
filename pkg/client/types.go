@@ -644,7 +644,7 @@ type AgentConfiguration struct {
 	AvailableDiskThreshold    *float64  `json:"availableDiskThreshold,omitempty" yaml:"availableDiskThreshold"`
 	TimeZone                  string    `json:"timeZone,omitempty" yaml:"timeZone"`
 	UpstreamNatsServers       *[]string `json:"upstreamNatsServers,omitempty" yaml:"upstreamNatsServers,omitempty"`
-	NatsConfig                `json:"natsConfig,omitempty" yaml:"natsConfig,omitempty"`
+	NatsConfig                `json:",omitempty" yaml:"natsConfig,omitempty"`
 }
 
 type AgentUpdateRequest struct {
