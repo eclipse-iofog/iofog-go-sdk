@@ -127,18 +127,17 @@ func (exe *microserviceExecutor) init() (err error) {
 		}
 	}
 
-	if listMsvcs == nil || len(listMsvcs.Microservices) == 0 {
-		return fmt.Errorf("no microservices found")
-	}
-
-	for i := 0; i < len(listMsvcs.Microservices); i++ {
-		// If msvc already exists, set UUID
-		if listMsvcs.Microservices[i].Name == exe.name {
-			if exe.uuid == "" {
-				exe.uuid = listMsvcs.Microservices[i].UUID
+	if listMsvcs != nil {
+		for i := 0; i < len(listMsvcs.Microservices); i++ {
+			// If msvc already exists, set UUID
+			if listMsvcs.Microservices[i].Name == exe.name {
+				if exe.uuid == "" {
+					exe.uuid = listMsvcs.Microservices[i].UUID
+				}
 			}
 		}
 	}
+	// Empty list is valid for initial deploy (first microservice in application)
 	return nil
 }
 

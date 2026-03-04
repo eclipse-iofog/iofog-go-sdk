@@ -13,7 +13,11 @@
 
 package client
 
-import "time"
+import (
+	"encoding/json"
+	"strconv"
+	"time"
+)
 
 // Flows - Keep for legacy
 type FlowInfo struct {
@@ -250,20 +254,24 @@ type RoleBindingResponse struct {
 	Binding RoleBindingInfo `json:"binding"`
 }
 
-// ServiceAccountInfo is a ServiceAccount as returned by the API
+// ServiceAccountInfo is a ServiceAccount as returned by the API (application-scoped).
 type ServiceAccountInfo struct {
-	ID      int     `json:"id,omitempty"`
-	Name    string  `json:"name"`
-	RoleRef RoleRef `json:"roleRef"`
+	ID              int     `json:"id,omitempty"`
+	Name            string  `json:"name"`
+	ApplicationName string  `json:"applicationName,omitempty"`
+	RoleRef         RoleRef `json:"roleRef"`
 }
 
-// ServiceAccountCreateRequest is the request body for creating a ServiceAccount
+// ServiceAccountCreateRequest is the request body for creating a ServiceAccount.
+// ApplicationName is required; the service account is created in that application.
 type ServiceAccountCreateRequest struct {
-	Name    string  `json:"name"`
-	RoleRef RoleRef `json:"roleRef"`
+	Name            string  `json:"name"`
+	ApplicationName string  `json:"applicationName"`
+	RoleRef         RoleRef `json:"roleRef"`
 }
 
-// ServiceAccountUpdateRequest is the request body for updating a ServiceAccount
+// ServiceAccountUpdateRequest is the request body for updating a ServiceAccount.
+// AppName and name are passed in the URL path; body contains name and roleRef (both required by Controller).
 type ServiceAccountUpdateRequest struct {
 	Name    string  `json:"name"`
 	RoleRef RoleRef `json:"roleRef"`
@@ -399,6 +407,13 @@ type MicroserviceInfo struct {
 	MemoryLimit       int64                           `json:"memoryLimit,omitempty"`
 	HealthCheck       MicroserviceHealthCheck         `json:"healthCheck,omitempty"`
 	NatsConfig        *MicroserviceNatsConfig         `json:"natsConfig,omitempty"`
+	ServiceAccount    *MicroserviceServiceAccountRef   `json:"serviceAccount,omitempty"`
+}
+
+// MicroserviceServiceAccountRef is the optional serviceAccount field in a microservice spec (YAML or API).
+// When set, the microservice uses a service account with the given roleRef (e.g. roleRef.name).
+type MicroserviceServiceAccountRef struct {
+	RoleRef RoleRef `json:"roleRef"`
 }
 
 type MicroserviceHealthCheck struct {
@@ -1078,6 +1093,68 @@ type NatsCreateMqttBearerRequest struct {
 	NatsRule  string `json:"natsRule,omitempty"`
 }
 
+// FlexInt64 unmarshals from JSON string or number (Controller may send e.g. "-1" as string for BIGINT).
+type FlexInt64 int64
+
+func (v *FlexInt64) UnmarshalJSON(data []byte) error {
+	if len(data) == 0 || string(data) == "null" {
+		return nil
+	}
+	if len(data) > 0 && data[0] == '"' {
+		var s string
+		if err := json.Unmarshal(data, &s); err != nil {
+			return err
+		}
+		n, err := strconv.ParseInt(s, 10, 64)
+		if err != nil {
+			return err
+		}
+		*v = FlexInt64(n)
+		return nil
+	}
+	var n int64
+	if err := json.Unmarshal(data, &n); err != nil {
+		return err
+	}
+	*v = FlexInt64(n)
+	return nil
+}
+
+func (v FlexInt64) MarshalJSON() ([]byte, error) {
+	return json.Marshal(int64(v))
+}
+
+// FlexInt unmarshals from JSON string or number (Controller may send e.g. "-1" as string).
+type FlexInt int
+
+func (v *FlexInt) UnmarshalJSON(data []byte) error {
+	if len(data) == 0 || string(data) == "null" {
+		return nil
+	}
+	if len(data) > 0 && data[0] == '"' {
+		var s string
+		if err := json.Unmarshal(data, &s); err != nil {
+			return err
+		}
+		n, err := strconv.ParseInt(s, 10, 0)
+		if err != nil {
+			return err
+		}
+		*v = FlexInt(n)
+		return nil
+	}
+	var n int
+	if err := json.Unmarshal(data, &n); err != nil {
+		return err
+	}
+	*v = FlexInt(n)
+	return nil
+}
+
+func (v FlexInt) MarshalJSON() ([]byte, error) {
+	return json.Marshal(int(v))
+}
+
 // NatsRuleInfo is a generic NATS account or user rule (list responses).
 // Rule payloads from the Controller can have many optional fields; use map or extend as needed.
 type NatsRuleInfo struct {
@@ -1086,30 +1163,30 @@ type NatsRuleInfo struct {
 	Description            string      `json:"description,omitempty"`
 	IsSystem               bool        `json:"isSystem,omitempty"`
 	InfoUrl                string      `json:"infoUrl,omitempty"`
-	MaxConnections         *int        `json:"maxConnections,omitempty"`
-	MaxLeafNodeConnections *int        `json:"maxLeafNodeConnections,omitempty"`
-	MaxData                *int64      `json:"maxData,omitempty"`
-	MaxExports             *int        `json:"maxExports,omitempty"`
-	MaxImports             *int        `json:"maxImports,omitempty"`
-	MaxMsgPayload          *int64      `json:"maxMsgPayload,omitempty"`
-	MaxSubscriptions       *int        `json:"maxSubscriptions,omitempty"`
+	MaxConnections         *FlexInt    `json:"maxConnections,omitempty"`
+	MaxLeafNodeConnections *FlexInt    `json:"maxLeafNodeConnections,omitempty"`
+	MaxData                *FlexInt64  `json:"maxData,omitempty"`
+	MaxExports             *FlexInt    `json:"maxExports,omitempty"`
+	MaxImports             *FlexInt    `json:"maxImports,omitempty"`
+	MaxMsgPayload          *FlexInt64  `json:"maxMsgPayload,omitempty"`
+	MaxSubscriptions       *FlexInt    `json:"maxSubscriptions,omitempty"`
 	ExportsAllowWildcards  *bool       `json:"exportsAllowWildcards,omitempty"`
 	DisallowBearer         *bool       `json:"disallowBearer,omitempty"`
 	ResponsePermissions    interface{} `json:"responsePermissions,omitempty"`
-	RespMax                *int        `json:"respMax,omitempty"`
-	RespTtl                *int64      `json:"respTtl,omitempty"`
+	RespMax                *FlexInt    `json:"respMax,omitempty"`
+	RespTtl                *FlexInt64  `json:"respTtl,omitempty"`
 	Imports                interface{} `json:"imports,omitempty"`
 	Exports                interface{} `json:"exports,omitempty"`
-	MemStorage             *int64      `json:"memStorage,omitempty"`
-	DiskStorage            *int64      `json:"diskStorage,omitempty"`
+	MemStorage             *FlexInt64  `json:"memStorage,omitempty"`
+	DiskStorage            *FlexInt64  `json:"diskStorage,omitempty"`
 	Streams                interface{} `json:"streams,omitempty"`
 	Consumer               interface{} `json:"consumer,omitempty"`
-	MaxAckPending          *int        `json:"maxAckPending,omitempty"`
-	MemMaxStreamBytes      *int64      `json:"memMaxStreamBytes,omitempty"`
-	DiskMaxStreamBytes     *int64      `json:"diskMaxStreamBytes,omitempty"`
+	MaxAckPending          *FlexInt    `json:"maxAckPending,omitempty"`
+	MemMaxStreamBytes      *FlexInt64  `json:"memMaxStreamBytes,omitempty"`
+	DiskMaxStreamBytes     *FlexInt64  `json:"diskMaxStreamBytes,omitempty"`
 	MaxBytesRequired       *bool       `json:"maxBytesRequired,omitempty"`
 	TieredLimits           interface{} `json:"tieredLimits,omitempty"`
-	MaxPayload             *int64      `json:"maxPayload,omitempty"`
+	MaxPayload             *FlexInt64  `json:"maxPayload,omitempty"`
 	BearerToken            *bool       `json:"bearerToken,omitempty"`
 	ProxyRequired          *bool       `json:"proxyRequired,omitempty"`
 	AllowedConnectionTypes interface{} `json:"allowedConnectionTypes,omitempty"`
