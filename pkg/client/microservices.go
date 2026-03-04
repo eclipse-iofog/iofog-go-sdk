@@ -215,50 +215,25 @@ func (clt *Client) CreateMicroservicePortMapping(uuid string, portMapping *Micro
 	return
 }
 
-func mapFromArray(arr []string) map[string]bool {
-	result := make(map[string]bool)
-	for _, str := range arr {
-		result[str] = true
-	}
-	return result
-}
-
-// CreateMicroserviceRoute creates a microservice route using Controller REST API
+// CreateMicroserviceRoute creates a microservice route using Controller REST API.
+// Deprecated: Controller no longer exposes /api/v3/microservices/:uuid/routes.
+// Use NATS for messaging. CreateMicroserviceRoute returns ErrRoutesNotSupported.
 func (clt *Client) CreateMicroserviceRoute(uuid, destUUID string) (err error) {
-	_, err = clt.doRequest("POST", fmt.Sprintf("/microservices/%s/routes/%s", uuid, destUUID), nil)
-	return
+	return ErrRoutesNotSupported
 }
 
-// DeleteMicroserviceRoute deletes a microservice route using Controller REST API
+// DeleteMicroserviceRoute deletes a microservice route using Controller REST API.
+// Deprecated: Controller no longer exposes /api/v3/microservices/:uuid/routes.
+// Use NATS for messaging. DeleteMicroserviceRoute returns ErrRoutesNotSupported.
 func (clt *Client) DeleteMicroserviceRoute(uuid, destUUID string) (err error) {
-	_, err = clt.doRequest("DELETE", fmt.Sprintf("/microservices/%s/routes/%s", uuid, destUUID), nil)
-	return
+	return ErrRoutesNotSupported
 }
 
+// UpdateMicroserviceRoutes syncs microservice routes to the given list.
+// Deprecated: Controller no longer exposes /api/v3/microservices/:uuid/routes.
+// Use NATS for messaging. UpdateMicroserviceRoutes returns ErrRoutesNotSupported.
 func (clt *Client) UpdateMicroserviceRoutes(uuid string, currentRoutes, newRoutes []string) (err error) {
-	currentRouteMap := mapFromArray(currentRoutes)
-	newRouteMap := mapFromArray(newRoutes)
-
-	// Remove unused routes
-	for _, currentRouteDest := range currentRoutes {
-		_, found := newRouteMap[currentRouteDest]
-		if !found {
-			if err = clt.DeleteMicroserviceRoute(uuid, currentRouteDest); err != nil {
-				return
-			}
-		}
-	}
-
-	// Create missing routes
-	for _, newRouteDest := range newRoutes {
-		_, found := currentRouteMap[newRouteDest]
-		if !found {
-			if err = clt.CreateMicroserviceRoute(uuid, newRouteDest); err != nil {
-				return
-			}
-		}
-	}
-	return
+	return ErrRoutesNotSupported
 }
 
 // UpdateMicroserviceFromYAML updates a microservice using the Controller REST API

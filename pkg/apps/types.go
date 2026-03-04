@@ -14,7 +14,10 @@
 package apps
 
 import (
+	"encoding/json"
+
 	"k8s.io/apiextensions-apiserver/pkg/apis/apiextensions"
+	"k8s.io/apimachinery/pkg/runtime"
 )
 
 // HeaderMetadata contains k8s metadata
@@ -35,7 +38,8 @@ const (
 	ApplicationKind         Kind = "Application"
 	ApplicationTemplateKind Kind = "ApplicationTemplate"
 	MicroserviceKind        Kind = "Microservice"
-	RouteKind               Kind = "Route"
+	// RouteKind is deprecated. Controller no longer exposes routing; use NATS for messaging.
+	RouteKind Kind = "Route"
 )
 
 // Header contains k8s yaml header
@@ -92,7 +96,7 @@ type MicroserviceContainer struct {
 	CdiDevices      []string                     `yaml:"cdiDevices,omitempty" json:"cdiDevices,omitempty"`
 	CapAdd          []string                     `yaml:"capAdd,omitempty" json:"capAdd,omitempty"`
 	CapDrop         []string                     `yaml:"capDrop,omitempty" json:"capDrop,omitempty"`
-	Annotations     NestedMap                    `yaml:"annotations,omitempty" json:"annotations,omitempty"`
+	Annotations     ArbitraryJSON                `yaml:"annotations,omitempty" json:"annotations,omitempty"`
 	CpuSetCpus      string                       `yaml:"cpuSetCpus,omitempty" json:"cpuSetCpus,omitempty"`
 	MemoryLimit     *int64                       `yaml:"memoryLimit,omitempty" json:"memoryLimit,omitempty"`
 	HealthCheck     *MicroserviceHealthCheck     `yaml:"healthCheck,omitempty" json:"healthCheck,omitempty"`
@@ -140,9 +144,9 @@ type Microservice struct {
 	Agent       MicroserviceAgent          `yaml:"agent" json:"agent"`
 	Images      *MicroserviceImages        `yaml:"images,omitempty" json:"images,omitempty"`
 	Container   MicroserviceContainer      `yaml:"container,omitempty" json:"container,omitempty"`
-	MsRoutes    MsRoutes                   `yaml:"msRoutes,omitempty" json:"msRoutes,omitempty"`
+	NatsConfig  *MicroserviceNatsConfig    `yaml:"natsConfig,omitempty" json:"natsConfig,omitempty"`
 	Schedule    int                        `yaml:"schedule" json:"schedule"`
-	Config      NestedMap                  `yaml:"config" json:"config"`
+	Config      ArbitraryJSON              `yaml:"config" json:"config"`
 	Flow        *string                    `yaml:"flow,omitempty" json:"flow,omitempty"`
 	Application *string                    `yaml:"application,omitempty" json:"application,omitempty"`
 	Created     string                     `yaml:"created,omitempty" json:"created,omitempty"`
@@ -151,30 +155,114 @@ type Microservice struct {
 	ExecStatus  MicroserviceExecStatusInfo `yaml:"execStatus,omitempty" json:"execStatus,omitempty"`
 }
 
-type NestedMap map[string]interface{}
-
-func (j NestedMap) DeepCopy() NestedMap {
-	newMap := make(NestedMap)
-	deepCopyNestedMap(j, newMap)
-	return newMap
-}
-
-func deepCopyNestedMap(src, dest NestedMap) {
-	for key := range src {
-		switch value := src[key].(type) {
-		case NestedMap:
-			dest[key] = NestedMap{}
-			deepCopyNestedMap(value, dest[key].(NestedMap))
-		default:
-			dest[key] = value
-		}
-	}
-}
-
+// MicroserviceNatsConfig holds NATS configuration for a microservice (natsAccess, natsRule).
 // +k8s:deepcopy-gen=true
-type MsRoutes struct {
-	PubTags []string `yaml:"pubTags" json:"pubTags,omitempty"`
-	SubTags []string `yaml:"subTags" json:"subTags,omitempty"`
+type MicroserviceNatsConfig struct {
+	NatsAccess bool   `yaml:"natsAccess" json:"natsAccess"`
+	NatsRule   string `yaml:"natsRule,omitempty" json:"natsRule,omitempty"`
+}
+
+// ArbitraryJSON holds arbitrary JSON (e.g. config, annotations) as raw bytes.
+// It is compatible with controller-gen and preserves round-trip for YAML/JSON.
+// Use ToMap/FromMap for a map[string]interface{} API.
+// +k8s:deepcopy-gen=ignore
+type ArbitraryJSON struct {
+	runtime.RawExtension `yaml:",inline" json:",inline"`
+}
+
+// MarshalJSON implements json.Marshaler. Emits Raw or {} if empty.
+func (a ArbitraryJSON) MarshalJSON() ([]byte, error) {
+	if len(a.Raw) == 0 {
+		return []byte("{}"), nil
+	}
+	return a.Raw, nil
+}
+
+// UnmarshalJSON implements json.Unmarshaler. Stores the value as raw bytes.
+func (a *ArbitraryJSON) UnmarshalJSON(data []byte) error {
+	if len(data) == 0 {
+		a.Raw = nil
+		return nil
+	}
+	a.Raw = make([]byte, len(data))
+	copy(a.Raw, data)
+	return nil
+}
+
+// UnmarshalYAML implements yaml.Unmarshaler so YAML objects (e.g. config: { key: value }) decode correctly.
+func (a *ArbitraryJSON) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	var v interface{}
+	if err := unmarshal(&v); err != nil {
+		return err
+	}
+	if v == nil {
+		a.Raw = []byte("{}")
+		return nil
+	}
+	raw, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	a.Raw = raw
+	return nil
+}
+
+// MarshalYAML implements yaml.Marshaler so values emit as YAML objects.
+func (a ArbitraryJSON) MarshalYAML() (interface{}, error) {
+	if len(a.Raw) == 0 {
+		return map[string]interface{}{}, nil
+	}
+	var v interface{}
+	if err := json.Unmarshal(a.Raw, &v); err != nil {
+		return nil, err
+	}
+	return v, nil
+}
+
+// DeepCopyInto copies the receiver into out, deep-copying Raw bytes.
+func (a *ArbitraryJSON) DeepCopyInto(out *ArbitraryJSON) {
+	if a == nil || len(a.Raw) == 0 {
+		out.Raw = nil
+		return
+	}
+	out.Raw = make([]byte, len(a.Raw))
+	copy(out.Raw, a.Raw)
+}
+
+// DeepCopy returns a deep copy of the receiver.
+func (a ArbitraryJSON) DeepCopy() ArbitraryJSON {
+	if len(a.Raw) == 0 {
+		return ArbitraryJSON{}
+	}
+	out := make([]byte, len(a.Raw))
+	copy(out, a.Raw)
+	return ArbitraryJSON{RawExtension: runtime.RawExtension{Raw: out}}
+}
+
+// ToMap unmarshals Raw into a map for code that needs a map API. Returns nil map and nil error if empty.
+func (a ArbitraryJSON) ToMap() (map[string]interface{}, error) {
+	if len(a.Raw) == 0 {
+		return nil, nil
+	}
+	var m map[string]interface{}
+	if err := json.Unmarshal(a.Raw, &m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+// FromMap sets Raw from the given map (for backward compatibility in code that builds config/annotations).
+func (a *ArbitraryJSON) FromMap(m map[string]interface{}) error {
+	if m == nil {
+		a.Raw = []byte("{}")
+		return nil
+	}
+	raw, err := json.Marshal(m)
+	if err != nil {
+		return err
+	}
+	a.Raw = raw
+	return nil
 }
 
 // +k8s:deepcopy-gen=true
@@ -233,6 +321,16 @@ type AgentConfiguration struct {
 	RouterPort                *int      `yaml:"routerPort,omitempty" json:"routerPort,omitempty"`           // default: 5671
 	UpstreamRouters           *[]string `yaml:"upstreamRouters,omitempty" json:"upstreamRouters,omitempty"` // ignored if routerMode: none
 	NetworkRouter             *string   `yaml:"networkRouter,omitempty" json:"networkRouter,omitempty"`     // required if routerMone: none
+	// NATS-related fields (Controller iofog schema)
+	NatsMode            *string   `yaml:"natsMode,omitempty" json:"natsMode,omitempty"` // none, leaf, server
+	NatsServerPort      *int      `yaml:"natsServerPort,omitempty" json:"natsServerPort,omitempty"`
+	NatsLeafPort        *int      `yaml:"natsLeafPort,omitempty" json:"natsLeafPort,omitempty"`
+	NatsClusterPort     *int      `yaml:"natsClusterPort,omitempty" json:"natsClusterPort,omitempty"`
+	NatsMqttPort        *int      `yaml:"natsMqttPort,omitempty" json:"natsMqttPort,omitempty"`
+	NatsHttpPort        *int      `yaml:"natsHttpPort,omitempty" json:"natsHttpPort,omitempty"`
+	UpstreamNatsServers *[]string `yaml:"upstreamNatsServers,omitempty" json:"upstreamNatsServers,omitempty"`
+	JsStorageSize       *string   `yaml:"jsStorageSize,omitempty" json:"jsStorageSize,omitempty"`
+	JsMemoryStoreSize   *string   `yaml:"jsMemoryStoreSize,omitempty" json:"jsMemoryStoreSize,omitempty"`
 }
 
 // Microservices is a list of Microservice
@@ -241,7 +339,8 @@ type Microservices struct {
 	Microservices []Microservice `yaml:"microservices" json:"microservices"`
 }
 
-// Route contains information about a route from one microservice to another
+// Route contains information about a route from one microservice to another.
+// Deprecated: Controller no longer exposes routing; use NATS for messaging.
 // +k8s:deepcopy-gen=true
 type Route struct {
 	Name string `yaml:"name" json:"name"`
@@ -249,14 +348,21 @@ type Route struct {
 	To   string `yaml:"to" json:"to"`
 }
 
+// ApplicationNatsConfig holds NATS configuration for an application (natsAccess, natsRule).
+// +k8s:deepcopy-gen=true
+type ApplicationNatsConfig struct {
+	NatsAccess bool   `yaml:"natsAccess" json:"natsAccess"`
+	NatsRule   string `yaml:"natsRule,omitempty" json:"natsRule,omitempty"`
+}
+
 // Application contains information for configuring an application
 // +k8s:deepcopy-gen=true
 type Application struct {
-	Name          string               `yaml:"name" json:"name"`
-	Microservices []Microservice       `yaml:"microservices,omitempty" json:"microservices,omitempty"`
-	Routes        []Route              `yaml:"routes,omitempty" json:"routes,omitempty"`
-	ID            int                  `yaml:"id,omitempty" json:"id,omitempty"`
-	Template      *ApplicationTemplate `yaml:"template,omitempty" json:"template,omitempty"`
+	Name          string                 `yaml:"name" json:"name"`
+	Microservices []Microservice         `yaml:"microservices,omitempty" json:"microservices,omitempty"`
+	NatsConfig    *ApplicationNatsConfig `yaml:"natsConfig,omitempty" json:"natsConfig,omitempty"`
+	ID            int                    `yaml:"id,omitempty" json:"id,omitempty"`
+	Template      *ApplicationTemplate   `yaml:"template,omitempty" json:"template,omitempty"`
 }
 
 // ApplicationTemplate contains information for configuring an application template
@@ -268,8 +374,9 @@ type ApplicationTemplate struct {
 	Application *ApplicationTemplateInfo `yaml:"application,omitempty"`
 }
 
-// TemplateVariable contains a key-value pair
-// +k8s:deepcopy-gen=true
+// TemplateVariable contains a key-value pair.
+// +k8s:deepcopy-gen=ignore
+// (apiextensions.JSON is not supported by deepcopy-gen; use shallow copy if needed.)
 type TemplateVariable struct {
 	Key          string              `yaml:"key"`
 	Description  string              `yaml:"description"`
@@ -277,11 +384,26 @@ type TemplateVariable struct {
 	Value        *apiextensions.JSON `yaml:"value,omitempty"`
 }
 
-// ApplicationTemplateInfo contains microservice and route details for template
+// DeepCopyInto implements deepcopy-gen's requirement for types referenced by generated code.
+func (in *TemplateVariable) DeepCopyInto(out *TemplateVariable) {
+	*out = *in
+}
+
+// DeepCopy returns a shallow copy of TemplateVariable.
+func (in *TemplateVariable) DeepCopy() *TemplateVariable {
+	if in == nil {
+		return nil
+	}
+	out := new(TemplateVariable)
+	in.DeepCopyInto(out)
+	return out
+}
+
+// ApplicationTemplateInfo contains microservice and NATS config details for template
 // +k8s:deepcopy-gen=true
 type ApplicationTemplateInfo struct {
-	Microservices []Microservice `yaml:"microservices"`
-	Routes        []Route        `yaml:"routes"`
+	Microservices []Microservice         `yaml:"microservices"`
+	NatsConfig    *ApplicationNatsConfig `yaml:"natsConfig,omitempty"`
 }
 
 // Applications is a list of applications
@@ -297,5 +419,5 @@ type IofogController struct {
 	Password     string `yaml:"password" json:"password"`
 	Endpoint     string `yaml:"endpoint" json:"endpoint"`
 	Token        string `yaml:"token" json:"token"`
-	RefreshToken string `yaml:"refreshToken" json:"token"`
+	RefreshToken string `yaml:"refreshToken" json:"refreshToken"`
 }

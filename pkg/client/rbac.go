@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"io"
 	"mime/multipart"
+	"net/url"
 )
 
 // Roles
@@ -226,10 +227,17 @@ func (clt *Client) DeleteRoleBinding(name string) error {
 }
 
 // ServiceAccounts
+// Service accounts are application-scoped: identify by (applicationName, name).
+// Controller routes: GET/POST /serviceaccounts, GET/PATCH/DELETE /serviceaccounts/:appName/:name.
 
-// ListServiceAccounts retrieves all service accounts from the Controller REST API
-func (clt *Client) ListServiceAccounts() (*ServiceAccountListResponse, error) {
-	body, err := clt.doRequest("GET", "/serviceaccounts", nil)
+// ListServiceAccounts retrieves all service accounts from the Controller REST API.
+// If applicationName is non-empty, only service accounts in that application are returned.
+func (clt *Client) ListServiceAccounts(applicationName string) (*ServiceAccountListResponse, error) {
+	path := "/serviceaccounts"
+	if applicationName != "" {
+		path = "/serviceaccounts?applicationName=" + url.QueryEscape(applicationName)
+	}
+	body, err := clt.doRequest("GET", path, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -240,9 +248,9 @@ func (clt *Client) ListServiceAccounts() (*ServiceAccountListResponse, error) {
 	return response, nil
 }
 
-// GetServiceAccount retrieves a single service account by name from the Controller REST API
-func (clt *Client) GetServiceAccount(name string) (*ServiceAccountInfo, error) {
-	body, err := clt.doRequest("GET", fmt.Sprintf("/serviceaccounts/%s", name), nil)
+// GetServiceAccount retrieves a single service account by application name and name from the Controller REST API.
+func (clt *Client) GetServiceAccount(appName, name string) (*ServiceAccountInfo, error) {
+	body, err := clt.doRequest("GET", fmt.Sprintf("/serviceaccounts/%s/%s", appName, name), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -287,9 +295,9 @@ func (clt *Client) CreateServiceAccountFromYaml(file io.Reader) error {
 	return err
 }
 
-// UpdateServiceAccount updates a service account by name using the Controller REST API
-func (clt *Client) UpdateServiceAccount(name string, request *ServiceAccountUpdateRequest) (*ServiceAccountInfo, error) {
-	body, err := clt.doRequest("PATCH", fmt.Sprintf("/serviceaccounts/%s", name), request)
+// UpdateServiceAccount updates a service account by application name and name using the Controller REST API.
+func (clt *Client) UpdateServiceAccount(appName, name string, request *ServiceAccountUpdateRequest) (*ServiceAccountInfo, error) {
+	body, err := clt.doRequest("PATCH", fmt.Sprintf("/serviceaccounts/%s/%s", appName, name), request)
 	if err != nil {
 		return nil, err
 	}
@@ -300,8 +308,8 @@ func (clt *Client) UpdateServiceAccount(name string, request *ServiceAccountUpda
 	return &response.ServiceAccount, nil
 }
 
-// UpdateServiceAccountFromYaml updates a service account from a YAML file using the Controller REST API
-func (clt *Client) UpdateServiceAccountFromYaml(name string, file io.Reader) error {
+// UpdateServiceAccountFromYaml updates a service account from a YAML file using the Controller REST API.
+func (clt *Client) UpdateServiceAccountFromYaml(appName, name string, file io.Reader) error {
 	requestBody := &bytes.Buffer{}
 	writer := multipart.NewWriter(requestBody)
 	part, err := writer.CreateFormFile("serviceaccount", "serviceaccount.yaml")
@@ -317,12 +325,12 @@ func (clt *Client) UpdateServiceAccountFromYaml(name string, file io.Reader) err
 	headers := map[string]string{
 		"Content-Type": writer.FormDataContentType(),
 	}
-	_, err = clt.doRequestWithHeaders("PATCH", fmt.Sprintf("/serviceaccounts/yaml/%s", name), requestBody, headers)
+	_, err = clt.doRequestWithHeaders("PATCH", fmt.Sprintf("/serviceaccounts/yaml/%s/%s", appName, name), requestBody, headers)
 	return err
 }
 
-// DeleteServiceAccount deletes a service account by name using the Controller REST API
-func (clt *Client) DeleteServiceAccount(name string) error {
-	_, err := clt.doRequest("DELETE", fmt.Sprintf("/serviceaccounts/%s", name), nil)
+// DeleteServiceAccount deletes a service account by application name and name using the Controller REST API.
+func (clt *Client) DeleteServiceAccount(appName, name string) error {
+	_, err := clt.doRequest("DELETE", fmt.Sprintf("/serviceaccounts/%s/%s", appName, name), nil)
 	return err
 }

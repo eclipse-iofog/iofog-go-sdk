@@ -89,6 +89,8 @@ func makePostRequest(url, bodyType string, body io.Reader) ([]byte, error) {
 	return respBodyBytes, nil
 }
 
+// PrepareMessageForSendingViaSocket encodes an IoMessage for sending over the message WebSocket.
+// Deprecated: The internal messagebus is deprecated in favor of NATS.
 func PrepareMessageForSendingViaSocket(msg *IoMessage) ([]byte, error) {
 	msgBytes, err := msg.EncodeBinary()
 	if err != nil {
@@ -103,6 +105,8 @@ func PrepareMessageForSendingViaSocket(msg *IoMessage) ([]byte, error) {
 	return bytesToSend, nil
 }
 
+// GetMessageReceivedViaSocket decodes an IoMessage from the message WebSocket.
+// Deprecated: The internal messagebus is deprecated in favor of NATS.
 func GetMessageReceivedViaSocket(msgBytes []byte) (*IoMessage, error) {
 	msgLen := binary.BigEndian.Uint32(msgBytes[1:5])
 	if cap(msgBytes) < int(msgLen)+5 {

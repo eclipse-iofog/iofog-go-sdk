@@ -10,6 +10,9 @@
  *******************************************************************************
  */
 
+// Package microservices provides the IoMessage type and client for the deprecated
+// ioFog agent internal messagebus. The internal messagebus and IoMessage are
+// deprecated in favor of NATS. These APIs may be removed in a future release.
 package microservices
 
 import (
@@ -20,6 +23,8 @@ import (
 
 const IOMESSAGE_VERSION = 4
 
+// IoMessage represents a message on the ioFog agent internal messagebus.
+// Deprecated: The internal messagebus is deprecated in favor of NATS; use NATS for messaging.
 type IoMessage struct {
 	ID               string `json:"id"`
 	Tag              string `json:"tag"`
@@ -43,6 +48,8 @@ type IoMessage struct {
 	ContentData      []byte `json:"contentdata"`
 }
 
+// IoMessageReadable is a readable (JSON-friendly) form of IoMessage.
+// Deprecated: The internal messagebus is deprecated in favor of NATS.
 type IoMessageReadable struct {
 	ID               string `json:"id"`
 	Tag              string `json:"tag"`
