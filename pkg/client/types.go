@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2024 Datasance Teknoloji A.S.
+ *  * Copyright (c) 2024 Contributors to the Eclipse ioFog Project
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -407,7 +407,7 @@ type MicroserviceInfo struct {
 	MemoryLimit       int64                           `json:"memoryLimit,omitempty"`
 	HealthCheck       MicroserviceHealthCheck         `json:"healthCheck,omitempty"`
 	NatsConfig        *MicroserviceNatsConfig         `json:"natsConfig,omitempty"`
-	ServiceAccount    *MicroserviceServiceAccountRef   `json:"serviceAccount,omitempty"`
+	ServiceAccount    *MicroserviceServiceAccountRef  `json:"serviceAccount,omitempty"`
 }
 
 // MicroserviceServiceAccountRef is the optional serviceAccount field in a microservice spec (YAML or API).

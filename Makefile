@@ -21,8 +21,8 @@ clean: ## Clean the working area and the project
 	rm -rf $(REPORTS_DIR)
 
 # Import path for pkg/apps (must match go.mod module)
-APPS_IMPORT_PATH = github.com/datasance/iofog-go-sdk/v3/pkg/apps
-MODULE_PATH      = github.com/datasance/iofog-go-sdk/v3
+APPS_IMPORT_PATH = github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/apps
+MODULE_PATH      = github.com/eclipse-iofog/iofog-go-sdk/v3
 
 .PHONY: gen
 gen: install-tools ## Generate code
