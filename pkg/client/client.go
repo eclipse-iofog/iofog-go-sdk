@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2019 Edgeworx, Inc.
+ *  * Copyright (c) 2024 Contributors to the Eclipse ioFog Project
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -28,11 +28,12 @@ type controllerStatus struct {
 }
 
 type Client struct {
-	baseURL     *url.URL
-	accessToken string
-	retries     Retries
-	status      controllerStatus
-	timeout     int
+	baseURL      *url.URL
+	accessToken  string
+	refreshToken string
+	retries      Retries
+	status       controllerStatus
+	timeout      int
 }
 
 type Options struct {
@@ -43,7 +44,7 @@ type Options struct {
 
 func New(opt Options) *Client {
 	if opt.Timeout == 0 {
-		opt.Timeout = 5
+		opt.Timeout = 10
 	}
 	retries := GlobalRetriesPolicy
 	if opt.Retries != nil {
@@ -78,12 +79,33 @@ func NewAndLogin(opt Options, email, password string) (clt *Client, err error) {
 	if err = clt.Login(LoginRequest{Email: email, Password: password}); err != nil {
 		return
 	}
-	return
+	return clt, nil
+}
+
+func SessionLogin(opt Options, token, email, password string) (clt *Client, err error) {
+	clt = New(opt)
+
+	// Attempt to login using the refresh token
+	if err = clt.Refresh(RefreshTokenRequest{RefreshToken: token}); err != nil {
+		// If session login fails, fall back to normal login with email and password
+		clt, err = NewAndLogin(opt, email, password)
+		if err != nil {
+			return nil, fmt.Errorf("fallback login failed: %v", err)
+		}
+	}
+
+	return clt, nil
 }
 
 func NewWithToken(opt Options, token string) (clt *Client, err error) {
 	clt = New(opt)
 	clt.SetAccessToken(token)
+	return
+}
+
+func NewWithRefreshToken(opt Options, refreshToken string) (clt *Client, err error) {
+	clt = New(opt)
+	clt.SetAccessToken(refreshToken)
 	return
 }
 
@@ -105,6 +127,14 @@ func (clt *Client) GetAccessToken() string {
 
 func (clt *Client) SetAccessToken(token string) {
 	clt.accessToken = token
+}
+
+func (clt *Client) GetRefreshToken() string {
+	return clt.refreshToken
+}
+
+func (clt *Client) SetRefreshToken(token string) {
+	clt.refreshToken = token
 }
 
 func (clt *Client) doRequestWithRetries(currentRetries Retries, method, requestURL string, headers map[string]string, request interface{}) ([]byte, error) {
@@ -160,7 +190,7 @@ func (clt *Client) doRequestWithHeaders(method, requestPath string, request inte
 	}
 
 	// Set auth header
-	headers["Authorization"] = clt.accessToken
+	headers["Authorization"] = "Bearer " + clt.accessToken
 
 	currentRetries := Retries{CustomMessage: make(map[string]int)}
 	if clt.retries.CustomMessage != nil {

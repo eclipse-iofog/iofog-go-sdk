@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2019 Edgeworx, Inc.
+ *  * Copyright (c) 2024 Contributors to the Eclipse ioFog Project
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -54,7 +54,7 @@ func (exe *applicationTemplateExecutor) init() (err error) {
 	if exe.controller.Token != "" {
 		exe.client, err = client.NewWithToken(client.Options{BaseURL: exe.baseURL}, exe.controller.Token)
 	} else {
-		exe.client, err = client.NewAndLogin(client.Options{BaseURL: exe.baseURL}, exe.controller.Email, exe.controller.Password)
+		exe.client, err = client.SessionLogin(client.Options{BaseURL: exe.baseURL}, exe.controller.RefreshToken, exe.controller.Email, exe.controller.Password)
 	}
 
 	return err

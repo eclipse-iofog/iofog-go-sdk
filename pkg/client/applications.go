@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2019 Edgeworx, Inc.
+ *  * Copyright (c) 2024 Contributors to the Eclipse ioFog Project
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -24,6 +24,19 @@ import (
 // GetApplicationByName retrieve application information using the Controller REST API
 func (clt *Client) GetApplicationByName(name string) (application *ApplicationInfo, err error) {
 	body, err := clt.doRequest("GET", fmt.Sprintf("/application/%s", name), nil)
+	if err != nil {
+		return
+	}
+	application = new(ApplicationInfo)
+	if err = json.Unmarshal(body, application); err != nil {
+		return
+	}
+	return
+}
+
+// GetSystemApplicationByName retrieve system application information using the Controller REST API
+func (clt *Client) GetSystemApplicationByName(name string) (application *ApplicationInfo, err error) {
+	body, err := clt.doRequest("GET", fmt.Sprintf("/application/system/%s", name), nil)
 	if err != nil {
 		return
 	}
@@ -122,8 +135,27 @@ func (clt *Client) GetAllApplications() (response *ApplicationListResponse, err 
 	return response, nil
 }
 
+// GetAllSystemApplications retrieve all system applications information from the Controller REST API
+func (clt *Client) GetAllSystemApplications() (response *ApplicationListResponse, err error) {
+	body, err := clt.doRequest("GET", "/application/system", nil)
+	if err != nil {
+		return
+	}
+	response = new(ApplicationListResponse)
+	if err = json.Unmarshal(body, response); err != nil {
+		return
+	}
+	return response, nil
+}
+
 // DeleteApplication deletes an application using the Controller REST API
 func (clt *Client) DeleteApplication(name string) (err error) {
 	_, err = clt.doRequest("DELETE", fmt.Sprintf("/application/%s", name), nil)
+	return
+}
+
+// DeleteSystemApplication deletes an application using the Controller REST API
+func (clt *Client) DeleteSystemApplication(name string) (err error) {
+	_, err = clt.doRequest("DELETE", fmt.Sprintf("/application/system/%s", name), nil)
 	return
 }

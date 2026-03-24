@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2019 Edgeworx, Inc.
+ *  * Copyright (c) 2024 Contributors to the Eclipse ioFog Project
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -14,6 +14,7 @@
 package client
 
 import (
+	"errors"
 	"fmt"
 )
 
@@ -134,3 +135,8 @@ func NewNotSupportedError(capability string) (err *NotSupportedError) {
 func (err *NotSupportedError) Error() string {
 	return "Controller API does not support " + err.capability
 }
+
+// ErrRoutesNotSupported is returned when calling deprecated route or microservice-route
+// Controller endpoints. The Controller no longer exposes /api/v3/routes or
+// /api/v3/microservices/:uuid/routes; use NATS for messaging instead.
+var ErrRoutesNotSupported = errors.New("routes API is no longer supported by the Controller; use NATS for messaging")

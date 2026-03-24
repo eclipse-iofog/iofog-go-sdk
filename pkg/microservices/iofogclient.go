@@ -20,6 +20,9 @@ import (
 	"strconv"
 )
 
+// IoFogClient talks to the ioFog agent HTTP and WebSocket APIs (config, messagebus).
+// Deprecated: The internal messagebus used by GetNextMessages, PostMessage,
+// EstablishMessageWsConnection, and SendMessageViaSocket is deprecated in favor of NATS.
 type IoFogClient struct {
 	id         string
 	httpClient *ioFogHttpClient
@@ -70,10 +73,14 @@ func (client *IoFogClient) GetConfigIntoStruct(config interface{}) error {
 	return client.httpClient.getConfigIntoStruct(config)
 }
 
-func (client *IoFogClient) GetNextMessages() ([]IoMessage, error) {
+// GetNextMessages retrieves the next messages from the agent messagebus.
+// Deprecated: The internal messagebus is deprecated in favor of NATS.
+func (client *IoFogClient) GetNextMessages() ([]IoMessageReadable, error) {
 	return client.httpClient.getNextMessages()
 }
 
+// PostMessage posts a message to the agent messagebus.
+// Deprecated: The internal messagebus is deprecated in favor of NATS.
 func (client *IoFogClient) PostMessage(msg *IoMessage) (*PostMessageResponse, error) {
 	msg.Publisher = client.id
 	if msg.Version == 0 {
@@ -82,7 +89,9 @@ func (client *IoFogClient) PostMessage(msg *IoMessage) (*PostMessageResponse, er
 	return client.httpClient.postMessage(msg)
 }
 
-func (client *IoFogClient) GetMessagesFromPublishersWithinTimeFrame(query *MessagesQueryParameters) (*TimeFrameMessages, error) {
+// GetMessagesFromPublishersWithinTimeFrame queries messages from publishers in a time frame.
+// Deprecated: The internal messagebus is deprecated in favor of NATS.
+func (client *IoFogClient) GetMessagesFromPublishersWithinTimeFrame(query *MessagesQueryParameters) (*TimeFrameReadableMessages, error) {
 	query.ID = client.id
 	return client.httpClient.getMessagesFromPublishersWithinTimeFrame(query)
 }
@@ -96,6 +105,8 @@ func (client *IoFogClient) EstablishControlWsConnection(signalBufSize int) <-cha
 	return signalChannel
 }
 
+// EstablishMessageWsConnection opens a WebSocket connection to the agent messagebus.
+// Deprecated: The internal messagebus is deprecated in favor of NATS.
 func (client *IoFogClient) EstablishMessageWsConnection(msgBufSize, receiptBufSize int) (<-chan interface{}, <-chan interface{}) {
 	if msgBufSize == 0 {
 		msgBufSize = DEFAULT_MESSAGE_BUFFER_SIZE
@@ -109,6 +120,8 @@ func (client *IoFogClient) EstablishMessageWsConnection(msgBufSize, receiptBufSi
 	return messageChannel.Out(), receiptChannel.Out()
 }
 
+// SendMessageViaSocket sends a message over the message WebSocket.
+// Deprecated: The internal messagebus is deprecated in favor of NATS.
 func (client *IoFogClient) SendMessageViaSocket(msg *IoMessage) error {
 	msg.ID = ""
 	msg.Timestamp = 0

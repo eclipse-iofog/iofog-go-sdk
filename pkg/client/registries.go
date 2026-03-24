@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2019 Edgeworx, Inc.
+ *  * Copyright (c) 2024 Contributors to the Eclipse ioFog Project
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -38,6 +38,19 @@ func (clt *Client) UpdateRegistry(request RegistryUpdateRequest) error {
 		return err
 	}
 	return nil
+}
+
+// GetRegistry retrieves a single registry by ID from the Controller REST API
+func (clt *Client) GetRegistry(id int) (*RegistryInfo, error) {
+	body, err := clt.doRequest("GET", fmt.Sprintf("/registries/%d", id), nil)
+	if err != nil {
+		return nil, err
+	}
+	registry := new(RegistryInfo)
+	if err := json.Unmarshal(body, registry); err != nil {
+		return nil, err
+	}
+	return registry, nil
 }
 
 // ListRegistries retrieve all registries information from the Controller REST API

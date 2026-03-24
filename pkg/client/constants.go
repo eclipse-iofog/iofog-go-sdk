@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2019 Edgeworx, Inc.
+ *  * Copyright (c) 2024 Contributors to the Eclipse ioFog Project
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -15,7 +15,8 @@ package client
 
 // String and numeric values of TCP ports used accross ioFog
 const (
-	ControllerPort       = 51121
-	ControllerPortString = "51121"
-	DefaultRouterName    = "default-router"
+	ControllerPort        = 51121
+	ControllerPortString  = "51121"
+	DefaultRouterName     = "default-router"
+	DefaultNatsServerName = "default-nats-hub"
 )
