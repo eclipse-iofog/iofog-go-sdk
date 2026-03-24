@@ -9,6 +9,7 @@ spec:
     surname: Bar
     email: user@domain.com
     password: g9hr823rhuoi
+    subscriptionKey: XXXX-XXXX-XXXX-XXXX
   controller:
     container:
       image: gcr.io/focal-freedom-236620/controller:3.0.1

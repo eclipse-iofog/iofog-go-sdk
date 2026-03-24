@@ -75,20 +75,29 @@ func (client *ioFogHttpClient) getConfigIntoStruct(config interface{}) error {
 	return nil
 }
 
-func (client *ioFogHttpClient) getNextMessages() ([]IoMessage, error) {
+func (client *ioFogHttpClient) getNextMessages() ([]IoMessageReadable, error) {
 	resp, err := makePostRequest(client.url_get_next_messages, APPLICATION_JSON, bytes.NewBuffer(client.requestBodyId))
 	if err != nil {
 		return nil, err
 	}
-	nextMessagesResponse := new(getNextMessagesResponse)
+	nextMessagesResponse := new(getNextMessagesReadableResponse)
 	if err := json.Unmarshal(resp, nextMessagesResponse); err != nil {
 		return nil, err
 	}
-	return nextMessagesResponse.Messages, nil
+
+	// Decode Base64-encoded fields for each message
+	var decodedMessages []IoMessageReadable
+	for _, msg := range nextMessagesResponse.Messages {
+		decodedMessages = append(decodedMessages, *decodeJson(&msg))
+	}
+
+	return decodedMessages, nil
 }
 
 func (client *ioFogHttpClient) postMessage(msg *IoMessage) (*PostMessageResponse, error) {
-	requestBytes, _ := json.Marshal(msg)
+	encodedMsg := encodeJson(msg)
+
+	requestBytes, _ := json.Marshal(encodedMsg)
 	resp, err := makePostRequest(client.url_post_message, APPLICATION_JSON, bytes.NewBuffer(requestBytes))
 	if err != nil {
 		return nil, err
@@ -100,15 +109,29 @@ func (client *ioFogHttpClient) postMessage(msg *IoMessage) (*PostMessageResponse
 	return postMessageResponse, nil
 }
 
-func (client *ioFogHttpClient) getMessagesFromPublishersWithinTimeFrame(query *MessagesQueryParameters) (*TimeFrameMessages, error) {
+func (client *ioFogHttpClient) getMessagesFromPublishersWithinTimeFrame(query *MessagesQueryParameters) (*TimeFrameReadableMessages, error) {
 	requestBytes, _ := json.Marshal(query)
 	resp, err := makePostRequest(client.url_get_publishers_messages, APPLICATION_JSON, bytes.NewBuffer(requestBytes))
 	if err != nil {
 		return nil, err
 	}
-	nextMessagesResponse := new(getNextMessagesResponse)
+	nextMessagesResponse := new(getNextMessagesReadableResponse)
 	if err := json.Unmarshal(resp, nextMessagesResponse); err != nil {
 		return nil, err
 	}
-	return (*TimeFrameMessages)(nextMessagesResponse), nil
+
+	// Decode Base64-encoded fields for each message
+	var decodedMessages []IoMessageReadable
+	for _, msg := range nextMessagesResponse.Messages {
+		decodedMessages = append(decodedMessages, *decodeJson(&msg))
+	}
+
+	// Convert to TimeFrameReadableMessages
+	readableResponse := &TimeFrameReadableMessages{
+		TimeFrameStart: nextMessagesResponse.TimeFrameStart,
+		TimeFrameEnd:   nextMessagesResponse.TimeFrameEnd,
+		Messages:       decodedMessages,
+	}
+
+	return readableResponse, nil
 }

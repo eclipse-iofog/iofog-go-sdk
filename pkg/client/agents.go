@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2019 Edgeworx, Inc.
+ *  * Copyright (c) 2024 Contributors to the Eclipse ioFog Project
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -16,7 +16,7 @@ package client
 import (
 	"encoding/json"
 	"fmt"
-	"strings"
+	// "strings"
 )
 
 // CreateAgent creates an ioFog Agent using Controller REST API
@@ -140,8 +140,10 @@ func (clt *Client) DeleteAgent(uuid string) error {
 }
 
 // GetAgentByName retrieve the agent information by getting all agents then searching for the first occurance in the list
-func (clt *Client) GetAgentByName(name string, system bool) (*AgentInfo, error) {
-	list, err := clt.ListAgents(ListAgentsRequest{System: system})
+// func (clt *Client) GetAgentByName(name string, system bool) (*AgentInfo, error) {
+func (clt *Client) GetAgentByName(name string) (*AgentInfo, error) {
+	// list, err := clt.ListAgents(ListAgentsRequest{System: system})
+	list, err := clt.ListAgents(ListAgentsRequest{})
 	if err != nil {
 		return nil, err
 	}
@@ -160,11 +162,7 @@ func (clt *Client) PruneAgent(uuid string) (err error) {
 }
 
 func generateListAgentURL(request ListAgentsRequest) string {
-	// Embed request options into URL as query params
-	url := "/iofog-list?system=false"
-	if request.System {
-		url = strings.Replace(url, "false", "true", 1)
-	}
+	url := fmt.Sprintf("/iofog-list?system=%t", request.System)
 	for idx, filter := range request.Filters {
 		params := []string{
 			fmt.Sprintf("&filters[%d][key]=%s", idx, filter.Key),
@@ -172,7 +170,7 @@ func generateListAgentURL(request ListAgentsRequest) string {
 			fmt.Sprintf("&filters[%d][condition]=%s", idx, filter.Condition),
 		}
 		for _, param := range params {
-			url = fmt.Sprintf("%s%s", url, param)
+			url += param
 		}
 	}
 	return url
@@ -180,7 +178,8 @@ func generateListAgentURL(request ListAgentsRequest) string {
 
 func (clt *Client) UpgradeAgent(name string) error {
 	// Get Agent uuid
-	agent, err := clt.GetAgentByName(name, false)
+	// agent, err := clt.GetAgentByName(name, false)
+	agent, err := clt.GetAgentByName(name)
 	if err != nil {
 		return err
 	}
@@ -195,7 +194,8 @@ func (clt *Client) UpgradeAgent(name string) error {
 
 func (clt *Client) RollbackAgent(name string) error {
 	// Get Agent uuid
-	agent, err := clt.GetAgentByName(name, false)
+	// agent, err := clt.GetAgentByName(name, false)
+	agent, err := clt.GetAgentByName(name)
 	if err != nil {
 		return err
 	}

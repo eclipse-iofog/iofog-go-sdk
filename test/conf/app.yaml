@@ -16,7 +16,7 @@ spec:
       x86: edgeworx/healthcare-heart-rate:x86-v1
       registry: remote # public docker
     container:
-      rootHostAccess: false
+      hostNetworkMode: false
       ports: []
     config:
       test_mode: true
@@ -30,7 +30,7 @@ spec:
       x86: edgeworx/healthcare-heart-rate-ui:x86
       registry: remote
     container:
-      rootHostAccess: false
+      hostNetworkMode: false
       ports:
         # The ui will be listening on port 80 (internal).
         - external: 5000

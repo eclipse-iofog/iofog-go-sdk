@@ -1,6 +1,6 @@
 /*
  *  *******************************************************************************
- *  * Copyright (c) 2019 Edgeworx, Inc.
+ *  * Copyright (c) 2024 Contributors to the Eclipse ioFog Project
  *  *
  *  * This program and the accompanying materials are made available under the
  *  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -125,7 +125,7 @@ func TestCreateAgent(t *testing.T) {
 		t.Fatalf(fmt.Sprintf("Controller returned unexpected Agent name: %s", getResponse.Name))
 	}
 
-	nameInfo, err := clt.GetAgentByName(state.agent, false)
+	nameInfo, err := clt.GetAgentByName(state.agent)
 	if err != nil {
 		t.Fatalf("Failed to get Agent by name: %s", err.Error())
 	}

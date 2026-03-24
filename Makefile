@@ -20,12 +20,23 @@ all: test ## Generate code and run tests
 clean: ## Clean the working area and the project
 	rm -rf $(REPORTS_DIR)
 
+# Import path for pkg/apps (must match go.mod module)
+APPS_IMPORT_PATH = github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/apps
+MODULE_PATH      = github.com/eclipse-iofog/iofog-go-sdk/v3
+
 .PHONY: gen
 gen: install-tools ## Generate code
-	@sed -i'' -E "s|//(.*// \+k8s:deepcopy-gen=ignore)|\1|g" pkg/apps/types.go
-	@sed -i'' -E "s|(.*// \+k8s:deepcopy-gen=ignore)|//\1|g" pkg/apps/types.go
-	deepcopy-gen -i ./pkg/apps -o . --go-header-file ./boilerplate.go.txt
-	@sed -i'' -E "s|//(.*// \+k8s:deepcopy-gen=ignore)|\1|g" pkg/apps/types.go
+	@sed -i '' -E 's|//(.*// \+k8s:deepcopy-gen=ignore)|\1|g' pkg/apps/types.go
+	@sed -i '' -E 's|(.*// \+k8s:deepcopy-gen=ignore)|//\1|g' pkg/apps/types.go
+	deepcopy-gen \
+		--bounding-dirs $(MODULE_PATH) \
+		-i $(APPS_IMPORT_PATH) \
+		-O deepcopy_generated \
+		-o . \
+		-p $(APPS_IMPORT_PATH) \
+		--trim-path-prefix $(MODULE_PATH) \
+		--go-header-file ./boilerplate.go.txt
+	@sed -i '' -E 's|//(.*// \+k8s:deepcopy-gen=ignore)|\1|g' pkg/apps/types.go
 
 .PHONY: lint
 lint: golangci-lint fmt ## Lint the source
@@ -66,6 +77,9 @@ var-%: ; @echo $($*)
 varexport-%: ; @echo $*=$($*)
 
 
-.PHONE: install-tools
+# Pin code-generator to a version compatible with Go 1.21+ (avoid @latest which requires Go 1.25+)
+DEEPCOPY_GEN_VERSION ?= v0.29.0
+
+.PHONY: install-tools
 install-tools:
-	go install -v k8s.io/code-generator/cmd/deepcopy-gen@v0.26
+	go install -v k8s.io/code-generator/cmd/deepcopy-gen@$(DEEPCOPY_GEN_VERSION)

@@ -10,15 +10,21 @@
  *******************************************************************************
  */
 
+// Package microservices provides the IoMessage type and client for the deprecated
+// ioFog agent internal messagebus. The internal messagebus and IoMessage are
+// deprecated in favor of NATS. These APIs may be removed in a future release.
 package microservices
 
 import (
+	"encoding/base64"
 	"encoding/binary"
 	"errors"
 )
 
 const IOMESSAGE_VERSION = 4
 
+// IoMessage represents a message on the ioFog agent internal messagebus.
+// Deprecated: The internal messagebus is deprecated in favor of NATS; use NATS for messaging.
 type IoMessage struct {
 	ID               string `json:"id"`
 	Tag              string `json:"tag"`
@@ -40,6 +46,31 @@ type IoMessage struct {
 	InfoFormat       string `json:"infoformat"`
 	ContextData      []byte `json:"contextdata"`
 	ContentData      []byte `json:"contentdata"`
+}
+
+// IoMessageReadable is a readable (JSON-friendly) form of IoMessage.
+// Deprecated: The internal messagebus is deprecated in favor of NATS.
+type IoMessageReadable struct {
+	ID               string `json:"id"`
+	Tag              string `json:"tag"`
+	GroupId          string `json:"groupid"`
+	SequenceNumber   int    `json:"sequencenumber"`
+	SequenceTotal    int    `json:"sequencetotal"`
+	Priority         int    `json:"priority"`
+	Timestamp        int64  `json:"timestamp"`
+	Publisher        string `json:"publisher"`
+	AuthID           string `json:"authid"`
+	AuthGroup        string `json:"authgroup"`
+	Version          int    `json:"version"`
+	ChainPosition    int64  `json:"chainposition"`
+	Hash             string `json:"hash"`
+	PreviousHash     string `json:"previoushash"`
+	Nonce            string `json:"nonce"`
+	DifficultyTarget int    `json:"difficultytarget"`
+	InfoType         string `json:"infotype"`
+	InfoFormat       string `json:"infoformat"`
+	ContextData      string `json:"contextdata"`
+	ContentData      string `json:"contentdata"`
 }
 
 func (msg *IoMessage) DecodeBinary(data []byte) error {
@@ -270,4 +301,57 @@ func (msg *IoMessage) EncodeBinary() ([]byte, error) {
 	msgBodyBytes = append(msgBodyBytes, bytesContentData...)
 
 	return append(msgHeaderBytes, msgBodyBytes...), nil
+}
+
+func encodeJson(msg *IoMessage) *IoMessageReadable {
+	return &IoMessageReadable{
+		ID:               msg.ID,
+		Tag:              msg.Tag,
+		GroupId:          msg.GroupId,
+		SequenceNumber:   msg.SequenceNumber,
+		SequenceTotal:    msg.SequenceTotal,
+		Priority:         msg.Priority,
+		Timestamp:        msg.Timestamp,
+		Publisher:        msg.Publisher,
+		AuthID:           msg.AuthID,
+		AuthGroup:        msg.AuthGroup,
+		Version:          msg.Version,
+		ChainPosition:    msg.ChainPosition,
+		Hash:             msg.Hash,
+		PreviousHash:     msg.PreviousHash,
+		Nonce:            msg.Nonce,
+		DifficultyTarget: msg.DifficultyTarget,
+		InfoType:         msg.InfoType,
+		InfoFormat:       msg.InfoFormat,
+		ContextData:      base64.StdEncoding.EncodeToString(msg.ContextData),
+		ContentData:      base64.StdEncoding.EncodeToString(msg.ContentData),
+	}
+}
+
+func decodeJson(msg *IoMessageReadable) *IoMessageReadable {
+	contextData, _ := base64.StdEncoding.DecodeString(string(msg.ContextData))
+	contentData, _ := base64.StdEncoding.DecodeString(string(msg.ContentData))
+
+	return &IoMessageReadable{
+		ID:               msg.ID,
+		Tag:              msg.Tag,
+		GroupId:          msg.GroupId,
+		SequenceNumber:   msg.SequenceNumber,
+		SequenceTotal:    msg.SequenceTotal,
+		Priority:         msg.Priority,
+		Timestamp:        msg.Timestamp,
+		Publisher:        msg.Publisher,
+		AuthID:           msg.AuthID,
+		AuthGroup:        msg.AuthGroup,
+		Version:          msg.Version,
+		ChainPosition:    msg.ChainPosition,
+		Hash:             msg.Hash,
+		PreviousHash:     msg.PreviousHash,
+		Nonce:            msg.Nonce,
+		DifficultyTarget: msg.DifficultyTarget,
+		InfoType:         msg.InfoType,
+		InfoFormat:       msg.InfoFormat,
+		ContextData:      string(contextData),
+		ContentData:      string(contentData),
+	}
 }
