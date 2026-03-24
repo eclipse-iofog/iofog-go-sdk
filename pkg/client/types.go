@@ -452,20 +452,18 @@ type MicroservicePortMappingListResponse struct {
 // Users
 
 type User struct {
-	Name            string `json:"firstName"`
-	Surname         string `json:"lastName"`
-	Email           string `json:"email"`
-	Password        string `json:"password"`
-	SubscriptionKey string `json:"subscriptionKey"`
-	AccessToken     string `json:"accessToken"`
-	RefreshToken    string `json:"refreshToken"`
+	Name         string `json:"firstName"`
+	Surname      string `json:"lastName"`
+	Email        string `json:"email"`
+	Password     string `json:"password"`
+	AccessToken  string `json:"accessToken"`
+	RefreshToken string `json:"refreshToken"`
 }
 
 type UserResponse struct {
-	Name            string `json:"firstName"`
-	Surname         string `json:"lastName"`
-	Email           string `json:"email"`
-	SubscriptionKey string `json:"subscriptionKey"`
+	Name    string `json:"firstName"`
+	Surname string `json:"lastName"`
+	Email   string `json:"email"`
 }
 
 type ControllerVersions struct {
