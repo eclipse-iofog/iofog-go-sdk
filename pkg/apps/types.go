@@ -21,7 +21,7 @@ import (
 )
 
 // HeaderMetadata contains k8s metadata
-// +k8s:deepcopy-gen=true
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 type HeaderMetadata struct {
 	Name      string `yaml:"name" json:"name"`
 	Namespace string `yaml:"namespace" json:"namespace"`
@@ -51,7 +51,7 @@ type Header struct {
 }
 
 // CatalogItem contains information about a catalog item
-// +k8s:deepcopy-gen=true
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 type CatalogItem struct {
 	ID            int    `yaml:"id" json:"id"`
 	X86           string `yaml:"x86" json:"x86"`
@@ -63,7 +63,7 @@ type CatalogItem struct {
 }
 
 // MicroserviceImages contains information about the images for a microservice
-// +k8s:deepcopy-gen=true
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 type MicroserviceImages struct {
 	CatalogID int    `yaml:"catalogId" json:"catalogId"`
 	X86       string `yaml:"x86" json:"x86"`
@@ -72,14 +72,14 @@ type MicroserviceImages struct {
 }
 
 // MicroserviceAgent contains information about required agent configuration for a microservice
-// +k8s:deepcopy-gen=true
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 type MicroserviceAgent struct {
 	Name   string             `yaml:"name" json:"name"`
 	Config AgentConfiguration `yaml:"config" json:"config"`
 }
 
 // MicroserviceContainer contains information for configuring a microservice container
-// +k8s:deepcopy-gen=true
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 type MicroserviceContainer struct {
 	Commands        []string                     `yaml:"commands,omitempty" json:"commands,omitempty"`
 	Volumes         *[]MicroserviceVolumeMapping `yaml:"volumes,omitempty" json:"volumes,omitempty"`
@@ -137,7 +137,7 @@ type MicroserviceExecStatusInfo struct {
 }
 
 // Microservice contains information for configuring a microservice
-// +k8s:deepcopy-gen=true
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 type Microservice struct {
 	UUID        string                     `yaml:"uuid" json:"uuid"`
 	Name        string                     `yaml:"name" json:"name"`
@@ -265,14 +265,14 @@ func (a *ArbitraryJSON) FromMap(m map[string]interface{}) error {
 	return nil
 }
 
-// +k8s:deepcopy-gen=true
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 type MicroservicePortMapping struct {
 	Internal int64  `json:"internal"`
 	External int64  `json:"external"`
 	Protocol string `json:"protocol,omitempty"`
 }
 
-// +k8s:deepcopy-gen=true
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 type MicroserviceVolumeMapping struct {
 	HostDestination      string `yaml:"hostDestination" json:"hostDestination"`
 	ContainerDestination string `yaml:"containerDestination" json:"containerDestination"`
@@ -280,7 +280,7 @@ type MicroserviceVolumeMapping struct {
 	Type                 string `yaml:"type,omitempty" json:"type,omitempty"`
 }
 
-// +k8s:deepcopy-gen=true
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 type MicroserviceEnvironment struct {
 	Key                string `yaml:"key" json:"key"`
 	Value              string `yaml:"value,omitempty" json:"value,omitempty"`
@@ -288,14 +288,14 @@ type MicroserviceEnvironment struct {
 	ValueFromConfigMap string `yaml:"valueFromConfigMap,omitempty" json:"valueFromConfigMap,omitempty"`
 }
 
-// +k8s:deepcopy-gen=true
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 type MicroserviceExtraHost struct {
 	Name    string `yaml:"name" json:"name,omitempty"`
 	Address string `yaml:"address" json:"address,omitempty"`
 	Value   string `yaml:"value" json:"value,omitempty"`
 }
 
-// +k8s:deepcopy-gen=true
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 type AgentConfiguration struct {
 	DockerURL                 *string   `yaml:"dockerUrl,omitempty" json:"dockerUrl,omitempty"`
 	ContainerEngine           *string   `yaml:"containerEngine,omitempty" json:"containerEngine,omitempty"`
@@ -334,7 +334,7 @@ type AgentConfiguration struct {
 }
 
 // Microservices is a list of Microservice
-// +k8s:deepcopy-gen=true
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 type Microservices struct {
 	Microservices []Microservice `yaml:"microservices" json:"microservices"`
 }
@@ -356,7 +356,7 @@ type ApplicationNatsConfig struct {
 }
 
 // Application contains information for configuring an application
-// +k8s:deepcopy-gen=true
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 type Application struct {
 	Name          string                 `yaml:"name" json:"name"`
 	Microservices []Microservice         `yaml:"microservices,omitempty" json:"microservices,omitempty"`
@@ -366,7 +366,7 @@ type Application struct {
 }
 
 // ApplicationTemplate contains information for configuring an application template
-// +k8s:deepcopy-gen=true
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 type ApplicationTemplate struct {
 	Name        string                   `yaml:"name,omitempty"`
 	Description string                   `yaml:"description,omitempty"`
@@ -407,13 +407,13 @@ type ApplicationTemplateInfo struct {
 }
 
 // Applications is a list of applications
-// +k8s:deepcopy-gen=true
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 type Applications struct {
 	Applications []Application `yaml:"applications" json:"applications"`
 }
 
 // IofogController contains informations needed to connect to the controller
-// +k8s:deepcopy-gen=true
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 type IofogController struct {
 	Email        string `yaml:"email" json:"email"`
 	Password     string `yaml:"password" json:"password"`

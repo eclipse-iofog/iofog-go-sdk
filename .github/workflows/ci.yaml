@@ -1,0 +1,50 @@
+name: CI
+on:
+  push: 
+    branches:
+      - develop
+      - release*
+    tags: [v*]
+    paths-ignore:
+      - README.md
+      - CHANGELOG.md
+      - LICENSE
+  pull_request:
+  # Sequence of patterns matched against refs/heads
+    branches:    
+      - develop
+      - release*
+    paths-ignore:
+      - README.md
+      - CHANGELOG.md
+      - LICENSE
+
+jobs:
+  Tests:
+    runs-on: ubuntu-20.04
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+      packages: 'write'
+    name: Tests
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-go@v4
+      with:
+        go-version: '1.18'
+    - run: go version
+    - name: golangci-lint
+      uses: golangci/golangci-lint-action@v3
+      with:
+        version: v1.50.1
+        args: --timeout=5m0s
+    - run: make test
+    - name: Bootstrap tests
+      run: test/bootstrap.bash
+    - name: Setup test environment
+      run: test/setup.bash
+    - name: Run Tests
+      run: test/run.bash
+    - name: Tear down test environment
+      run:  test/teardown.bash
+    
