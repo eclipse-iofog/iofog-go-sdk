@@ -67,6 +67,7 @@ require (
 )
 
 retract (
+	v3.8.0-beta.0 // test release.
 	v3.4.10-alpha2 // test release.
 	v3.4.10-alpha1 // test release.
 	v3.4.8 // Published accidentally.
