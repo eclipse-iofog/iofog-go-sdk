@@ -19,77 +19,33 @@ import (
 )
 
 const (
-	IOFOG = "iofog"
-	ID    = "id"
+	PortIoFog   = 54321
+	SELFNAME    = "SELFNAME"
+	SSL         = "SSL"
+	SSLDefault  = true
+	HostDefault = "iofog.default.svc.bridge.local"
 
-	PORT_IOFOG   = 54321
-	SELFNAME     = "SELFNAME"
-	SSL          = "SSL"
-	SSL_DEFAULT  = false
-	HOST_DEFAULT = "127.0.0.1"
+	DefaultServiceAccountTokenPath = "/var/run/secrets/iofog.org/serviceaccount/token"
+	DefaultServiceAccountCAPath    = "/var/run/secrets/iofog.org/serviceaccount/ca.crt"
 
-	URL_GET_CONFIG              = "/v2/config/get"
-	URL_GET_NEXT_MESSAGES       = "/v2/messages/next"
-	URL_GET_PUBLISHERS_MESSAGES = "/v2/messages/query"
-	URL_POST_MESSAGE            = "/v2/messages/new"
-	URL_GET_CONTROL_WS          = "/v2/control/socket/id/"
-	URL_GET_MESSAGE_WS          = "/v2/message/socket/id/"
-
-	APPLICATION_JSON = "application/json"
-	HTTP             = "http"
-	HTTPS            = "https"
-	WS               = "ws"
-	WSS              = "wss"
+	URLGetConfigV3    = "/v3/microservices/config"
+	URLGetControlWSV3 = "/v3/microservices/control"
+	ApplicationJSON   = "application/json"
+	SchemeHTTP        = "http"
+	SchemeHTTPS       = "https"
+	SchemeWS          = "ws"
+	SchemeWSS         = "wss"
 
 	CODE_ACK            = 0xB
 	CODE_CONTROL_SIGNAL = 0xC
-	CODE_MSG            = 0xD
-	CODE_RECEIPT        = 0xE
 
-	WS_ATTEMPT_LIMIT   = 10
-	WS_CONNECT_TIMEOUT = time.Second
-
-	DEFAULT_SIGNAL_BUFFER_SIZE  = 5
-	DEFAULT_MESSAGE_BUFFER_SIZE = 200
-	DEFAULT_RECEIPT_BUFFER_SIZE = 200
+	DefaultSignalBufferSize     = 5
+	DefaultRequestTimeout       = 15 * time.Second
+	DefaultWSHandshakeTimeout   = 10 * time.Second
+	DefaultWSReconnectBaseDelay = time.Second
+	DefaultWSReconnectMaxDelay  = 30 * time.Second
 )
 
 var (
 	logger = log.New(os.Stderr, "", log.LstdFlags)
 )
-
-type getConfigResponse struct {
-	Config string `json:"config"`
-}
-
-// PostMessageResponse is the response from posting a message to the agent messagebus.
-// Deprecated: The internal messagebus is deprecated in favor of NATS.
-type PostMessageResponse struct {
-	ID        string `json:"id"`
-	Timestamp int64  `json:"timestamp"`
-}
-
-// MessagesQueryParameters specifies query parameters for message retrieval.
-// Deprecated: The internal messagebus is deprecated in favor of NATS.
-type MessagesQueryParameters struct {
-	ID             string   `json:"id"`
-	TimeFrameStart int64    `json:"timeframestart"`
-	TimeFrameEnd   int64    `json:"timeframeend"`
-	Publishers     []string `json:"publishers"`
-}
-
-type getNextMessagesResponse struct {
-	TimeFrameStart int64       `json:"timeframestart"`
-	TimeFrameEnd   int64       `json:"timeframeend"`
-	Messages       []IoMessage `json:"messages"`
-}
-
-type getNextMessagesReadableResponse struct {
-	TimeFrameStart int64               `json:"timeframestart"`
-	TimeFrameEnd   int64               `json:"timeframeend"`
-	Messages       []IoMessageReadable `json:"messages"`
-}
-
-type TimeFrameMessages getNextMessagesResponse
-
-type TimeFrameReadableMessages getNextMessagesReadableResponse

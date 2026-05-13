@@ -14,55 +14,69 @@ package microservices
 
 import (
 	"errors"
-	"github.com/eapache/channels"
 	"os"
-	"os/exec"
 	"strconv"
 )
 
-// IoFogClient talks to the ioFog agent HTTP and WebSocket APIs (config, messagebus).
-// Deprecated: The internal messagebus used by GetNextMessages, PostMessage,
-// EstablishMessageWsConnection, and SendMessageViaSocket is deprecated in favor of NATS.
+// IoFogClient talks to ioFog agent LocalAPI v3.
 type IoFogClient struct {
 	id         string
+	options    ClientOptions
 	httpClient *ioFogHttpClient
 	wsClient   *ioFogWsClient
 }
 
-func (client *IoFogClient) initClient(host string, port int, ssl bool) {
-	client.httpClient = newIoFogHttpClient(client.id, ssl, host, port)
-	client.wsClient = newIoFogWsClient(client.id, ssl, host, port)
+func (client *IoFogClient) initClient(options ClientOptions) {
+	client.options = options
+	client.httpClient = newIoFogHttpClient(options)
+	client.wsClient = newIoFogWsClient(options)
 }
 
+// NewIoFogClient keeps legacy constructor shape while targeting LocalAPI v3 transport.
 func NewIoFogClient(id string, ssl bool, host string, port int) (*IoFogClient, error) {
 	if id == "" {
 		return nil, errors.New("Cannot create client with empty id")
 	}
 	client := IoFogClient{id: id}
-	client.initClient(host, port, ssl)
+	client.initClient(applyClientOptions(defaultClientOptions(),
+		WithTLS(ssl),
+		WithHost(host),
+		WithPort(port),
+	))
 	return &client, nil
 }
 
+// NewIoFogClientV3 creates a LocalAPI v3 client with explicit options.
+func NewIoFogClientV3(id string, opts ...ClientOption) (*IoFogClient, error) {
+	if id == "" {
+		return nil, errors.New("Cannot create client with empty id")
+	}
+	client := IoFogClient{id: id}
+	client.initClient(applyClientOptions(defaultClientOptions(), opts...))
+	return &client, nil
+}
+
+// NewDefaultIoFogClient creates a LocalAPI v3 client using env defaults.
 func NewDefaultIoFogClient() (*IoFogClient, error) {
+	return NewDefaultIoFogClientV3()
+}
+
+// NewDefaultIoFogClientV3 creates a LocalAPI v3 client using mounted token/CA defaults.
+func NewDefaultIoFogClientV3() (*IoFogClient, error) {
 	selfname := os.Getenv(SELFNAME)
 	if selfname == "" {
 		return nil, errors.New("Cannot create client with empty id: " + SELFNAME + " environment variable is not set")
 	}
 	ssl, err := strconv.ParseBool(os.Getenv(SSL))
 	if err != nil {
-		logger.Println("Empty or malformed", SSL, "environment variable. Using default value of", SSL_DEFAULT)
-		ssl = SSL_DEFAULT
+		logger.Println("Empty or malformed", SSL, "environment variable. Using default value of", SSLDefault)
+		ssl = SSLDefault
 	}
-
-	host := IOFOG
-	if cmd := exec.Command("ping", "-c", "3", host); cmd.Run() != nil {
-		logger.Println("Host", host, "is unreachable. Switching to", HOST_DEFAULT)
-		host = HOST_DEFAULT
-	}
-
-	client := IoFogClient{id: selfname}
-	client.initClient(host, PORT_IOFOG, ssl)
-	return &client, nil
+	return NewIoFogClientV3(selfname,
+		WithTLS(ssl),
+		WithHost(HostDefault),
+		WithPort(PortIoFog),
+	)
 }
 
 func (client *IoFogClient) GetConfig() (map[string]interface{}, error) {
@@ -73,61 +87,11 @@ func (client *IoFogClient) GetConfigIntoStruct(config interface{}) error {
 	return client.httpClient.getConfigIntoStruct(config)
 }
 
-// GetNextMessages retrieves the next messages from the agent messagebus.
-// Deprecated: The internal messagebus is deprecated in favor of NATS.
-func (client *IoFogClient) GetNextMessages() ([]IoMessageReadable, error) {
-	return client.httpClient.getNextMessages()
-}
-
-// PostMessage posts a message to the agent messagebus.
-// Deprecated: The internal messagebus is deprecated in favor of NATS.
-func (client *IoFogClient) PostMessage(msg *IoMessage) (*PostMessageResponse, error) {
-	msg.Publisher = client.id
-	if msg.Version == 0 {
-		msg.Version = IOMESSAGE_VERSION
-	}
-	return client.httpClient.postMessage(msg)
-}
-
-// GetMessagesFromPublishersWithinTimeFrame queries messages from publishers in a time frame.
-// Deprecated: The internal messagebus is deprecated in favor of NATS.
-func (client *IoFogClient) GetMessagesFromPublishersWithinTimeFrame(query *MessagesQueryParameters) (*TimeFrameReadableMessages, error) {
-	query.ID = client.id
-	return client.httpClient.getMessagesFromPublishersWithinTimeFrame(query)
-}
-
 func (client *IoFogClient) EstablishControlWsConnection(signalBufSize int) <-chan byte {
 	if signalBufSize == 0 {
-		signalBufSize = DEFAULT_SIGNAL_BUFFER_SIZE
+		signalBufSize = DefaultSignalBufferSize
 	}
 	signalChannel := make(chan byte, signalBufSize)
 	go client.wsClient.connectToControlWs(signalChannel)
 	return signalChannel
-}
-
-// EstablishMessageWsConnection opens a WebSocket connection to the agent messagebus.
-// Deprecated: The internal messagebus is deprecated in favor of NATS.
-func (client *IoFogClient) EstablishMessageWsConnection(msgBufSize, receiptBufSize int) (<-chan interface{}, <-chan interface{}) {
-	if msgBufSize == 0 {
-		msgBufSize = DEFAULT_MESSAGE_BUFFER_SIZE
-	}
-	if receiptBufSize == 0 {
-		receiptBufSize = DEFAULT_RECEIPT_BUFFER_SIZE
-	}
-	messageChannel := channels.NewRingChannel(channels.BufferCap(msgBufSize))
-	receiptChannel := channels.NewRingChannel(channels.BufferCap(receiptBufSize))
-	go client.wsClient.connectToMessageWs(messageChannel.In(), receiptChannel.In())
-	return messageChannel.Out(), receiptChannel.Out()
-}
-
-// SendMessageViaSocket sends a message over the message WebSocket.
-// Deprecated: The internal messagebus is deprecated in favor of NATS.
-func (client *IoFogClient) SendMessageViaSocket(msg *IoMessage) error {
-	msg.ID = ""
-	msg.Timestamp = 0
-	if msg.Version == 0 {
-		msg.Version = IOMESSAGE_VERSION
-	}
-	msg.Publisher = client.id
-	return client.wsClient.sendMessage(msg)
 }

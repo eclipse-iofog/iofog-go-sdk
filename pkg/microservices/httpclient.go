@@ -13,125 +13,87 @@
 package microservices
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
+	"net/http"
 )
 
 type ioFogHttpClient struct {
-	url_base_rest               string
-	url_get_config              string
-	url_get_next_messages       string
-	url_get_publishers_messages string
-	url_post_message            string
-	requestBodyId               []byte
+	options       ClientOptions
+	urlBaseREST   string
+	urlGetConfig  string
+	tokenProvider func(string) (string, error)
 }
 
-func newIoFogHttpClient(id string, ssl bool, host string, port int) *ioFogHttpClient {
-	client := ioFogHttpClient{}
-	protocol_rest := HTTP
-	if ssl {
-		protocol_rest = HTTPS
-	}
-	client.url_base_rest = fmt.Sprintf("%s://%s:%d", protocol_rest, host, port)
-	client.url_get_config = fmt.Sprint(client.url_base_rest, URL_GET_CONFIG)
-	client.url_get_next_messages = fmt.Sprint(client.url_base_rest, URL_GET_NEXT_MESSAGES)
-	client.url_get_publishers_messages = fmt.Sprint(client.url_base_rest, URL_GET_PUBLISHERS_MESSAGES)
-	client.url_post_message = fmt.Sprint(client.url_base_rest, URL_POST_MESSAGE)
-	client.requestBodyId, _ = json.Marshal(map[string]interface{}{
-		ID: id,
-	})
+func newIoFogHttpClient(options ClientOptions) *ioFogHttpClient {
+	client := ioFogHttpClient{options: options, tokenProvider: readBearerToken}
+	client.urlBaseREST = options.restBaseURL()
+	client.urlGetConfig = fmt.Sprint(client.urlBaseREST, URLGetConfigV3)
 	return &client
 }
 
 func (client *ioFogHttpClient) getConfig() (map[string]interface{}, error) {
-	resp, err := makePostRequest(client.url_get_config, APPLICATION_JSON, bytes.NewBuffer(client.requestBodyId))
+	resp, err := client.makeRequest(http.MethodGet, client.urlGetConfig, nil)
 	if err != nil {
 		return nil, err
 	}
-	configResponse := new(getConfigResponse)
-	config := make(map[string]interface{})
-	if err := json.Unmarshal(resp, configResponse); err != nil {
-		return nil, err
+	payload, ok := resp["config"]
+	if !ok {
+		return nil, fmt.Errorf("missing config payload in response")
 	}
-	if err := json.Unmarshal([]byte(configResponse.Config), &config); err != nil {
-		return nil, err
+	switch typed := payload.(type) {
+	case map[string]interface{}:
+		return typed, nil
+	case string:
+		config := make(map[string]interface{})
+		if err := json.Unmarshal([]byte(typed), &config); err != nil {
+			return nil, fmt.Errorf("failed to decode config string payload: %w", err)
+		}
+		return config, nil
+	default:
+		return nil, fmt.Errorf("unsupported config payload type: %T", payload)
 	}
-	return config, nil
 }
 
 func (client *ioFogHttpClient) getConfigIntoStruct(config interface{}) error {
-	resp, err := makePostRequest(client.url_get_config, APPLICATION_JSON, bytes.NewBuffer(client.requestBodyId))
+	configMap, err := client.getConfig()
 	if err != nil {
 		return err
 	}
-	configResponse := new(getConfigResponse)
-	if err := json.Unmarshal(resp, configResponse); err != nil {
-		return err
+	configBytes, err := json.Marshal(configMap)
+	if err != nil {
+		return fmt.Errorf("failed to marshal config payload: %w", err)
 	}
-	if err := json.Unmarshal([]byte(configResponse.Config), config); err != nil {
-		return err
+	if err := json.Unmarshal(configBytes, config); err != nil {
+		return fmt.Errorf("failed to decode config into target struct: %w", err)
 	}
 	return nil
 }
 
-func (client *ioFogHttpClient) getNextMessages() ([]IoMessageReadable, error) {
-	resp, err := makePostRequest(client.url_get_next_messages, APPLICATION_JSON, bytes.NewBuffer(client.requestBodyId))
+func (client *ioFogHttpClient) makeRequest(method, url string, body io.Reader) (map[string]interface{}, error) {
+	httpClient, err := buildHTTPClient(client.options)
+	if err != nil {
+		return nil, fmt.Errorf("failed to build HTTP client: %w", err)
+	}
+	req, err := http.NewRequest(method, url, body)
 	if err != nil {
 		return nil, err
 	}
-	nextMessagesResponse := new(getNextMessagesReadableResponse)
-	if err := json.Unmarshal(resp, nextMessagesResponse); err != nil {
-		return nil, err
+	req.Header.Set("Accept", ApplicationJSON)
+	token, err := client.tokenProvider(client.options.TokenPath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to load bearer token: %w", err)
 	}
-
-	// Decode Base64-encoded fields for each message
-	var decodedMessages []IoMessageReadable
-	for _, msg := range nextMessagesResponse.Messages {
-		decodedMessages = append(decodedMessages, *decodeJson(&msg))
-	}
-
-	return decodedMessages, nil
-}
-
-func (client *ioFogHttpClient) postMessage(msg *IoMessage) (*PostMessageResponse, error) {
-	encodedMsg := encodeJson(msg)
-
-	requestBytes, _ := json.Marshal(encodedMsg)
-	resp, err := makePostRequest(client.url_post_message, APPLICATION_JSON, bytes.NewBuffer(requestBytes))
+	req.Header.Set("Authorization", "Bearer "+token)
+	resp, err := httpClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
-	postMessageResponse := new(PostMessageResponse)
-	if err := json.Unmarshal(resp, postMessageResponse); err != nil {
-		return nil, err
-	}
-	return postMessageResponse, nil
-}
-
-func (client *ioFogHttpClient) getMessagesFromPublishersWithinTimeFrame(query *MessagesQueryParameters) (*TimeFrameReadableMessages, error) {
-	requestBytes, _ := json.Marshal(query)
-	resp, err := makePostRequest(client.url_get_publishers_messages, APPLICATION_JSON, bytes.NewBuffer(requestBytes))
+	defer resp.Body.Close()
+	responseBody, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
 	}
-	nextMessagesResponse := new(getNextMessagesReadableResponse)
-	if err := json.Unmarshal(resp, nextMessagesResponse); err != nil {
-		return nil, err
-	}
-
-	// Decode Base64-encoded fields for each message
-	var decodedMessages []IoMessageReadable
-	for _, msg := range nextMessagesResponse.Messages {
-		decodedMessages = append(decodedMessages, *decodeJson(&msg))
-	}
-
-	// Convert to TimeFrameReadableMessages
-	readableResponse := &TimeFrameReadableMessages{
-		TimeFrameStart: nextMessagesResponse.TimeFrameStart,
-		TimeFrameEnd:   nextMessagesResponse.TimeFrameEnd,
-		Messages:       decodedMessages,
-	}
-
-	return readableResponse, nil
+	return parseV3Envelope(responseBody, resp.StatusCode)
 }
