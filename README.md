@@ -18,8 +18,8 @@ Each package contains its own README.md so please refer to those for further det
 #### Microservices
 
 The `microservices` package contains functionality required to implement edge microservices that run on ioFog Edge
-Compute Networks. This includes functionality to access microservice configuration, connecting to the control signal
-websocket, connecting to the messages websocket, and being able to receive and post data messages via REST.
+Compute Networks. It is aligned with LocalAPI v3 and includes microservice configuration retrieval and control websocket
+signal handling over HTTPS/WSS using mounted service-account token and CA material.
 
 #### Client
 

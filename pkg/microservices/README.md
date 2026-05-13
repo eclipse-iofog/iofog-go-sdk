@@ -1,107 +1,74 @@
-# Microservices Package
+# Microservices Package (LocalAPI v3)
 
-This package gives you all the functionality to interact with ioFog both via Local API and WebSockets:
+This package is the ioFog microservice SDK for LocalAPI v3.
 
- - send new message to ioFog with REST (PostMessage)
- - fetch next unread messages from ioFog (GetNextMessages)
- - fetch messages for time period and list of publishers (GetMessagesFromPublishersWithinTimeFrame)
- - get config options (GetConfig)
- - create IoMessage, encode(decode) to(from) raw bytes, encode(decode) data to(from) base64 string (IoMessage methods)
- - connect to ioFog Control Channel via WebSocket (EstablishControlWsConnection)
- - connect to ioFog Message Channel via WebSocket (EstablishMessageWsConnection) and publish new message via this channel (SendMessageViaSocket)
+It supports:
+- reading microservice config over `GET /v3/microservices/config`
+- receiving control signals over `GET /v3/microservices/control` WebSocket
 
-## Code snippets: 
+It does not support LocalAPI v2 messagebus APIs.
+For data-plane messaging, use NATS.
 
-Get sdk:
-```go
-go get github.com/eclipse-iofog/iofog-sdk-go
-```
+## Runtime Assumptions
 
-Import package:
+The running microservice has service-account material mounted by ioFog Agent:
+
+- token: `/var/run/secrets/iofog.org/serviceaccount/token`
+- CA: `/var/run/secrets/iofog.org/serviceaccount/ca.crt`
+
+Default client behavior is HTTPS/WSS to:
+- host: `iofog.default.svc.bridge.local`
+- port: `54321`
+
+## Basic Usage
+
 ```go
 import (
-	msvcs "github.com/eclipse-iofog/iofog-sdk-go/pkg/microservices"
+	msvcs "github.com/datasance/iofog-go-sdk/v3/pkg/microservices"
+)
+
+func run() error {
+	client, err := msvcs.NewDefaultIoFogClientV3()
+	if err != nil {
+		return err
+	}
+
+	cfg, err := client.GetConfig()
+	if err != nil {
+		return err
+	}
+	_ = cfg
+
+	controlCh := client.EstablishControlWsConnection(0)
+	for range controlCh {
+		updated, err := client.GetConfig()
+		if err != nil {
+			return err
+		}
+		_ = updated
+	}
+	return nil
+}
+```
+
+## Advanced Configuration
+
+```go
+client, err := msvcs.NewIoFogClientV3(
+	"microservice-id",
+	msvcs.WithHost("iofog.default.svc.bridge.local"),
+	msvcs.WithPort(54321),
+	msvcs.WithTLS(true),
+	msvcs.WithTokenPath("/var/run/secrets/iofog.org/serviceaccount/token"),
+	msvcs.WithCAPath("/var/run/secrets/iofog.org/serviceaccount/ca.crt"),
 )
 ```
 
-Create IoFog client with default settings:
-```go
-client, err := msvcs.NewDefaultIoFogClient()
-```
+## Migration Notes (v2 -> v3)
 
-Or specify host, port, ssl and container id explicitly:
-```go
-client, err := msvcs.NewIoFogClient("IoFog", false, "containerId", 54321)
-```
-
-
-#### REST calls
-
-Get list of next unread IoMessages:
-```go
-messages, err := client.GetNextMessages()
-```
-
-Post new IoMessage to ioFog via REST call:
-```go
-response, err := client.PostMessage(&msvcs.IoMessage{
-	SequenceNumber:1,
-	SequenceTotal:1,
-	InfoType:"text",
-	InfoFormat:"utf-8",
-	ContentData: []byte("foo"),
-	ContextData: []byte("bar"),
-})
-```
-
-Get an array of IoMessages from specified publishers within given timeframe:
-```go
-messages, err := client.GetMessagesFromPublishersWithinTimeFrame(&msvcs.MessagesQueryParameters{
-	TimeFrameStart: 1234567890123,
-	TimeFrameEnd: 1234567892123,
-	Publishers: []string{"sefhuiw4984twefsdoiuhsdf", "d895y459rwdsifuhSDFKukuewf", "SESD984wtsdidsiusidsufgsdfkh"},
-})
-```
-
-Get container's config:
-```go
-config, err := client.GetConfig()
-```
-
-#### WebSocket calls
-
-Establish connection with message ws. This call returns two channels, so
- you can listen to incoming messages and receipts:
-```go
-dataChannel, receiptChannel := client.EstablishMessageWsConnection()
-for {
-	select {
-	case msg := <-dataChannel:
-		// msg is IoMessage received
-	case r := <-receiptChannel:
-		// r is response with ID and Timestamp
-}
-```
-
-After establishing this connection you can send your own message to IoFog:
-```go
-client.SendMessageViaSocket(&msvcs.IoMessage{
-	Tag: "aaa",
-	SequenceNumber: 127,
-	ContentData: []byte("Here goes some test data"),
-	ContextData: []byte("This one is test too"),
-})
-```
-
-
-Establish connection with control ws and pass channel to listen to incoming config update signals:
-```go
-confChannel := client.EstablishControlWsConnection()
-for {
-	select {
-	case <-confChannel:
-		// signal received
-		// we can fetch new config now
-		config, err := client.GetConfig()
-}
-```
+- Removed v2 endpoints (`/v2/...`) and messagebus methods.
+- Removed `IoMessage`/`IoMessageReadable` types from the SDK surface.
+- `GetConfig` now uses `GET /v3/microservices/config` and v3 response envelope parsing.
+- `EstablishControlWsConnection` now uses `/v3/microservices/control` with Bearer JWT auth.
+- Token and CA are loaded from mounted service-account files.
+- Use NATS for message exchange.
