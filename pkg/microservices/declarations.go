@@ -19,11 +19,12 @@ import (
 )
 
 const (
-	PortIoFog   = 54321
-	SELFNAME    = "SELFNAME"
-	SSL         = "SSL"
-	SSLDefault  = true
-	HostDefault = "iofog.default.svc.bridge.local"
+	PortIoFog         = 54321
+	SELFNAME          = "SELFNAME"
+	SSL               = "SSL"
+	SSLDefault        = true
+	HostDefault       = "iofog.default.svc.bridge.local"
+	FallbackHostLocal = "127.0.0.1"
 
 	DefaultServiceAccountTokenPath = "/var/run/secrets/iofog.org/serviceaccount/token"
 	DefaultServiceAccountCAPath    = "/var/run/secrets/iofog.org/serviceaccount/ca.crt"

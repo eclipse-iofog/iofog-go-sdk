@@ -1,10 +1,14 @@
 package microservices
 
-import "time"
+import (
+	"strings"
+	"time"
+)
 
 // ClientOptions configures LocalAPI v3 transport/auth behavior.
 type ClientOptions struct {
 	Host                 string
+	FallbackHosts        []string
 	Port                 int
 	UseTLS               bool
 	TokenPath            string
@@ -21,6 +25,7 @@ type ClientOption func(*ClientOptions)
 func defaultClientOptions() ClientOptions {
 	return ClientOptions{
 		Host:                 HostDefault,
+		FallbackHosts:        []string{FallbackHostLocal},
 		Port:                 PortIoFog,
 		UseTLS:               SSLDefault,
 		TokenPath:            DefaultServiceAccountTokenPath,
@@ -42,6 +47,7 @@ func applyClientOptions(base ClientOptions, opts ...ClientOption) ClientOptions 
 	if out.Host == "" {
 		out.Host = HostDefault
 	}
+	out.FallbackHosts = sanitizeFallbackHosts(out.Host, out.FallbackHosts)
 	if out.Port <= 0 {
 		out.Port = PortIoFog
 	}
@@ -69,9 +75,36 @@ func applyClientOptions(base ClientOptions, opts ...ClientOption) ClientOptions 
 	return out
 }
 
+func sanitizeFallbackHosts(primary string, hosts []string) []string {
+	seen := make(map[string]struct{}, len(hosts)+1)
+	normalizedPrimary := strings.TrimSpace(primary)
+	if normalizedPrimary != "" {
+		seen[normalizedPrimary] = struct{}{}
+	}
+
+	out := make([]string, 0, len(hosts))
+	for _, host := range hosts {
+		normalized := strings.TrimSpace(host)
+		if normalized == "" {
+			continue
+		}
+		if _, exists := seen[normalized]; exists {
+			continue
+		}
+		seen[normalized] = struct{}{}
+		out = append(out, normalized)
+	}
+	return out
+}
+
 // WithHost overrides LocalAPI host.
 func WithHost(host string) ClientOption {
 	return func(opts *ClientOptions) { opts.Host = host }
+}
+
+// WithFallbackHosts overrides fallback LocalAPI hosts.
+func WithFallbackHosts(hosts ...string) ClientOption {
+	return func(opts *ClientOptions) { opts.FallbackHosts = hosts }
 }
 
 // WithPort overrides LocalAPI port.

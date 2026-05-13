@@ -21,20 +21,15 @@ import (
 
 type ioFogHttpClient struct {
 	options       ClientOptions
-	urlBaseREST   string
-	urlGetConfig  string
 	tokenProvider func(string) (string, error)
 }
 
 func newIoFogHttpClient(options ClientOptions) *ioFogHttpClient {
-	client := ioFogHttpClient{options: options, tokenProvider: readBearerToken}
-	client.urlBaseREST = options.restBaseURL()
-	client.urlGetConfig = fmt.Sprint(client.urlBaseREST, URLGetConfigV3)
-	return &client
+	return &ioFogHttpClient{options: options, tokenProvider: readBearerToken}
 }
 
 func (client *ioFogHttpClient) getConfig() (map[string]interface{}, error) {
-	resp, err := client.makeRequest(http.MethodGet, client.urlGetConfig, nil)
+	resp, err := client.makeRequest(http.MethodGet, URLGetConfigV3, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -71,29 +66,41 @@ func (client *ioFogHttpClient) getConfigIntoStruct(config interface{}) error {
 	return nil
 }
 
-func (client *ioFogHttpClient) makeRequest(method, url string, body io.Reader) (map[string]interface{}, error) {
+func (client *ioFogHttpClient) makeRequest(method, path string, body io.Reader) (map[string]interface{}, error) {
 	httpClient, err := buildHTTPClient(client.options)
 	if err != nil {
 		return nil, fmt.Errorf("failed to build HTTP client: %w", err)
 	}
-	req, err := http.NewRequest(method, url, body)
-	if err != nil {
-		return nil, err
-	}
-	req.Header.Set("Accept", ApplicationJSON)
 	token, err := client.tokenProvider(client.options.TokenPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load bearer token: %w", err)
 	}
-	req.Header.Set("Authorization", "Bearer "+token)
-	resp, err := httpClient.Do(req)
-	if err != nil {
-		return nil, err
+
+	var lastErr error
+	for idx, host := range client.options.requestHosts() {
+		endpoint := client.options.restBaseURLForHost(host) + path
+		req, reqErr := http.NewRequest(method, endpoint, body)
+		if reqErr != nil {
+			return nil, reqErr
+		}
+		req.Header.Set("Accept", ApplicationJSON)
+		req.Header.Set("Authorization", "Bearer "+token)
+
+		resp, doErr := httpClient.Do(req)
+		if doErr != nil {
+			lastErr = doErr
+			if idx < len(client.options.requestHosts())-1 && isRetriableHostError(doErr) {
+				logger.Println("WARN: failed to reach host", host, "for", path, "trying fallback host:", doErr)
+				continue
+			}
+			return nil, doErr
+		}
+		responseBody, readErr := io.ReadAll(resp.Body)
+		resp.Body.Close()
+		if readErr != nil {
+			return nil, readErr
+		}
+		return parseV3Envelope(responseBody, resp.StatusCode)
 	}
-	defer resp.Body.Close()
-	responseBody, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-	return parseV3Envelope(responseBody, resp.StatusCode)
+	return nil, lastErr
 }
