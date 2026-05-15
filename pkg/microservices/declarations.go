@@ -20,7 +20,7 @@ import (
 
 const (
 	PortIoFog         = 54321
-	SELFNAME          = "SELFNAME"
+	MicroserviceUID   = "IOFOG_MICROSERVICE_UID"
 	SSL               = "SSL"
 	SSLDefault        = true
 	HostDefault       = "iofog.default.svc.bridge.local"

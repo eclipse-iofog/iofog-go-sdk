@@ -63,16 +63,16 @@ func NewDefaultIoFogClient() (*IoFogClient, error) {
 
 // NewDefaultIoFogClientV3 creates a LocalAPI v3 client using mounted token/CA defaults.
 func NewDefaultIoFogClientV3() (*IoFogClient, error) {
-	selfname := os.Getenv(SELFNAME)
-	if selfname == "" {
-		return nil, errors.New("Cannot create client with empty id: " + SELFNAME + " environment variable is not set")
+	microserviceUID := os.Getenv(MicroserviceUID)
+	if microserviceUID == "" {
+		return nil, errors.New("Cannot create client with empty id: " + MicroserviceUID + " environment variable is not set")
 	}
 	ssl, err := strconv.ParseBool(os.Getenv(SSL))
 	if err != nil {
 		logger.Println("Empty or malformed", SSL, "environment variable. Using default value of", SSLDefault)
 		ssl = SSLDefault
 	}
-	return NewIoFogClientV3(selfname,
+	return NewIoFogClientV3(microserviceUID,
 		WithTLS(ssl),
 		WithHost(HostDefault),
 		WithPort(PortIoFog),
