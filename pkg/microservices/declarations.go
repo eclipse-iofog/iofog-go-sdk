@@ -20,7 +20,7 @@ import (
 
 const (
 	PortIoFog         = 54321
-	MicroserviceUID   = "IOFOG_MICROSERVICE_UID"
+	MicroserviceUID   = "EDGELET_MICROSERVICE_UID"
 	SSL               = "SSL"
 	SSLDefault        = true
 	HostDefault       = "edgelet.default.svc.bridge.local"
