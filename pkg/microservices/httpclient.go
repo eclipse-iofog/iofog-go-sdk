@@ -29,7 +29,7 @@ func newIoFogHttpClient(options ClientOptions) *ioFogHttpClient {
 }
 
 func (client *ioFogHttpClient) getConfig() (map[string]interface{}, error) {
-	resp, err := client.makeRequest(http.MethodGet, URLGetConfigV3, nil)
+	resp, err := client.makeRequest(http.MethodGet, URLGetConfigV1, nil)
 	if err != nil {
 		return nil, err
 	}

@@ -3,8 +3,8 @@
 This package is the ioFog microservice SDK for LocalAPI v3.
 
 It supports:
-- reading microservice config over `GET /v3/microservices/config`
-- receiving control signals over `GET /v3/microservices/control` WebSocket
+- reading microservice config over `GET /v1/microservices/config`
+- receiving control signals over `GET /v1/microservices/control` WebSocket
 
 It does not support LocalAPI v2 messagebus APIs.
 For data-plane messaging, use NATS.
@@ -13,11 +13,11 @@ For data-plane messaging, use NATS.
 
 The running microservice has service-account material mounted by ioFog Agent:
 
-- token: `/var/run/secrets/iofog.org/serviceaccount/token`
-- CA: `/var/run/secrets/iofog.org/serviceaccount/ca.crt`
+- token: `/var/run/secrets/edgelet.iofog.org/serviceaccount/token`
+- CA: `/var/run/secrets/edgelet.iofog.org/serviceaccount/ca.crt`
 
 Default client behavior is HTTPS/WSS to:
-- host: `iofog.default.svc.bridge.local`
+- host: `edgelet.default.svc.bridge.local`
 - port: `54321`
 
 ## Basic Usage
@@ -56,7 +56,7 @@ func run() error {
 ```go
 client, err := msvcs.NewIoFogClientV3(
 	"microservice-id",
-	msvcs.WithHost("iofog.default.svc.bridge.local"),
+	msvcs.WithHost("edgelet.default.svc.bridge.local"),
 	msvcs.WithPort(54321),
 	msvcs.WithTLS(true),
 	msvcs.WithTokenPath("/var/run/secrets/iofog.org/serviceaccount/token"),
@@ -64,11 +64,11 @@ client, err := msvcs.NewIoFogClientV3(
 )
 ```
 
-## Migration Notes (v2 -> v3)
+## Migration Notes (iofog-agent v2 -> edgelet v1)
 
 - Removed v2 endpoints (`/v2/...`) and messagebus methods.
 - Removed `IoMessage`/`IoMessageReadable` types from the SDK surface.
-- `GetConfig` now uses `GET /v3/microservices/config` and v3 response envelope parsing.
-- `EstablishControlWsConnection` now uses `/v3/microservices/control` with Bearer JWT auth.
+- `GetConfig` now uses `GET /v1/microservices/config` and v3 response envelope parsing.
+- `EstablishControlWsConnection` now uses `/v1/microservices/control` with Bearer JWT auth.
 - Token and CA are loaded from mounted service-account files.
 - Use NATS for message exchange.

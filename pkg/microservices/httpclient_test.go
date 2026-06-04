@@ -21,7 +21,7 @@ func TestHTTPClientGetConfigV3(t *testing.T) {
 	}
 
 	server := httptest.NewUnstartedServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path != URLGetConfigV3 {
+		if r.URL.Path != URLGetConfigV1 {
 			t.Fatalf("unexpected path: %s", r.URL.Path)
 		}
 		if got := r.Header.Get("Authorization"); got != "Bearer test-token" {

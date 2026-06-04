@@ -19,7 +19,7 @@ func TestDialControlWSUsesBearerAndPath(t *testing.T) {
 	ackReceived := make(chan bool, 1)
 
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path != URLGetControlWSV3 {
+		if r.URL.Path != URLGetControlWSV1 {
 			t.Fatalf("unexpected path: %s", r.URL.Path)
 		}
 		if got := r.Header.Get("Authorization"); got != "Bearer ws-token" {

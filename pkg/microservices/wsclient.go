@@ -69,7 +69,7 @@ func (client *ioFogWsClient) dialControlWS() (*ws.Conn, error) {
 	hosts := client.options.requestHosts()
 	var lastErr error
 	for idx, host := range hosts {
-		url := fmt.Sprint(client.options.wsBaseURLForHost(host), URLGetControlWSV3)
+		url := fmt.Sprint(client.options.wsBaseURLForHost(host), URLGetControlWSV1)
 		conn, _, dialErr := dialer.Dial(url, header)
 		if dialErr != nil {
 			lastErr = dialErr

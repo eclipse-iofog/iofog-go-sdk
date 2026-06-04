@@ -23,14 +23,14 @@ const (
 	MicroserviceUID   = "IOFOG_MICROSERVICE_UID"
 	SSL               = "SSL"
 	SSLDefault        = true
-	HostDefault       = "iofog.default.svc.bridge.local"
+	HostDefault       = "edgelet.default.svc.bridge.local"
 	FallbackHostLocal = "127.0.0.1"
 
-	DefaultServiceAccountTokenPath = "/var/run/secrets/iofog.org/serviceaccount/token"
-	DefaultServiceAccountCAPath    = "/var/run/secrets/iofog.org/serviceaccount/ca.crt"
+	DefaultServiceAccountTokenPath = "/var/run/secrets/edgelet.iofog.org/serviceaccount/token"
+	DefaultServiceAccountCAPath    = "/var/run/secrets/edgelet.iofog.org/serviceaccount/ca.crt"
 
-	URLGetConfigV3    = "/v3/microservices/config"
-	URLGetControlWSV3 = "/v3/microservices/control"
+	URLGetConfigV1    = "/v1/microservices/config"
+	URLGetControlWSV1 = "/v1/microservices/control"
 	ApplicationJSON   = "application/json"
 	SchemeHTTP        = "http"
 	SchemeHTTPS       = "https"
