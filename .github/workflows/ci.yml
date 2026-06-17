@@ -3,6 +3,9 @@ name: CI
 on:
   push:
     branches:
+      - develop
+      - master
+      - main
       - 'release/**'
   pull_request:
 
