@@ -1,35 +1,21 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2024 Contributors to the Eclipse ioFog Project
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 package client
 
 import "encoding/json"
 
-func (clt *Client) PutDefaultRouter(router Router) (err error) {
-	// Send request
-	_, err = clt.doRequest("PUT", "/router", router)
+func (clt *Client) PutDefaultRouter(router Router) error {
+	_, err := clt.doRequest("PUT", "/router", router)
 	return err
 }
 
-func (clt *Client) GetDefaultRouter() (router Router, err error) {
-	// Send request
+func (clt *Client) GetDefaultRouter() (Router, error) {
+	var router Router
 	body, err := clt.doRequest("GET", "/router", nil)
 	if err != nil {
-		return
+		return router, err
 	}
 
 	if err = json.Unmarshal(body, &router); err != nil {
-		return
+		return router, err
 	}
-	return
+	return router, nil
 }

@@ -1,20 +1,8 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2024 Contributors to the Eclipse ioFog Project
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 package apps
 
 import (
 	"bytes"
+	"errors"
 	"net/url"
 
 	"github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/client"
@@ -24,20 +12,21 @@ import (
 type applicationTemplateExecutor struct {
 	controller IofogController
 	baseURL    *url.URL
-	template   interface{}
+	template   any
 	name       string
+	apiVersion string
 	client     *client.Client
 }
 
-func newApplicationTemplateExecutor(controller IofogController, controllerBaseURL *url.URL, template interface{}, name string) *applicationTemplateExecutor {
-	exe := &applicationTemplateExecutor{
+func newApplicationTemplateExecutor(controller IofogController, controllerBaseURL *url.URL, template any, name string, opts ...DeployOption) *applicationTemplateExecutor {
+	resolved := resolveDeployOptions(opts...)
+	return &applicationTemplateExecutor{
 		controller: controller,
 		baseURL:    controllerBaseURL,
 		name:       name,
 		template:   template,
+		apiVersion: resolved.apiVersion,
 	}
-
-	return exe
 }
 
 func (exe *applicationTemplateExecutor) execute() error {
@@ -62,7 +51,7 @@ func (exe *applicationTemplateExecutor) init() (err error) {
 
 func (exe *applicationTemplateExecutor) deploy() error {
 	file := IofogHeader{
-		APIVersion: "iofog.org/v3",
+		APIVersion: exe.apiVersion,
 		Kind:       ApplicationTemplateKind,
 		Metadata: HeaderMetadata{
 			Name: exe.name,
@@ -75,7 +64,8 @@ func (exe *applicationTemplateExecutor) deploy() error {
 	}
 	existingAppTemplate, err := exe.client.GetApplicationTemplate(exe.name)
 	// If not notfound error, return error
-	if _, ok := err.(*client.NotFoundError); err != nil && !ok {
+	notFoundError := &client.NotFoundError{}
+	if errors.As(err, &notFoundError) {
 		return err
 	}
 	if existingAppTemplate == nil {

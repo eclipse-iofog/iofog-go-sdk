@@ -1,20 +1,8 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2024 Contributors to the Eclipse ioFog Project
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 package apps
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"net/url"
 	"strings"
@@ -34,14 +22,14 @@ type ApplicationData struct {
 	CatalogByID        map[int]*client.CatalogItemInfo
 	RegistryByID       map[int]*client.RegistryInfo
 	CatalogByName      map[string]*client.CatalogItemInfo
-	FlowInfo           *client.FlowInfo
 }
 
 type microserviceExecutor struct {
 	controller IofogController
-	msvc       interface{}
+	msvc       any
 	name       string
 	appName    string
+	apiVersion string
 	uuid       string
 	client     *client.Client
 	isSystem   bool
@@ -62,15 +50,15 @@ func ParseFQMsvcName(fqName string) (appName, name string, err error) {
 	}
 }
 
-func newMicroserviceExecutor(controller IofogController, msvc interface{}, appName, name string) *microserviceExecutor {
-	exe := &microserviceExecutor{
+func newMicroserviceExecutor(controller IofogController, msvc any, appName, name string, opts ...DeployOption) *microserviceExecutor {
+	resolved := resolveDeployOptions(opts...)
+	return &microserviceExecutor{
 		controller: controller,
 		msvc:       msvc,
 		name:       name,
 		appName:    appName,
+		apiVersion: resolved.apiVersion,
 	}
-
-	return exe
 }
 
 func (exe *microserviceExecutor) execute() error {
@@ -119,7 +107,7 @@ func (exe *microserviceExecutor) init() (err error) {
 				exe.isSystem = true
 				listMsvcs = systemMsvcs
 			} else {
-				return fmt.Errorf("no microservices found in system application")
+				return errors.New("no microservices found in system application")
 			}
 		} else {
 			// Return other types of errors
@@ -152,10 +140,10 @@ func (exe *microserviceExecutor) deploy() (newMsvc *client.MicroserviceInfo, err
 
 func (exe *microserviceExecutor) create() (newMsvc *client.MicroserviceInfo, err error) {
 	if exe.isSystem {
-		return nil, fmt.Errorf("cannot create system microservice")
+		return nil, errors.New("cannot create system microservice")
 	}
 	file := IofogHeader{
-		APIVersion: "iofog.org/v3",
+		APIVersion: exe.apiVersion,
 		Kind:       MicroserviceKind,
 		Metadata: HeaderMetadata{
 			Name: strings.Join([]string{exe.appName, exe.name}, "/"),
@@ -171,7 +159,7 @@ func (exe *microserviceExecutor) create() (newMsvc *client.MicroserviceInfo, err
 
 func (exe *microserviceExecutor) update() (newMsvc *client.MicroserviceInfo, err error) {
 	file := IofogHeader{
-		APIVersion: "iofog.org/v3",
+		APIVersion: exe.apiVersion,
 		Kind:       MicroserviceKind,
 		Metadata: HeaderMetadata{
 			Name: strings.Join([]string{exe.appName, exe.name}, "/"),

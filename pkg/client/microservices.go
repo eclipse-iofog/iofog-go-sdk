@@ -1,16 +1,3 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2024 Contributors to the Eclipse ioFog Project
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 package client
 
 import (
@@ -19,11 +6,10 @@ import (
 	"fmt"
 	"io"
 	"mime/multipart"
-	"strings"
 )
 
 // GetMicroserviceByName retrieves a microservice information using Controller REST API
-func (clt *Client) GetMicroserviceByName(appName, name string) (response *MicroserviceInfo, err error) {
+func (clt *Client) GetMicroserviceByName(appName, name string) (*MicroserviceInfo, error) {
 	listMsvcs, err := clt.GetMicroservicesByApplication(appName)
 	if err != nil {
 		return nil, err
@@ -37,7 +23,7 @@ func (clt *Client) GetMicroserviceByName(appName, name string) (response *Micros
 }
 
 // GetSystemMicroserviceByName retrieves a system microservice information using Controller REST API
-func (clt *Client) GetSystemMicroserviceByName(appName, name string) (response *MicroserviceInfo, err error) {
+func (clt *Client) GetSystemMicroserviceByName(appName, name string) (*MicroserviceInfo, error) {
 	listMsvcs, err := clt.GetSystemMicroservicesByApplication(appName)
 	if err != nil {
 		return nil, err
@@ -51,31 +37,31 @@ func (clt *Client) GetSystemMicroserviceByName(appName, name string) (response *
 }
 
 // GetMicroserviceByID retrieves a microservice information using Controller REST API
-func (clt *Client) GetMicroserviceByID(uuid string) (response *MicroserviceInfo, err error) {
+func (clt *Client) GetMicroserviceByID(uuid string) (*MicroserviceInfo, error) {
 	body, err := clt.doRequest("GET", fmt.Sprintf("/microservices/%s", uuid), nil)
 	if err != nil {
-		return
+		return nil, err
 	}
 
-	response = new(MicroserviceInfo)
+	response := new(MicroserviceInfo)
 	if err = json.Unmarshal(body, response); err != nil {
-		return
+		return nil, err
 	}
-	return
+	return response, nil
 }
 
 // GetSystemMicroserviceByID retrieves a system microservice information using Controller REST API
-func (clt *Client) GetSystemMicroserviceByID(uuid string) (response *MicroserviceInfo, err error) {
+func (clt *Client) GetSystemMicroserviceByID(uuid string) (*MicroserviceInfo, error) {
 	body, err := clt.doRequest("GET", fmt.Sprintf("/microservices/system/%s", uuid), nil)
 	if err != nil {
-		return
+		return nil, err
 	}
 
-	response = new(MicroserviceInfo)
+	response := new(MicroserviceInfo)
 	if err = json.Unmarshal(body, response); err != nil {
-		return
+		return nil, err
 	}
-	return
+	return response, nil
 }
 
 // CreateMicroserviceFromYAML creates a new microservice using the Controller REST API
@@ -88,13 +74,12 @@ func (clt *Client) CreateMicroserviceFromYAML(file io.Reader) (*MicroserviceInfo
 	if err != nil {
 		return nil, err
 	}
-	writer.Close()
+	_ = writer.Close()
 
 	headers := map[string]string{
 		"Content-Type": writer.FormDataContentType(),
 	}
 	body, err := clt.doRequestWithHeaders("POST", "/microservices/yaml", requestBody, headers)
-
 	if err != nil {
 		return nil, err
 	}
@@ -105,134 +90,107 @@ func (clt *Client) CreateMicroserviceFromYAML(file io.Reader) (*MicroserviceInfo
 	return clt.GetMicroserviceByID(response.UUID)
 }
 
-// GetMicroservicesPerFlow (DEPRECATED) returns a list of microservices in a specific flow using Controller REST API
-func (clt *Client) GetMicroservicesPerFlow(flowID int) (response *MicroserviceListResponse, err error) {
-	body, err := clt.doRequest("GET", fmt.Sprintf("/microservices?flowId=%d", flowID), nil)
-	if err != nil {
-		return
-	}
-	response = new(MicroserviceListResponse)
-	err = json.Unmarshal(body, response)
-	return
-}
-
 // GetMicroservicesByApplication returns a list of microservices in a specific application using Controller REST API
-func (clt *Client) GetMicroservicesByApplication(application string) (response *MicroserviceListResponse, err error) {
+func (clt *Client) GetMicroservicesByApplication(application string) (*MicroserviceListResponse, error) {
 	body, err := clt.doRequest("GET", fmt.Sprintf("/microservices?application=%s", application), nil)
-	if err != nil {
-		return
-	}
-	response = new(MicroserviceListResponse)
-	err = json.Unmarshal(body, response)
-	return
-}
-
-// GetSystemMicroservicesByApplication returns a list of microservices in a specific application using Controller REST API
-func (clt *Client) GetSystemMicroservicesByApplication(application string) (response *MicroserviceListResponse, err error) {
-	body, err := clt.doRequest("GET", fmt.Sprintf("/microservices/system?application=%s", application), nil)
-	if err != nil {
-		return
-	}
-	response = new(MicroserviceListResponse)
-	err = json.Unmarshal(body, response)
-	return
-}
-
-// GetAllMicroservices returns all microservices on the Controller by listing all flows,
-// then getting a list of microservices per flow.
-func (clt *Client) getAllMicroservicesDeprecated() (response *MicroserviceListResponse, err error) {
-	flows, err := clt.GetAllFlows()
 	if err != nil {
 		return nil, err
 	}
-	response = new(MicroserviceListResponse)
-
-	for _, flow := range flows.Flows {
-		listPerFlow, err := clt.GetMicroservicesPerFlow(flow.ID)
-		if err != nil {
-			continue
-		}
-		response.Microservices = append(response.Microservices, listPerFlow.Microservices...)
+	response := new(MicroserviceListResponse)
+	if err = json.Unmarshal(body, response); err != nil {
+		return nil, err
 	}
-	return
+	return response, nil
 }
 
-// GetAllMicroservices returns all microservices on the Controller across all (non-system) flows
-func (clt *Client) getAllMicroservices() (response *MicroserviceListResponse, err error) {
+// GetSystemMicroservicesByApplication returns a list of microservices in a specific application using Controller REST API
+func (clt *Client) GetSystemMicroservicesByApplication(application string) (*MicroserviceListResponse, error) {
+	body, err := clt.doRequest("GET", fmt.Sprintf("/microservices/system?application=%s", application), nil)
+	if err != nil {
+		return nil, err
+	}
+	response := new(MicroserviceListResponse)
+	if err = json.Unmarshal(body, response); err != nil {
+		return nil, err
+	}
+	return response, nil
+}
+
+// getAllMicroservices returns all microservices on the Controller across all applications
+func (clt *Client) getAllMicroservices() (*MicroserviceListResponse, error) {
 	body, err := clt.doRequest("GET", "/microservices", nil)
 	if err != nil {
-		return
+		return nil, err
 	}
-	response = new(MicroserviceListResponse)
-	err = json.Unmarshal(body, response)
-	return
+	response := new(MicroserviceListResponse)
+	if err = json.Unmarshal(body, response); err != nil {
+		return nil, err
+	}
+	return response, nil
 }
 
-// GetAllSystemMicroservices returns all system microservices on the Controller across all (non-system) flows
-func (clt *Client) GetAllSystemMicroservices() (response *MicroserviceListResponse, err error) {
+// GetAllSystemMicroservices returns all system microservices on the Controller across all system applications
+func (clt *Client) GetAllSystemMicroservices() (*MicroserviceListResponse, error) {
 	body, err := clt.doRequest("GET", "/microservices/system", nil)
 	if err != nil {
-		return
+		return nil, err
 	}
-	response = new(MicroserviceListResponse)
-	err = json.Unmarshal(body, response)
-	return
+	response := new(MicroserviceListResponse)
+	if err = json.Unmarshal(body, response); err != nil {
+		return nil, err
+	}
+	return response, nil
 }
 
-func (clt *Client) GetAllMicroservices() (response *MicroserviceListResponse, err error) {
-	major, minor, patch, err := clt.GetVersionNumbers()
-	if err != nil {
-		return
-	}
-	isCapable := (major >= 2 && minor >= 0 && patch >= 0)
-	if strings.Contains(clt.status.version, "dev") || isCapable {
-		return clt.getAllMicroservices()
-	}
-	return clt.getAllMicroservicesDeprecated()
+// GetAllMicroservices returns all microservices on the Controller across all applications.
+func (clt *Client) GetAllMicroservices() (*MicroserviceListResponse, error) {
+	return clt.getAllMicroservices()
 }
 
 // GetMicroservicePortMapping retrieves a microservice port mappings using Controller REST API
-func (clt *Client) GetMicroservicePortMapping(uuid string) (response *MicroservicePortMappingListResponse, err error) {
+func (clt *Client) GetMicroservicePortMapping(uuid string) (*MicroservicePortMappingListResponse, error) {
 	body, err := clt.doRequest("GET", fmt.Sprintf("/microservices/%s/port-mapping", uuid), nil)
 	if err != nil {
-		return
+		return nil, err
 	}
 
-	response = new(MicroservicePortMappingListResponse)
-	err = json.Unmarshal(body, response)
-	return
+	response := new(MicroservicePortMappingListResponse)
+	if err = json.Unmarshal(body, response); err != nil {
+		return nil, err
+	}
+	return response, nil
 }
 
 // DeleteMicroservicePortMapping deletes a microservice port mapping using Controller REST API
-func (clt *Client) DeleteMicroservicePortMapping(uuid string, portMapping *MicroservicePortMappingInfo) (err error) {
-	_, err = clt.doRequest("DELETE", fmt.Sprintf("/microservices/%s/port-mapping/%v", uuid, portMapping.Internal), nil)
-	return
+func (clt *Client) DeleteMicroservicePortMapping(uuid string, portMapping *MicroservicePortMappingInfo) error {
+	_, err := clt.doRequest("DELETE", fmt.Sprintf("/microservices/%s/port-mapping/%v", uuid, portMapping.Internal), nil)
+	return err
 }
 
 // CreateMicroservicePortMapping creates a microservice port mapping using Controller REST API
-func (clt *Client) CreateMicroservicePortMapping(uuid string, portMapping *MicroservicePortMappingInfo) (err error) {
-	_, err = clt.doRequest("POST", fmt.Sprintf("/microservices/%s/port-mapping", uuid), portMapping)
-	return
+func (clt *Client) CreateMicroservicePortMapping(uuid string, portMapping *MicroservicePortMappingInfo) error {
+	_, err := clt.doRequest("POST", fmt.Sprintf("/microservices/%s/port-mapping", uuid), portMapping)
+	return err
 }
 
 // CreateMicroserviceRoute creates a microservice route using Controller REST API.
 // Deprecated: Controller no longer exposes /api/v3/microservices/:uuid/routes.
 // Use NATS for messaging. CreateMicroserviceRoute returns ErrRoutesNotSupported.
-func (clt *Client) CreateMicroserviceRoute(uuid, destUUID string) (err error) {
+func (clt *Client) CreateMicroserviceRoute(uuid, destUUID string) error {
 	return ErrRoutesNotSupported
 }
 
 // DeleteMicroserviceRoute deletes a microservice route using Controller REST API.
 // Deprecated: Controller no longer exposes /api/v3/microservices/:uuid/routes.
 // Use NATS for messaging. DeleteMicroserviceRoute returns ErrRoutesNotSupported.
-func (clt *Client) DeleteMicroserviceRoute(uuid, destUUID string) (err error) {
+func (clt *Client) DeleteMicroserviceRoute(uuid, destUUID string) error {
 	return ErrRoutesNotSupported
 }
 
 // UpdateMicroserviceRoutes syncs microservice routes to the given list.
 // Deprecated: Controller no longer exposes /api/v3/microservices/:uuid/routes.
 // Use NATS for messaging. UpdateMicroserviceRoutes returns ErrRoutesNotSupported.
-func (clt *Client) UpdateMicroserviceRoutes(uuid string, currentRoutes, newRoutes []string) (err error) {
+func (clt *Client) UpdateMicroserviceRoutes(uuid string, currentRoutes, newRoutes []string) error {
 	return ErrRoutesNotSupported
 }
 
@@ -246,7 +204,7 @@ func (clt *Client) UpdateMicroserviceFromYAML(uuid string, file io.Reader) (*Mic
 	if err != nil {
 		return nil, err
 	}
-	writer.Close()
+	_ = writer.Close()
 
 	headers := map[string]string{
 		"Content-Type": writer.FormDataContentType(),
@@ -269,7 +227,7 @@ func (clt *Client) UpdateSystemMicroserviceFromYAML(uuid string, file io.Reader)
 	if err != nil {
 		return nil, err
 	}
-	writer.Close()
+	_ = writer.Close()
 
 	headers := map[string]string{
 		"Content-Type": writer.FormDataContentType(),
@@ -283,31 +241,31 @@ func (clt *Client) UpdateSystemMicroserviceFromYAML(uuid string, file io.Reader)
 }
 
 // DeleteMicroservice deletes a microservice using Controller REST API
-func (clt *Client) DeleteMicroservice(uuid string) (err error) {
-	_, err = clt.doRequest("DELETE", fmt.Sprintf("/microservices/%s", uuid), nil)
-	return
+func (clt *Client) DeleteMicroservice(uuid string) error {
+	_, err := clt.doRequest("DELETE", fmt.Sprintf("/microservices/%s", uuid), nil)
+	return err
 }
 
 // RebuildsMicroservice rebuilds a microservice using Controller REST API
-func (clt *Client) RebuildsMicroservice(uuid string) (err error) {
-	_, err = clt.doRequest("PATCH", fmt.Sprintf("/microservices/%s/rebuild", uuid), nil)
-	return
+func (clt *Client) RebuildsMicroservice(uuid string) error {
+	_, err := clt.doRequest("PATCH", fmt.Sprintf("/microservices/%s/rebuild", uuid), nil)
+	return err
 }
 
 // RebuildsSystemMicroservice rebuilds a system microservice using Controller REST API
-func (clt *Client) RebuildsSystemMicroservice(uuid string) (err error) {
-	_, err = clt.doRequest("PATCH", fmt.Sprintf("/microservices/system/%s/rebuild", uuid), nil)
-	return
+func (clt *Client) RebuildsSystemMicroservice(uuid string) error {
+	_, err := clt.doRequest("PATCH", fmt.Sprintf("/microservices/system/%s/rebuild", uuid), nil)
+	return err
 }
 
 // StartMicroservice starts a microservice using Controller REST API
-func (clt *Client) StartMicroservice(uuid string) (err error) {
-	_, err = clt.doRequest("PATCH", fmt.Sprintf("/microservices/%s/start", uuid), nil)
-	return
+func (clt *Client) StartMicroservice(uuid string) error {
+	_, err := clt.doRequest("PATCH", fmt.Sprintf("/microservices/%s/start", uuid), nil)
+	return err
 }
 
 // StopMicroservice stops a microservice using Controller REST API
-func (clt *Client) StopMicroservice(uuid string) (err error) {
-	_, err = clt.doRequest("PATCH", fmt.Sprintf("/microservices/%s/stop", uuid), nil)
-	return
+func (clt *Client) StopMicroservice(uuid string) error {
+	_, err := clt.doRequest("PATCH", fmt.Sprintf("/microservices/%s/stop", uuid), nil)
+	return err
 }

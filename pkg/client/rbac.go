@@ -1,16 +1,3 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2024 Contributors to the Eclipse ioFog Project
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 package client
 
 import (
@@ -75,7 +62,7 @@ func (clt *Client) CreateRoleFromYaml(file io.Reader) error {
 	if err != nil {
 		return err
 	}
-	writer.Close()
+	_ = writer.Close()
 
 	headers := map[string]string{
 		"Content-Type": writer.FormDataContentType(),
@@ -109,7 +96,7 @@ func (clt *Client) UpdateRoleFromYaml(name string, file io.Reader) error {
 	if err != nil {
 		return err
 	}
-	writer.Close()
+	_ = writer.Close()
 
 	headers := map[string]string{
 		"Content-Type": writer.FormDataContentType(),
@@ -177,7 +164,7 @@ func (clt *Client) CreateRoleBindingFromYaml(file io.Reader) error {
 	if err != nil {
 		return err
 	}
-	writer.Close()
+	_ = writer.Close()
 
 	headers := map[string]string{
 		"Content-Type": writer.FormDataContentType(),
@@ -211,7 +198,7 @@ func (clt *Client) UpdateRoleBindingFromYaml(name string, file io.Reader) error 
 	if err != nil {
 		return err
 	}
-	writer.Close()
+	_ = writer.Close()
 
 	headers := map[string]string{
 		"Content-Type": writer.FormDataContentType(),
@@ -286,7 +273,7 @@ func (clt *Client) CreateServiceAccountFromYaml(file io.Reader) error {
 	if err != nil {
 		return err
 	}
-	writer.Close()
+	_ = writer.Close()
 
 	headers := map[string]string{
 		"Content-Type": writer.FormDataContentType(),
@@ -320,7 +307,7 @@ func (clt *Client) UpdateServiceAccountFromYaml(appName, name string, file io.Re
 	if err != nil {
 		return err
 	}
-	writer.Close()
+	_ = writer.Close()
 
 	headers := map[string]string{
 		"Content-Type": writer.FormDataContentType(),

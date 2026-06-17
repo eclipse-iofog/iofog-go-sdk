@@ -1,16 +1,3 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2024 Contributors to the Eclipse ioFog Project
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 package apps
 
 import (
@@ -21,7 +8,7 @@ import (
 )
 
 // HeaderMetadata contains k8s metadata
-// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+// +k8s:deepcopy-gen=true
 type HeaderMetadata struct {
 	Name      string `yaml:"name" json:"name"`
 	Namespace string `yaml:"namespace" json:"namespace"`
@@ -47,14 +34,16 @@ type Header struct {
 	APIVersion string         `yaml:"apiVersion" json:"apiVersion"`
 	Kind       Kind           `yaml:"kind" json:"kind"`
 	Metadata   HeaderMetadata `yaml:"metadata" json:"metadata"`
-	Spec       interface{}    `yaml:"spec" json:"spec"`
+	Spec       any            `yaml:"spec" json:"spec"`
 }
 
 // CatalogItem contains information about a catalog item
-// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+// +k8s:deepcopy-gen=true
 type CatalogItem struct {
 	ID            int    `yaml:"id" json:"id"`
-	X86           string `yaml:"x86" json:"x86"`
+	AMD64         string `yaml:"amd64" json:"amd64"`
+	ARM64         string `yaml:"arm64" json:"arm64"`
+	RISCV64       string `yaml:"riscv64" json:"riscv64"`
 	ARM           string `yaml:"arm" json:"arm"`
 	Registry      string `yaml:"registry" json:"registry"`
 	Name          string `yaml:"name" json:"name"`
@@ -63,23 +52,25 @@ type CatalogItem struct {
 }
 
 // MicroserviceImages contains information about the images for a microservice
-// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+// +k8s:deepcopy-gen=true
 type MicroserviceImages struct {
 	CatalogID int    `yaml:"catalogId" json:"catalogId"`
-	X86       string `yaml:"x86" json:"x86"`
+	AMD64     string `yaml:"amd64" json:"amd64"`
+	ARM64     string `yaml:"arm64" json:"arm64"`
+	RISCV64   string `yaml:"riscv64" json:"riscv64"`
 	ARM       string `yaml:"arm" json:"arm"`
 	Registry  string `yaml:"registry" json:"registry"`
 }
 
 // MicroserviceAgent contains information about required agent configuration for a microservice
-// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+// +k8s:deepcopy-gen=true
 type MicroserviceAgent struct {
 	Name   string             `yaml:"name" json:"name"`
 	Config AgentConfiguration `yaml:"config" json:"config"`
 }
 
 // MicroserviceContainer contains information for configuring a microservice container
-// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+// +k8s:deepcopy-gen=true
 type MicroserviceContainer struct {
 	Commands        []string                     `yaml:"commands,omitempty" json:"commands,omitempty"`
 	Volumes         *[]MicroserviceVolumeMapping `yaml:"volumes,omitempty" json:"volumes,omitempty"`
@@ -97,7 +88,7 @@ type MicroserviceContainer struct {
 	CapAdd          []string                     `yaml:"capAdd,omitempty" json:"capAdd,omitempty"`
 	CapDrop         []string                     `yaml:"capDrop,omitempty" json:"capDrop,omitempty"`
 	Annotations     ArbitraryJSON                `yaml:"annotations,omitempty" json:"annotations,omitempty"`
-	CpuSetCpus      string                       `yaml:"cpuSetCpus,omitempty" json:"cpuSetCpus,omitempty"`
+	CPUSetCpus      string                       `yaml:"cpuSetCpus,omitempty" json:"cpuSetCpus,omitempty"`
 	MemoryLimit     *int64                       `yaml:"memoryLimit,omitempty" json:"memoryLimit,omitempty"`
 	HealthCheck     *MicroserviceHealthCheck     `yaml:"healthCheck,omitempty" json:"healthCheck,omitempty"`
 }
@@ -137,7 +128,7 @@ type MicroserviceExecStatusInfo struct {
 }
 
 // Microservice contains information for configuring a microservice
-// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+// +k8s:deepcopy-gen=true
 type Microservice struct {
 	UUID        string                     `yaml:"uuid" json:"uuid"`
 	Name        string                     `yaml:"name" json:"name"`
@@ -147,8 +138,7 @@ type Microservice struct {
 	NatsConfig  *MicroserviceNatsConfig    `yaml:"natsConfig,omitempty" json:"natsConfig,omitempty"`
 	Schedule    int                        `yaml:"schedule" json:"schedule"`
 	Config      ArbitraryJSON              `yaml:"config" json:"config"`
-	Flow        *string                    `yaml:"flow,omitempty" json:"flow,omitempty"`
-	Application *string                    `yaml:"application,omitempty" json:"application,omitempty"`
+	Application string                     `yaml:"application,omitempty" json:"application,omitempty"`
 	Created     string                     `yaml:"created,omitempty" json:"created,omitempty"`
 	Rebuild     bool                       `yaml:"rebuild,omitempty" json:"rebuild,omitempty"`
 	Status      MicroserviceStatusInfo     `yaml:"status,omitempty" json:"status,omitempty"`
@@ -164,9 +154,10 @@ type MicroserviceNatsConfig struct {
 
 // ArbitraryJSON holds arbitrary JSON (e.g. config, annotations) as raw bytes.
 // It is compatible with controller-gen and preserves round-trip for YAML/JSON.
-// Use ToMap/FromMap for a map[string]interface{} API.
+// Use ToMap/FromMap for a map[string]any API.
 // +k8s:deepcopy-gen=ignore
 type ArbitraryJSON struct {
+	//revive:disable-next-line:struct-tag k8s yaml inline convention
 	runtime.RawExtension `yaml:",inline" json:",inline"`
 }
 
@@ -190,8 +181,8 @@ func (a *ArbitraryJSON) UnmarshalJSON(data []byte) error {
 }
 
 // UnmarshalYAML implements yaml.Unmarshaler so YAML objects (e.g. config: { key: value }) decode correctly.
-func (a *ArbitraryJSON) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	var v interface{}
+func (a *ArbitraryJSON) UnmarshalYAML(unmarshal func(any) error) error {
+	var v any
 	if err := unmarshal(&v); err != nil {
 		return err
 	}
@@ -208,11 +199,11 @@ func (a *ArbitraryJSON) UnmarshalYAML(unmarshal func(interface{}) error) error {
 }
 
 // MarshalYAML implements yaml.Marshaler so values emit as YAML objects.
-func (a ArbitraryJSON) MarshalYAML() (interface{}, error) {
+func (a ArbitraryJSON) MarshalYAML() (any, error) {
 	if len(a.Raw) == 0 {
-		return map[string]interface{}{}, nil
+		return map[string]any{}, nil
 	}
-	var v interface{}
+	var v any
 	if err := json.Unmarshal(a.Raw, &v); err != nil {
 		return nil, err
 	}
@@ -240,11 +231,11 @@ func (a ArbitraryJSON) DeepCopy() ArbitraryJSON {
 }
 
 // ToMap unmarshals Raw into a map for code that needs a map API. Returns nil map and nil error if empty.
-func (a ArbitraryJSON) ToMap() (map[string]interface{}, error) {
+func (a ArbitraryJSON) ToMap() (map[string]any, error) {
 	if len(a.Raw) == 0 {
 		return nil, nil
 	}
-	var m map[string]interface{}
+	var m map[string]any
 	if err := json.Unmarshal(a.Raw, &m); err != nil {
 		return nil, err
 	}
@@ -252,7 +243,7 @@ func (a ArbitraryJSON) ToMap() (map[string]interface{}, error) {
 }
 
 // FromMap sets Raw from the given map (for backward compatibility in code that builds config/annotations).
-func (a *ArbitraryJSON) FromMap(m map[string]interface{}) error {
+func (a *ArbitraryJSON) FromMap(m map[string]any) error {
 	if m == nil {
 		a.Raw = []byte("{}")
 		return nil
@@ -265,14 +256,16 @@ func (a *ArbitraryJSON) FromMap(m map[string]interface{}) error {
 	return nil
 }
 
-// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+// +k8s:deepcopy-gen=true
 type MicroservicePortMapping struct {
 	Internal int64  `json:"internal"`
 	External int64  `json:"external"`
 	Protocol string `json:"protocol,omitempty"`
 }
 
-// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+// MicroserviceVolumeMapping maps a host path or service account into the container.
+// Type is the mapping kind (e.g. bind, serviceAccount).
+// +k8s:deepcopy-gen=true
 type MicroserviceVolumeMapping struct {
 	HostDestination      string `yaml:"hostDestination" json:"hostDestination"`
 	ContainerDestination string `yaml:"containerDestination" json:"containerDestination"`
@@ -280,7 +273,7 @@ type MicroserviceVolumeMapping struct {
 	Type                 string `yaml:"type,omitempty" json:"type,omitempty"`
 }
 
-// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+// +k8s:deepcopy-gen=true
 type MicroserviceEnvironment struct {
 	Key                string `yaml:"key" json:"key"`
 	Value              string `yaml:"value,omitempty" json:"value,omitempty"`
@@ -288,16 +281,16 @@ type MicroserviceEnvironment struct {
 	ValueFromConfigMap string `yaml:"valueFromConfigMap,omitempty" json:"valueFromConfigMap,omitempty"`
 }
 
-// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+// +k8s:deepcopy-gen=true
 type MicroserviceExtraHost struct {
 	Name    string `yaml:"name" json:"name,omitempty"`
 	Address string `yaml:"address" json:"address,omitempty"`
 	Value   string `yaml:"value" json:"value,omitempty"`
 }
 
-// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+// +k8s:deepcopy-gen=true
 type AgentConfiguration struct {
-	DockerURL                 *string   `yaml:"dockerUrl,omitempty" json:"dockerUrl,omitempty"`
+	ContainerEngineURL        *string   `yaml:"containerEngineUrl,omitempty" json:"containerEngineUrl,omitempty"`
 	ContainerEngine           *string   `yaml:"containerEngine,omitempty" json:"containerEngine,omitempty"`
 	DeploymentType            *string   `yaml:"deploymentType,omitempty" json:"deploymentType,omitempty"`
 	DiskLimit                 *int64    `yaml:"diskLimit,omitempty" json:"diskLimit,omitempty"`
@@ -327,14 +320,16 @@ type AgentConfiguration struct {
 	NatsLeafPort        *int      `yaml:"natsLeafPort,omitempty" json:"natsLeafPort,omitempty"`
 	NatsClusterPort     *int      `yaml:"natsClusterPort,omitempty" json:"natsClusterPort,omitempty"`
 	NatsMqttPort        *int      `yaml:"natsMqttPort,omitempty" json:"natsMqttPort,omitempty"`
-	NatsHttpPort        *int      `yaml:"natsHttpPort,omitempty" json:"natsHttpPort,omitempty"`
+	NatsHTTPPort        *int      `yaml:"natsHttpPort,omitempty" json:"natsHttpPort,omitempty"`
 	UpstreamNatsServers *[]string `yaml:"upstreamNatsServers,omitempty" json:"upstreamNatsServers,omitempty"`
 	JsStorageSize       *string   `yaml:"jsStorageSize,omitempty" json:"jsStorageSize,omitempty"`
 	JsMemoryStoreSize   *string   `yaml:"jsMemoryStoreSize,omitempty" json:"jsMemoryStoreSize,omitempty"`
+	PruningFrequency    *float64  `yaml:"pruningFrequency,omitempty" json:"pruningFrequency,omitempty"`
+	ArchID              *int64    `yaml:"archId,omitempty" json:"archId,omitempty"`
 }
 
 // Microservices is a list of Microservice
-// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+// +k8s:deepcopy-gen=true
 type Microservices struct {
 	Microservices []Microservice `yaml:"microservices" json:"microservices"`
 }
@@ -356,7 +351,7 @@ type ApplicationNatsConfig struct {
 }
 
 // Application contains information for configuring an application
-// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+// +k8s:deepcopy-gen=true
 type Application struct {
 	Name          string                 `yaml:"name" json:"name"`
 	Microservices []Microservice         `yaml:"microservices,omitempty" json:"microservices,omitempty"`
@@ -366,7 +361,7 @@ type Application struct {
 }
 
 // ApplicationTemplate contains information for configuring an application template
-// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+// +k8s:deepcopy-gen=true
 type ApplicationTemplate struct {
 	Name        string                   `yaml:"name,omitempty"`
 	Description string                   `yaml:"description,omitempty"`
@@ -407,13 +402,13 @@ type ApplicationTemplateInfo struct {
 }
 
 // Applications is a list of applications
-// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+// +k8s:deepcopy-gen=true
 type Applications struct {
 	Applications []Application `yaml:"applications" json:"applications"`
 }
 
 // IofogController contains informations needed to connect to the controller
-// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+// +k8s:deepcopy-gen=true
 type IofogController struct {
 	Email        string `yaml:"email" json:"email"`
 	Password     string `yaml:"password" json:"password"`

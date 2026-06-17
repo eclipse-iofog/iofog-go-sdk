@@ -1,33 +1,20 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2024 Contributors to the Eclipse ioFog Project
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 package apps
 
 import (
 	"net/url"
 )
 
-func DeployApplicationTemplate(controller IofogController, controllerBaseURL *url.URL, template interface{}, name string) error {
-	exe := newApplicationTemplateExecutor(controller, controllerBaseURL, template, name)
+func DeployApplicationTemplate(controller IofogController, controllerBaseURL *url.URL, template any, name string, opts ...DeployOption) error {
+	exe := newApplicationTemplateExecutor(controller, controllerBaseURL, template, name, opts...)
 	return exe.execute()
 }
 
-func DeployApplication(controller IofogController, application interface{}, name string) error {
-	exe := newApplicationExecutor(controller, application, name)
+func DeployApplication(controller IofogController, application any, name string, opts ...DeployOption) error {
+	exe := newApplicationExecutor(controller, application, name, opts...)
 	return exe.execute()
 }
 
-func DeployMicroservice(controller IofogController, microservice interface{}, appName, name string) error {
-	exe := newMicroserviceExecutor(controller, microservice, appName, name)
+func DeployMicroservice(controller IofogController, microservice any, appName, name string, opts ...DeployOption) error {
+	exe := newMicroserviceExecutor(controller, microservice, appName, name, opts...)
 	return exe.execute()
 }

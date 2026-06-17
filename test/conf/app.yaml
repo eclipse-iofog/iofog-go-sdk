@@ -12,8 +12,8 @@ spec:
         bluetoothEnabled: true # this will install the iofog/restblue microservice
         abstractedHardwareEnabled: false
     images:
-      arm: edgeworx/healthcare-heart-rate:arm-v1
-      x86: edgeworx/healthcare-heart-rate:x86-v1
+      arm64: edgeworx/healthcare-heart-rate:arm-v1
+      amd64: edgeworx/healthcare-heart-rate:x86-v1
       registry: remote # public docker
     container:
       hostNetworkMode: false
@@ -26,8 +26,8 @@ spec:
     agent:
       name: agent-1
     images:
-      arm: edgeworx/healthcare-heart-rate-ui:arm
-      x86: edgeworx/healthcare-heart-rate-ui:x86
+      arm64: edgeworx/healthcare-heart-rate-ui:arm
+      amd64: edgeworx/healthcare-heart-rate-ui:x86
       registry: remote
     container:
       hostNetworkMode: false

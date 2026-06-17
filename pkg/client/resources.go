@@ -1,16 +1,3 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2024 Contributors to the Eclipse ioFog Project
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 package client
 
 import (
@@ -38,7 +25,7 @@ func (clt *Client) CreateSecretFromYaml(file io.Reader) error {
 	if err != nil {
 		return err
 	}
-	writer.Close()
+	_ = writer.Close()
 
 	headers := map[string]string{
 		"Content-Type": writer.FormDataContentType(),
@@ -63,7 +50,7 @@ func (clt *Client) UpdateSecretFromYaml(name string, file io.Reader) error {
 	if err != nil {
 		return err
 	}
-	writer.Close()
+	_ = writer.Close()
 
 	headers := map[string]string{
 		"Content-Type": writer.FormDataContentType(),
@@ -127,7 +114,7 @@ func (clt *Client) CreateServiceFromYaml(file io.Reader) error {
 	if err != nil {
 		return err
 	}
-	writer.Close()
+	_ = writer.Close()
 
 	headers := map[string]string{
 		"Content-Type": writer.FormDataContentType(),
@@ -152,7 +139,7 @@ func (clt *Client) UpdateServiceFromYaml(name string, file io.Reader) error {
 	if err != nil {
 		return err
 	}
-	writer.Close()
+	_ = writer.Close()
 
 	headers := map[string]string{
 		"Content-Type": writer.FormDataContentType(),
@@ -216,7 +203,7 @@ func (clt *Client) CreateConfigMapFromYaml(file io.Reader) error {
 	if err != nil {
 		return err
 	}
-	writer.Close()
+	_ = writer.Close()
 
 	headers := map[string]string{
 		"Content-Type": writer.FormDataContentType(),
@@ -241,7 +228,7 @@ func (clt *Client) UpdateConfigMapFromYaml(name string, file io.Reader) error {
 	if err != nil {
 		return err
 	}
-	writer.Close()
+	_ = writer.Close()
 
 	headers := map[string]string{
 		"Content-Type": writer.FormDataContentType(),
@@ -305,7 +292,7 @@ func (clt *Client) CreateVolumeMountFromYaml(file io.Reader) error {
 	if err != nil {
 		return err
 	}
-	writer.Close()
+	_ = writer.Close()
 
 	headers := map[string]string{
 		"Content-Type": writer.FormDataContentType(),
@@ -330,7 +317,7 @@ func (clt *Client) UpdateVolumeMountFromYaml(name string, file io.Reader) error 
 	if err != nil {
 		return err
 	}
-	writer.Close()
+	_ = writer.Close()
 
 	headers := map[string]string{
 		"Content-Type": writer.FormDataContentType(),
@@ -447,7 +434,7 @@ func (clt *Client) CreateCertificateFromYaml(file io.Reader) error {
 	if err != nil {
 		return err
 	}
-	writer.Close()
+	_ = writer.Close()
 
 	headers := map[string]string{
 		"Content-Type": writer.FormDataContentType(),

@@ -1,35 +1,39 @@
 # Client Package
 
-This package provides an HTTP client to communicate with ioFog Controller's REST API.
+This package provides an HTTP client for ioFog Controller's REST API **v3** (`/api/v3/*`).
 
-You can view see the full REST API specification at [iofog.org](https://iofog.org/docs/1.3.0/controllers/rest-api.html).
+Import path: `github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/client`
+
+You can view the full REST API specification at [iofog.org](https://iofog.org/docs/1.3.0/controllers/rest-api.html).
 
 ## Usage
 
-First, instantiate a client instance and log in with your credentials.
-```go
-// Connect to Controller REST API
-ctrl := client.New(endpoint)
+Create a client with the Controller base URL (including `/api/v3`), then log in with your credentials.
 
-// Create login request
-loginRequest := client.LoginRequest{
-	Email:    "user@domain.com",
-	Password: "kj2gh0ooiwbug",
+```go
+import (
+	"net/url"
+
+	"github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/client"
+)
+
+baseURL, err := url.Parse("http://localhost:51121/api/v3")
+if err != nil {
+	return err
 }
 
-// Login
-if err := ctrl.Login(loginRequest); err != nil {
+clt, err := client.NewAndLogin(client.Options{BaseURL: baseURL}, "user@domain.com", "password")
+if err != nil {
 	return err
 }
 ```
 
-Next, call any of the functions available from your client instance.
-```go
-// Get Controller status
-if resp, err = ctrlClient.GetStatus(); err != nil {
-    return err
-}
+Call any method on the authenticated client:
 
-// Print the response
+```go
+resp, err := clt.GetStatus()
+if err != nil {
+	return err
+}
 println(resp.Status)
 ```

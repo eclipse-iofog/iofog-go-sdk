@@ -1,16 +1,3 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2024 Contributors to the Eclipse ioFog Project
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 package client
 
 import (
@@ -18,19 +5,15 @@ import (
 	"fmt"
 	"io"
 	"strings"
+
+	"github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/arch"
 )
 
-// AgentTypeAgentTypeIDDict Map from string agent type to numeric id
-var AgentTypeAgentTypeIDDict = map[string]int{
-	"x86": 1,
-	"arm": 2,
-}
+// ArchNameToID maps canonical architecture names to Controller/Edgelet integer codes.
+var ArchNameToID = arch.NameToID
 
-// AgentTypeIDAgentTypeDict Map from numeric id agent type to string agent type
-var AgentTypeIDAgentTypeDict = map[int]string{
-	1: "x86",
-	2: "arm",
-}
+// ArchIDToName maps Controller/Edgelet integer codes to canonical architecture names.
+var ArchIDToName = arch.IDToName
 
 // RegistryTypeRegistryTypeIDDict Map from string registry type to numeric id
 var RegistryTypeRegistryTypeIDDict = map[string]int{
@@ -44,14 +27,13 @@ var RegistryTypeIDRegistryTypeDict = map[int]string{
 	2: "local",
 }
 
-func getString(in io.Reader) (out string, err error) {
+func getString(in io.Reader) (string, error) {
 	buf := new(bytes.Buffer)
-	if _, err = buf.ReadFrom(in); err != nil {
-		return
+	if _, err := buf.ReadFrom(in); err != nil {
+		return "", err
 	}
 
-	out = buf.String()
-	return
+	return buf.String(), nil
 }
 
 func checkStatusCode(code int, method, url string, body io.Reader) error {
