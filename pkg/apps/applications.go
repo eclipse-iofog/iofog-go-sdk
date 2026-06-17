@@ -13,18 +13,19 @@ type applicationExecutor struct {
 	controller      IofogController
 	app             interface{}
 	name            string
+	apiVersion      string
 	applicationInfo *client.ApplicationInfo
 	client          *client.Client
 }
 
-func newApplicationExecutor(controller IofogController, app interface{}, name string) *applicationExecutor {
-	exe := &applicationExecutor{
+func newApplicationExecutor(controller IofogController, app interface{}, name string, opts ...DeployOption) *applicationExecutor {
+	resolved := resolveDeployOptions(opts...)
+	return &applicationExecutor{
 		controller: controller,
 		app:        app,
 		name:       name,
+		apiVersion: resolved.apiVersion,
 	}
-
-	return exe
 }
 
 func (exe *applicationExecutor) execute() (err error) {
@@ -64,7 +65,7 @@ func (exe *applicationExecutor) init() (err error) {
 
 func (exe *applicationExecutor) create() (err error) {
 	file := IofogHeader{
-		APIVersion: "datasance.com/v3",
+		APIVersion: exe.apiVersion,
 		Kind:       ApplicationKind,
 		Metadata: HeaderMetadata{
 			Name: exe.name,
@@ -83,7 +84,7 @@ func (exe *applicationExecutor) create() (err error) {
 
 func (exe *applicationExecutor) update() (err error) {
 	file := IofogHeader{
-		APIVersion: "datasance.com/v3",
+		APIVersion: exe.apiVersion,
 		Kind:       ApplicationKind,
 		Metadata: HeaderMetadata{
 			Name: exe.name,

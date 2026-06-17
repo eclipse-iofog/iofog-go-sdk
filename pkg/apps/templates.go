@@ -13,18 +13,19 @@ type applicationTemplateExecutor struct {
 	baseURL    *url.URL
 	template   interface{}
 	name       string
+	apiVersion string
 	client     *client.Client
 }
 
-func newApplicationTemplateExecutor(controller IofogController, controllerBaseURL *url.URL, template interface{}, name string) *applicationTemplateExecutor {
-	exe := &applicationTemplateExecutor{
+func newApplicationTemplateExecutor(controller IofogController, controllerBaseURL *url.URL, template interface{}, name string, opts ...DeployOption) *applicationTemplateExecutor {
+	resolved := resolveDeployOptions(opts...)
+	return &applicationTemplateExecutor{
 		controller: controller,
 		baseURL:    controllerBaseURL,
 		name:       name,
 		template:   template,
+		apiVersion: resolved.apiVersion,
 	}
-
-	return exe
 }
 
 func (exe *applicationTemplateExecutor) execute() error {
@@ -49,7 +50,7 @@ func (exe *applicationTemplateExecutor) init() (err error) {
 
 func (exe *applicationTemplateExecutor) deploy() error {
 	file := IofogHeader{
-		APIVersion: "datasance.com/v3",
+		APIVersion: exe.apiVersion,
 		Kind:       ApplicationTemplateKind,
 		Metadata: HeaderMetadata{
 			Name: exe.name,

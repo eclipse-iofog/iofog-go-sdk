@@ -29,6 +29,7 @@ type microserviceExecutor struct {
 	msvc       interface{}
 	name       string
 	appName    string
+	apiVersion string
 	uuid       string
 	client     *client.Client
 	isSystem   bool
@@ -49,15 +50,15 @@ func ParseFQMsvcName(fqName string) (appName, name string, err error) {
 	}
 }
 
-func newMicroserviceExecutor(controller IofogController, msvc interface{}, appName, name string) *microserviceExecutor {
-	exe := &microserviceExecutor{
+func newMicroserviceExecutor(controller IofogController, msvc interface{}, appName, name string, opts ...DeployOption) *microserviceExecutor {
+	resolved := resolveDeployOptions(opts...)
+	return &microserviceExecutor{
 		controller: controller,
 		msvc:       msvc,
 		name:       name,
 		appName:    appName,
+		apiVersion: resolved.apiVersion,
 	}
-
-	return exe
 }
 
 func (exe *microserviceExecutor) execute() error {
@@ -142,7 +143,7 @@ func (exe *microserviceExecutor) create() (newMsvc *client.MicroserviceInfo, err
 		return nil, fmt.Errorf("cannot create system microservice")
 	}
 	file := IofogHeader{
-		APIVersion: "datasance.com/v3",
+		APIVersion: exe.apiVersion,
 		Kind:       MicroserviceKind,
 		Metadata: HeaderMetadata{
 			Name: strings.Join([]string{exe.appName, exe.name}, "/"),
@@ -158,7 +159,7 @@ func (exe *microserviceExecutor) create() (newMsvc *client.MicroserviceInfo, err
 
 func (exe *microserviceExecutor) update() (newMsvc *client.MicroserviceInfo, err error) {
 	file := IofogHeader{
-		APIVersion: "datasance.com/v3",
+		APIVersion: exe.apiVersion,
 		Kind:       MicroserviceKind,
 		Metadata: HeaderMetadata{
 			Name: strings.Join([]string{exe.appName, exe.name}, "/"),
