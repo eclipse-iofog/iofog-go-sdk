@@ -82,11 +82,11 @@ func (client *edgeletAPIWsClient) listenControl(conn *ws.Conn, signalChannel cha
 		if len(payload) == 0 {
 			continue
 		}
-		if payload[0] != CODE_CONTROL_SIGNAL {
+		if payload[0] != CodeControlSignal {
 			continue
 		}
 		signalChannel <- payload[0]
-		if err := conn.WriteMessage(ws.BinaryMessage, []byte{CODE_ACK}); err != nil {
+		if err := conn.WriteMessage(ws.BinaryMessage, []byte{CodeAck}); err != nil {
 			return err
 		}
 	}

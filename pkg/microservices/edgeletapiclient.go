@@ -23,7 +23,7 @@ func (client *EdgeletAPIClient) initClient(options ClientOptions) {
 // NewEdgeletAPIClient creates an EdgeletAPI v1 client with explicit options.
 func NewEdgeletAPIClient(id string, opts ...ClientOption) (*EdgeletAPIClient, error) {
 	if id == "" {
-		return nil, errors.New("Cannot create client with empty id")
+		return nil, errors.New("cannot create client with empty id")
 	}
 	client := EdgeletAPIClient{id: id}
 	client.initClient(applyClientOptions(defaultClientOptions(), opts...))
@@ -34,7 +34,7 @@ func NewEdgeletAPIClient(id string, opts ...ClientOption) (*EdgeletAPIClient, er
 func NewDefaultEdgeletAPIClient() (*EdgeletAPIClient, error) {
 	microserviceUID := os.Getenv(MicroserviceUID)
 	if microserviceUID == "" {
-		return nil, errors.New("Cannot create client with empty id: " + MicroserviceUID + " environment variable is not set")
+		return nil, errors.New("cannot create client with empty id: " + MicroserviceUID + " environment variable is not set")
 	}
 	ssl, err := strconv.ParseBool(os.Getenv(SSL))
 	if err != nil {
@@ -48,11 +48,11 @@ func NewDefaultEdgeletAPIClient() (*EdgeletAPIClient, error) {
 	)
 }
 
-func (client *EdgeletAPIClient) GetConfig() (map[string]interface{}, error) {
+func (client *EdgeletAPIClient) GetConfig() (map[string]any, error) {
 	return client.httpClient.getConfig()
 }
 
-func (client *EdgeletAPIClient) GetConfigIntoStruct(config interface{}) error {
+func (client *EdgeletAPIClient) GetConfigIntoStruct(config any) error {
 	return client.httpClient.getConfigIntoStruct(config)
 }
 

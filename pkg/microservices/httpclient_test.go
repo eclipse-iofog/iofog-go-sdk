@@ -27,10 +27,10 @@ func TestEdgeletAPIHTTPClientGetConfig(t *testing.T) {
 		if got := r.Header.Get("Authorization"); got != "Bearer test-token" {
 			t.Fatalf("unexpected auth header: %q", got)
 		}
-		_ = json.NewEncoder(w).Encode(map[string]interface{}{
+		_ = json.NewEncoder(w).Encode(map[string]any{
 			"success": true,
-			"data": map[string]interface{}{
-				"config": map[string]interface{}{
+			"data": map[string]any{
+				"config": map[string]any{
 					"name": "svc",
 				},
 			},

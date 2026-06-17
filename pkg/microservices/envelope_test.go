@@ -11,7 +11,7 @@ func TestParseEdgeletAPIEnvelopeSuccess(t *testing.T) {
 	if err != nil {
 		t.Fatalf("unexpected parse error: %v", err)
 	}
-	config, ok := data["config"].(map[string]interface{})
+	config, ok := data["config"].(map[string]any)
 	if !ok {
 		t.Fatalf("expected map config payload, got %T", data["config"])
 	}

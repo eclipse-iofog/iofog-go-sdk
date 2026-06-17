@@ -31,14 +31,14 @@ func TestDialControlWSUsesBearerAndPath(t *testing.T) {
 		}
 		defer conn.Close()
 
-		if err := conn.WriteMessage(ws.BinaryMessage, []byte{CODE_CONTROL_SIGNAL}); err != nil {
+		if err := conn.WriteMessage(ws.BinaryMessage, []byte{CodeControlSignal}); err != nil {
 			t.Fatalf("failed to write control signal: %v", err)
 		}
 		_, payload, err := conn.ReadMessage()
 		if err != nil {
 			t.Fatalf("failed to read ack: %v", err)
 		}
-		ackReceived <- len(payload) > 0 && payload[0] == CODE_ACK
+		ackReceived <- len(payload) > 0 && payload[0] == CodeAck
 	}))
 	defer server.Close()
 
@@ -81,7 +81,7 @@ func TestDialControlWSUsesBearerAndPath(t *testing.T) {
 
 	select {
 	case sig := <-signals:
-		if sig != CODE_CONTROL_SIGNAL {
+		if sig != CodeControlSignal {
 			t.Fatalf("unexpected signal opcode: %v", sig)
 		}
 	case <-time.After(2 * time.Second):

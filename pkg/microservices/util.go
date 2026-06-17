@@ -1,6 +1,7 @@
 package microservices
 
 import (
+	"errors"
 	"fmt"
 	"math"
 	"net"
@@ -18,11 +19,10 @@ func intToBytesBE(num int) ([]byte, int) {
 	b := make([]byte, numOfBytes)
 	shift := uint(8 * (numOfBytes - 1))
 	for i := 0; i < numOfBytes; i++ {
-		b[i] = byte(num >> shift)
+		b[i] = byte((uint(num) >> shift) & 0xFF)
 		shift -= 8
 	}
 	return b, numOfBytes
-
 }
 
 func int64ToBytesBE(num int64) ([]byte, int) {
@@ -34,7 +34,7 @@ func int64ToBytesBE(num int64) ([]byte, int) {
 	b := make([]byte, numOfBytes)
 	shift := uint(8 * (numOfBytes - 1))
 	for i := 0; i < numOfBytes; i++ {
-		b[i] = byte(num >> shift)
+		b[i] = byte((num >> int64(shift)) & 0xFF) // #nosec G115 -- minimal big-endian encoding of non-negative protocol integers
 		shift -= 8
 	}
 	return b, numOfBytes
@@ -46,9 +46,11 @@ func setCustomPingHandler(conn *ws.Conn) {
 			message = fmt.Sprint(ws.PongMessage)
 		}
 		err := conn.WriteControl(ws.PongMessage, []byte(message), time.Now().Add(time.Second))
-		if err == ws.ErrCloseSent {
+		if errors.Is(err, ws.ErrCloseSent) {
 			return nil
-		} else if e, ok := err.(net.Error); ok && e.Temporary() {
+		}
+		var e net.Error
+		if errors.As(err, &e) && e.Temporary() {
 			return nil
 		}
 		return err

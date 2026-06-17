@@ -138,9 +138,9 @@ func WithWSHandshakeTimeout(timeout time.Duration) ClientOption {
 }
 
 // WithWSReconnectDelays sets websocket reconnect backoff bounds.
-func WithWSReconnectDelays(base, max time.Duration) ClientOption {
+func WithWSReconnectDelays(base, maxDelay time.Duration) ClientOption {
 	return func(opts *ClientOptions) {
 		opts.WSReconnectBaseDelay = base
-		opts.WSReconnectMaxDelay = max
+		opts.WSReconnectMaxDelay = maxDelay
 	}
 }

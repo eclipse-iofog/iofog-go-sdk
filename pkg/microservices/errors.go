@@ -28,7 +28,7 @@ type EdgeletAPIError struct {
 	StatusCode int
 	Code       string
 	Message    string
-	Details    map[string]interface{}
+	Details    map[string]any
 }
 
 func (e *EdgeletAPIError) Error() string {

@@ -5,22 +5,24 @@ import (
 	"fmt"
 )
 
-type edgeletAPIEnvelope struct {
-	Success bool                   `json:"success"`
-	Data    map[string]interface{} `json:"data"`
-	Error   struct {
-		Code    string                 `json:"code"`
-		Message string                 `json:"message"`
-		Details map[string]interface{} `json:"details"`
-	} `json:"error"`
+type edgeletAPIErrorPayload struct {
+	Code    string         `json:"code"`
+	Message string         `json:"message"`
+	Details map[string]any `json:"details"`
 }
 
-func parseEdgeletAPIEnvelope(body []byte, statusCode int) (map[string]interface{}, error) {
+type edgeletAPIEnvelope struct {
+	Success bool                   `json:"success"`
+	Data    map[string]any         `json:"data"`
+	Error   edgeletAPIErrorPayload `json:"error"`
+}
+
+func parseEdgeletAPIEnvelope(body []byte, statusCode int) (map[string]any, error) {
 	var env edgeletAPIEnvelope
 	if err := json.Unmarshal(body, &env); err != nil {
 		if statusCode >= 200 && statusCode < 300 {
 			// Fallback for non-enveloped payloads.
-			var payload map[string]interface{}
+			var payload map[string]any
 			if errMap := json.Unmarshal(body, &payload); errMap == nil {
 				return payload, nil
 			}
@@ -36,7 +38,7 @@ func parseEdgeletAPIEnvelope(body []byte, statusCode int) (map[string]interface{
 		}
 	}
 	if env.Data == nil {
-		return map[string]interface{}{}, nil
+		return map[string]any{}, nil
 	}
 	return env.Data, nil
 }

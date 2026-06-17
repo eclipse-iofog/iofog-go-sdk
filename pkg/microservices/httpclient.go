@@ -2,6 +2,7 @@ package microservices
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -16,20 +17,20 @@ func newEdgeletAPIHttpClient(options ClientOptions) *edgeletAPIHttpClient {
 	return &edgeletAPIHttpClient{options: options, tokenProvider: readBearerToken}
 }
 
-func (client *edgeletAPIHttpClient) getConfig() (map[string]interface{}, error) {
+func (client *edgeletAPIHttpClient) getConfig() (map[string]any, error) {
 	resp, err := client.makeRequest(http.MethodGet, URLGetConfigV1, nil)
 	if err != nil {
 		return nil, err
 	}
 	payload, ok := resp["config"]
 	if !ok {
-		return nil, fmt.Errorf("missing config payload in response")
+		return nil, errors.New("missing config payload in response")
 	}
 	switch typed := payload.(type) {
-	case map[string]interface{}:
+	case map[string]any:
 		return typed, nil
 	case string:
-		config := make(map[string]interface{})
+		config := make(map[string]any)
 		if err := json.Unmarshal([]byte(typed), &config); err != nil {
 			return nil, fmt.Errorf("failed to decode config string payload: %w", err)
 		}
@@ -39,7 +40,7 @@ func (client *edgeletAPIHttpClient) getConfig() (map[string]interface{}, error) 
 	}
 }
 
-func (client *edgeletAPIHttpClient) getConfigIntoStruct(config interface{}) error {
+func (client *edgeletAPIHttpClient) getConfigIntoStruct(config any) error {
 	configMap, err := client.getConfig()
 	if err != nil {
 		return err
@@ -54,7 +55,7 @@ func (client *edgeletAPIHttpClient) getConfigIntoStruct(config interface{}) erro
 	return nil
 }
 
-func (client *edgeletAPIHttpClient) makeRequest(method, path string, body io.Reader) (map[string]interface{}, error) {
+func (client *edgeletAPIHttpClient) makeRequest(method, path string, body io.Reader) (map[string]any, error) {
 	httpClient, err := buildHTTPClient(client.options)
 	if err != nil {
 		return nil, fmt.Errorf("failed to build HTTP client: %w", err)
@@ -84,7 +85,7 @@ func (client *edgeletAPIHttpClient) makeRequest(method, path string, body io.Rea
 			return nil, doErr
 		}
 		responseBody, readErr := io.ReadAll(resp.Body)
-		resp.Body.Close()
+		_ = resp.Body.Close()
 		if readErr != nil {
 			return nil, readErr
 		}

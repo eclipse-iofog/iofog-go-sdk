@@ -14,7 +14,7 @@ const (
 	HostDefault       = "edgelet.default.svc.bridge.local"
 	FallbackHostLocal = "127.0.0.1"
 
-	DefaultServiceAccountTokenPath = "/var/run/secrets/edgelet.iofog.org/serviceaccount/token"
+	DefaultServiceAccountTokenPath = "/var/run/secrets/edgelet.iofog.org/serviceaccount/token" // #nosec G101 -- well-known service-account mount path, not a credential
 	DefaultServiceAccountCAPath    = "/var/run/secrets/edgelet.iofog.org/serviceaccount/ca.crt"
 
 	URLGetConfigV1    = "/v1/microservices/config"
@@ -25,8 +25,8 @@ const (
 	SchemeWS          = "ws"
 	SchemeWSS         = "wss"
 
-	CODE_ACK            = 0xB
-	CODE_CONTROL_SIGNAL = 0xC
+	CodeAck           = 0xB
+	CodeControlSignal = 0xC
 
 	DefaultSignalBufferSize     = 5
 	DefaultRequestTimeout       = 15 * time.Second
