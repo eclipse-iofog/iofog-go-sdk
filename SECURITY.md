@@ -28,6 +28,5 @@ make lint            # golangci-lint v2 (gosec intentionally excluded)
 |------|----------|-----------|
 | G402 | `pkg/client/http.go` | Controller deployments commonly use self-signed TLS |
 | G101 | `pkg/microservices/declarations.go` | Well-known service-account mount path constant, not a credential |
-| G115 | `pkg/microservices/util.go` | Minimal big-endian encoding of non-negative protocol integers |
 
 Undocumented `#nosec` findings **fail** `make security-code`.
