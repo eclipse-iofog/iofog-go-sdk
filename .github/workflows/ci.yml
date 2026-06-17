@@ -1,0 +1,25 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - 'release/**'
+  pull_request:
+
+jobs:
+  quality:
+    name: Quality
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.26.4'
+
+      - run: make lint
+
+      - name: Static security analysis
+        run: make security-code
+
+      - run: make vulncheck
