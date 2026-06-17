@@ -2,6 +2,7 @@ package apps
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"net/url"
 
@@ -11,14 +12,14 @@ import (
 
 type applicationExecutor struct {
 	controller      IofogController
-	app             interface{}
+	app             any
 	name            string
 	apiVersion      string
 	applicationInfo *client.ApplicationInfo
 	client          *client.Client
 }
 
-func newApplicationExecutor(controller IofogController, app interface{}, name string, opts ...DeployOption) *applicationExecutor {
+func newApplicationExecutor(controller IofogController, app any, name string, opts ...DeployOption) *applicationExecutor {
 	resolved := resolveDeployOptions(opts...)
 	return &applicationExecutor{
 		controller: controller,
@@ -39,15 +40,13 @@ func (exe *applicationExecutor) execute() (err error) {
 	exe.applicationInfo, err = exe.client.GetApplicationByName(exe.name)
 
 	// If not notfound error, return error
-	if _, ok := err.(*client.NotFoundError); err != nil && !ok {
+	notFoundError := &client.NotFoundError{}
+	if errors.As(err, &notFoundError) {
 		return err
 	}
 
 	// Deploy application
-	if err := exe.deploy(); err != nil {
-		return err
-	}
-	return nil
+	return exe.deploy()
 }
 
 func (exe *applicationExecutor) init() (err error) {

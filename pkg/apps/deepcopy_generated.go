@@ -172,8 +172,8 @@ func (in *AgentConfiguration) DeepCopyInto(out *AgentConfiguration) {
 		*out = new(int)
 		**out = **in
 	}
-	if in.NatsHttpPort != nil {
-		in, out := &in.NatsHttpPort, &out.NatsHttpPort
+	if in.NatsHTTPPort != nil {
+		in, out := &in.NatsHTTPPort, &out.NatsHTTPPort
 		*out = new(int)
 		**out = **in
 	}

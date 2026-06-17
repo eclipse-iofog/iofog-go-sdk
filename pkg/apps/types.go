@@ -34,7 +34,7 @@ type Header struct {
 	APIVersion string         `yaml:"apiVersion" json:"apiVersion"`
 	Kind       Kind           `yaml:"kind" json:"kind"`
 	Metadata   HeaderMetadata `yaml:"metadata" json:"metadata"`
-	Spec       interface{}    `yaml:"spec" json:"spec"`
+	Spec       any            `yaml:"spec" json:"spec"`
 }
 
 // CatalogItem contains information about a catalog item
@@ -84,7 +84,7 @@ type MicroserviceContainer struct {
 	CapAdd          []string                     `yaml:"capAdd,omitempty" json:"capAdd,omitempty"`
 	CapDrop         []string                     `yaml:"capDrop,omitempty" json:"capDrop,omitempty"`
 	Annotations     ArbitraryJSON                `yaml:"annotations,omitempty" json:"annotations,omitempty"`
-	CpuSetCpus      string                       `yaml:"cpuSetCpus,omitempty" json:"cpuSetCpus,omitempty"`
+	CPUSetCpus      string                       `yaml:"cpuSetCpus,omitempty" json:"cpuSetCpus,omitempty"`
 	MemoryLimit     *int64                       `yaml:"memoryLimit,omitempty" json:"memoryLimit,omitempty"`
 	HealthCheck     *MicroserviceHealthCheck     `yaml:"healthCheck,omitempty" json:"healthCheck,omitempty"`
 }
@@ -151,9 +151,10 @@ type MicroserviceNatsConfig struct {
 
 // ArbitraryJSON holds arbitrary JSON (e.g. config, annotations) as raw bytes.
 // It is compatible with controller-gen and preserves round-trip for YAML/JSON.
-// Use ToMap/FromMap for a map[string]interface{} API.
+// Use ToMap/FromMap for a map[string]any API.
 // +k8s:deepcopy-gen=ignore
 type ArbitraryJSON struct {
+	//revive:disable-next-line:struct-tag k8s yaml inline convention
 	runtime.RawExtension `yaml:",inline" json:",inline"`
 }
 
@@ -177,8 +178,8 @@ func (a *ArbitraryJSON) UnmarshalJSON(data []byte) error {
 }
 
 // UnmarshalYAML implements yaml.Unmarshaler so YAML objects (e.g. config: { key: value }) decode correctly.
-func (a *ArbitraryJSON) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	var v interface{}
+func (a *ArbitraryJSON) UnmarshalYAML(unmarshal func(any) error) error {
+	var v any
 	if err := unmarshal(&v); err != nil {
 		return err
 	}
@@ -195,11 +196,11 @@ func (a *ArbitraryJSON) UnmarshalYAML(unmarshal func(interface{}) error) error {
 }
 
 // MarshalYAML implements yaml.Marshaler so values emit as YAML objects.
-func (a ArbitraryJSON) MarshalYAML() (interface{}, error) {
+func (a ArbitraryJSON) MarshalYAML() (any, error) {
 	if len(a.Raw) == 0 {
-		return map[string]interface{}{}, nil
+		return map[string]any{}, nil
 	}
-	var v interface{}
+	var v any
 	if err := json.Unmarshal(a.Raw, &v); err != nil {
 		return nil, err
 	}
@@ -227,11 +228,11 @@ func (a ArbitraryJSON) DeepCopy() ArbitraryJSON {
 }
 
 // ToMap unmarshals Raw into a map for code that needs a map API. Returns nil map and nil error if empty.
-func (a ArbitraryJSON) ToMap() (map[string]interface{}, error) {
+func (a ArbitraryJSON) ToMap() (map[string]any, error) {
 	if len(a.Raw) == 0 {
 		return nil, nil
 	}
-	var m map[string]interface{}
+	var m map[string]any
 	if err := json.Unmarshal(a.Raw, &m); err != nil {
 		return nil, err
 	}
@@ -239,7 +240,7 @@ func (a ArbitraryJSON) ToMap() (map[string]interface{}, error) {
 }
 
 // FromMap sets Raw from the given map (for backward compatibility in code that builds config/annotations).
-func (a *ArbitraryJSON) FromMap(m map[string]interface{}) error {
+func (a *ArbitraryJSON) FromMap(m map[string]any) error {
 	if m == nil {
 		a.Raw = []byte("{}")
 		return nil
@@ -314,7 +315,7 @@ type AgentConfiguration struct {
 	NatsLeafPort        *int      `yaml:"natsLeafPort,omitempty" json:"natsLeafPort,omitempty"`
 	NatsClusterPort     *int      `yaml:"natsClusterPort,omitempty" json:"natsClusterPort,omitempty"`
 	NatsMqttPort        *int      `yaml:"natsMqttPort,omitempty" json:"natsMqttPort,omitempty"`
-	NatsHttpPort        *int      `yaml:"natsHttpPort,omitempty" json:"natsHttpPort,omitempty"`
+	NatsHTTPPort        *int      `yaml:"natsHttpPort,omitempty" json:"natsHttpPort,omitempty"`
 	UpstreamNatsServers *[]string `yaml:"upstreamNatsServers,omitempty" json:"upstreamNatsServers,omitempty"`
 	JsStorageSize       *string   `yaml:"jsStorageSize,omitempty" json:"jsStorageSize,omitempty"`
 	JsMemoryStoreSize   *string   `yaml:"jsMemoryStoreSize,omitempty" json:"jsMemoryStoreSize,omitempty"`

@@ -2,6 +2,7 @@ package apps
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"net/url"
 	"strings"
@@ -26,7 +27,7 @@ type ApplicationData struct {
 
 type microserviceExecutor struct {
 	controller IofogController
-	msvc       interface{}
+	msvc       any
 	name       string
 	appName    string
 	apiVersion string
@@ -50,7 +51,7 @@ func ParseFQMsvcName(fqName string) (appName, name string, err error) {
 	}
 }
 
-func newMicroserviceExecutor(controller IofogController, msvc interface{}, appName, name string, opts ...DeployOption) *microserviceExecutor {
+func newMicroserviceExecutor(controller IofogController, msvc any, appName, name string, opts ...DeployOption) *microserviceExecutor {
 	resolved := resolveDeployOptions(opts...)
 	return &microserviceExecutor{
 		controller: controller,
@@ -107,7 +108,7 @@ func (exe *microserviceExecutor) init() (err error) {
 				exe.isSystem = true
 				listMsvcs = systemMsvcs
 			} else {
-				return fmt.Errorf("no microservices found in system application")
+				return errors.New("no microservices found in system application")
 			}
 		} else {
 			// Return other types of errors
@@ -140,7 +141,7 @@ func (exe *microserviceExecutor) deploy() (newMsvc *client.MicroserviceInfo, err
 
 func (exe *microserviceExecutor) create() (newMsvc *client.MicroserviceInfo, err error) {
 	if exe.isSystem {
-		return nil, fmt.Errorf("cannot create system microservice")
+		return nil, errors.New("cannot create system microservice")
 	}
 	file := IofogHeader{
 		APIVersion: exe.apiVersion,
