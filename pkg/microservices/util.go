@@ -19,7 +19,7 @@ func setCustomPingHandler(conn *ws.Conn) {
 			return nil
 		}
 		var e net.Error
-		if errors.As(err, &e) && e.Temporary() {
+		if errors.As(err, &e) && e.Timeout() {
 			return nil
 		}
 		return err
