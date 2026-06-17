@@ -3,6 +3,7 @@ package client
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"mime/multipart"
@@ -11,7 +12,8 @@ import (
 func (clt *Client) IsApplicationTemplateCapable() error {
 	if _, err := clt.doRequest("HEAD", "/capabilities/applicationTemplates", nil); err != nil {
 		// If 404, not capable
-		if _, ok := err.(*NotFoundError); ok {
+		notFoundError := &NotFoundError{}
+		if errors.As(err, &notFoundError) {
 			return NewNotSupportedError("Application Templates")
 		}
 		return err
@@ -42,7 +44,7 @@ func (clt *Client) CreateApplicationTemplateFromYAML(file io.Reader) (*Applicati
 	if err != nil {
 		return nil, err
 	}
-	writer.Close()
+	_ = writer.Close()
 
 	headers := map[string]string{
 		"Content-Type": writer.FormDataContentType(),
@@ -69,7 +71,7 @@ func (clt *Client) UpdateApplicationTemplateFromYAML(name string, file io.Reader
 	if err != nil {
 		return nil, err
 	}
-	writer.Close()
+	_ = writer.Close()
 
 	headers := map[string]string{
 		"Content-Type": writer.FormDataContentType(),

@@ -1,6 +1,7 @@
 package client
 
 import (
+	"errors"
 	"fmt"
 	"net/url"
 	"path"
@@ -61,10 +62,10 @@ func New(opt Options) *Client {
 	return client
 }
 
-func NewAndLogin(opt Options, email, password string) (clt *Client, err error) {
-	clt = New(opt)
-	if err = clt.Login(LoginRequest{Email: email, Password: password}); err != nil {
-		return
+func NewAndLogin(opt Options, email, password string) (*Client, error) {
+	clt := New(opt)
+	if err := clt.Login(LoginRequest{Email: email, Password: password}); err != nil {
+		return nil, err
 	}
 	return clt, nil
 }
@@ -77,7 +78,7 @@ func SessionLogin(opt Options, token, email, password string) (clt *Client, err 
 		// If session login fails, fall back to normal login with email and password
 		clt, err = NewAndLogin(opt, email, password)
 		if err != nil {
-			return nil, fmt.Errorf("fallback login failed: %v", err)
+			return nil, fmt.Errorf("fallback login failed: %w", err)
 		}
 	}
 
@@ -88,29 +89,29 @@ func RefreshUserSubscriptionKey(opt Options, refreshToken, email, password strin
 	// Attempt session login using the refresh token
 	clt, err = SessionLogin(opt, refreshToken, email, password)
 	if err != nil {
-		return nil, "", fmt.Errorf("failed to login: %v", err)
+		return nil, "", fmt.Errorf("failed to login: %w", err)
 	}
 
 	// Get the access token and fetch user profile
 	accessToken := clt.GetAccessToken()
-	err, userResponse := clt.Profile(WithTokenRequest{AccessToken: accessToken})
+	userResponse, err := clt.Profile(WithTokenRequest{AccessToken: accessToken})
 	if err != nil {
-		return nil, "", fmt.Errorf("failed to fetch profile: %v", err)
+		return nil, "", fmt.Errorf("failed to fetch profile: %w", err)
 	}
 
 	return clt, userResponse.SubscriptionKey, nil
 }
 
-func NewWithToken(opt Options, token string) (clt *Client, err error) {
-	clt = New(opt)
+func NewWithToken(opt Options, token string) (*Client, error) {
+	clt := New(opt)
 	clt.SetAccessToken(token)
-	return
+	return clt, nil
 }
 
-func NewWithRefreshToken(opt Options, refreshToken string) (clt *Client, err error) {
-	clt = New(opt)
+func NewWithRefreshToken(opt Options, refreshToken string) (*Client, error) {
+	clt := New(opt)
 	clt.SetAccessToken(refreshToken)
-	return
+	return clt, nil
 }
 
 func (clt *Client) GetBaseURL() string {
@@ -141,12 +142,13 @@ func (clt *Client) SetRefreshToken(token string) {
 	clt.refreshToken = token
 }
 
-func (clt *Client) doRequestWithRetries(currentRetries Retries, method, requestURL string, headers map[string]string, request interface{}) ([]byte, error) {
+func (clt *Client) doRequestWithRetries(currentRetries Retries, method, requestURL string, headers map[string]string, request any) ([]byte, error) {
 	// Send request
 	httpDo := httpDo{timeout: clt.timeout}
 	bytes, err := httpDo.do(method, requestURL, headers, request)
 	if err != nil {
-		httpErr, ok := err.(*HTTPError)
+		httpErr := &HTTPError{}
+		ok := errors.As(err, &httpErr)
 		// If HTTP Error
 		if ok {
 			if httpErr.Code == 408 { // HTTP Timeout
@@ -175,7 +177,7 @@ func (clt *Client) doRequestWithRetries(currentRetries Retries, method, requestU
 	return bytes, err
 }
 
-func (clt *Client) doRequestWithHeaders(method, requestPath string, request interface{}, headers map[string]string) ([]byte, error) {
+func (clt *Client) doRequestWithHeaders(method, requestPath string, request any, headers map[string]string) ([]byte, error) {
 	// Copy the base URL
 	requestURL, err := url.Parse(clt.baseURL.String())
 	if err != nil {
@@ -206,7 +208,7 @@ func (clt *Client) doRequestWithHeaders(method, requestPath string, request inte
 	return clt.doRequestWithRetries(currentRetries, method, requestURL.String(), headers, request)
 }
 
-func (clt *Client) doRequest(method, requestPath string, request interface{}) ([]byte, error) {
+func (clt *Client) doRequest(method, requestPath string, request any) ([]byte, error) {
 	headers := map[string]string{
 		"Content-Type": "application/json",
 	}

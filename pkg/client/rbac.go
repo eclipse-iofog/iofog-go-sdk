@@ -62,7 +62,7 @@ func (clt *Client) CreateRoleFromYaml(file io.Reader) error {
 	if err != nil {
 		return err
 	}
-	writer.Close()
+	_ = writer.Close()
 
 	headers := map[string]string{
 		"Content-Type": writer.FormDataContentType(),
@@ -96,7 +96,7 @@ func (clt *Client) UpdateRoleFromYaml(name string, file io.Reader) error {
 	if err != nil {
 		return err
 	}
-	writer.Close()
+	_ = writer.Close()
 
 	headers := map[string]string{
 		"Content-Type": writer.FormDataContentType(),
@@ -164,7 +164,7 @@ func (clt *Client) CreateRoleBindingFromYaml(file io.Reader) error {
 	if err != nil {
 		return err
 	}
-	writer.Close()
+	_ = writer.Close()
 
 	headers := map[string]string{
 		"Content-Type": writer.FormDataContentType(),
@@ -198,7 +198,7 @@ func (clt *Client) UpdateRoleBindingFromYaml(name string, file io.Reader) error 
 	if err != nil {
 		return err
 	}
-	writer.Close()
+	_ = writer.Close()
 
 	headers := map[string]string{
 		"Content-Type": writer.FormDataContentType(),
@@ -273,7 +273,7 @@ func (clt *Client) CreateServiceAccountFromYaml(file io.Reader) error {
 	if err != nil {
 		return err
 	}
-	writer.Close()
+	_ = writer.Close()
 
 	headers := map[string]string{
 		"Content-Type": writer.FormDataContentType(),
@@ -307,7 +307,7 @@ func (clt *Client) UpdateServiceAccountFromYaml(appName, name string, file io.Re
 	if err != nil {
 		return err
 	}
-	writer.Close()
+	_ = writer.Close()
 
 	headers := map[string]string{
 		"Content-Type": writer.FormDataContentType(),

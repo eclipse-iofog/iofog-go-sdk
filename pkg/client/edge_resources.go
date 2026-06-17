@@ -2,6 +2,7 @@ package client
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 )
 
@@ -11,8 +12,8 @@ const (
 
 func (clt *Client) IsEdgeResourceCapable() error {
 	if _, err := clt.doRequest("HEAD", "/capabilities/edgeResources", nil); err != nil {
-		// If 404, not capable
-		if _, ok := err.(*NotFoundError); ok {
+		notFoundError := &NotFoundError{}
+		if errors.As(err, &notFoundError) {
 			return NewNotSupportedError("Edge Resources")
 		}
 		return err
@@ -21,7 +22,6 @@ func (clt *Client) IsEdgeResourceCapable() error {
 }
 
 func (clt *Client) edgeResourcePreflight() error {
-	// Check capability
 	if err := clt.IsEdgeResourceCapable(); err != nil {
 		return err
 	}
@@ -39,7 +39,6 @@ func (clt *Client) CreateHTTPEdgeResource(request *EdgeResourceMetadata) error {
 		return err
 	}
 
-	// Send request
 	if _, err := clt.doRequest("POST", "/edgeResource", request); err != nil {
 		return err
 	}
@@ -48,39 +47,39 @@ func (clt *Client) CreateHTTPEdgeResource(request *EdgeResourceMetadata) error {
 }
 
 // GetHttpEdgeResourceByName gets an Edge Resource using Controller REST API
-func (clt *Client) GetHTTPEdgeResourceByName(name, version string) (response EdgeResourceMetadata, err error) {
+func (clt *Client) GetHTTPEdgeResourceByName(name, version string) (EdgeResourceMetadata, error) {
+	var response EdgeResourceMetadata
 	if err := clt.edgeResourcePreflight(); err != nil {
 		return response, err
 	}
 
-	// Send request
 	body, err := clt.doRequest("GET", fmt.Sprintf("/edgeResource/%s/%s", name, version), nil)
 	if err != nil {
-		return
+		return response, err
 	}
 
 	if err = json.Unmarshal(body, &response); err != nil {
-		return
+		return response, err
 	}
-	return
+	return response, nil
 }
 
 // ListEdgeResources list all Edge Resources using Controller REST API
-func (clt *Client) ListEdgeResources() (response ListEdgeResourceResponse, err error) {
+func (clt *Client) ListEdgeResources() (ListEdgeResourceResponse, error) {
+	var response ListEdgeResourceResponse
 	if err := clt.edgeResourcePreflight(); err != nil {
 		return response, err
 	}
 
-	// Send request
 	body, err := clt.doRequest("GET", "/edgeResources", nil)
 	if err != nil {
-		return
+		return response, err
 	}
 
 	if err = json.Unmarshal(body, &response); err != nil {
-		return
+		return response, err
 	}
-	return
+	return response, nil
 }
 
 // UpdateHttpEdgeResource updates an HTTP Based Edge Resources using Controller REST API
@@ -89,7 +88,6 @@ func (clt *Client) UpdateHTTPEdgeResource(name string, request *EdgeResourceMeta
 		return err
 	}
 
-	// Send request
 	if _, err := clt.doRequest("PUT", fmt.Sprintf("/edgeResource/%s/%s", name, request.Version), request); err != nil {
 		return err
 	}
@@ -97,13 +95,12 @@ func (clt *Client) UpdateHTTPEdgeResource(name string, request *EdgeResourceMeta
 	return nil
 }
 
-// ListEdgeResources list all Edge Resources using Controller REST API
+// DeleteEdgeResource deletes an Edge Resource using Controller REST API
 func (clt *Client) DeleteEdgeResource(name, version string) error {
 	if err := clt.edgeResourcePreflight(); err != nil {
 		return err
 	}
 
-	// Send request
 	if _, err := clt.doRequest("DELETE", fmt.Sprintf("/edgeResource/%s/%s", name, version), nil); err != nil {
 		return err
 	}
@@ -117,7 +114,6 @@ func (clt *Client) LinkEdgeResource(request LinkEdgeResourceRequest) error {
 		return err
 	}
 
-	// Send request
 	url := fmt.Sprintf("/edgeResource/%s/%s/link", request.EdgeResourceName, request.EdgeResourceVersion)
 	if _, err := clt.doRequest("POST", url, request); err != nil {
 		return err
@@ -131,7 +127,6 @@ func (clt *Client) UnlinkEdgeResource(request LinkEdgeResourceRequest) error {
 	if err := clt.edgeResourcePreflight(); err != nil {
 		return err
 	}
-	// Send request
 	url := fmt.Sprintf("/edgeResource/%s/%s/link", request.EdgeResourceName, request.EdgeResourceVersion)
 	if _, err := clt.doRequest("DELETE", url, request); err != nil {
 		return err

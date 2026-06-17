@@ -9,29 +9,29 @@ import (
 )
 
 // GetApplicationByName retrieve application information using the Controller REST API
-func (clt *Client) GetApplicationByName(name string) (application *ApplicationInfo, err error) {
+func (clt *Client) GetApplicationByName(name string) (*ApplicationInfo, error) {
 	body, err := clt.doRequest("GET", fmt.Sprintf("/application/%s", name), nil)
 	if err != nil {
-		return
+		return nil, err
 	}
-	application = new(ApplicationInfo)
+	application := new(ApplicationInfo)
 	if err = json.Unmarshal(body, application); err != nil {
-		return
+		return nil, err
 	}
-	return
+	return application, nil
 }
 
 // GetSystemApplicationByName retrieve system application information using the Controller REST API
-func (clt *Client) GetSystemApplicationByName(name string) (application *ApplicationInfo, err error) {
+func (clt *Client) GetSystemApplicationByName(name string) (*ApplicationInfo, error) {
 	body, err := clt.doRequest("GET", fmt.Sprintf("/application/system/%s", name), nil)
 	if err != nil {
-		return
+		return nil, err
 	}
-	application = new(ApplicationInfo)
+	application := new(ApplicationInfo)
 	if err = json.Unmarshal(body, application); err != nil {
-		return
+		return nil, err
 	}
-	return
+	return application, nil
 }
 
 // CreateApplicationFromYAML creates a new application using the Controller REST API
@@ -44,13 +44,12 @@ func (clt *Client) CreateApplicationFromYAML(file io.Reader) (*ApplicationInfo, 
 	if err != nil {
 		return nil, err
 	}
-	writer.Close()
+	_ = writer.Close()
 
 	headers := map[string]string{
 		"Content-Type": writer.FormDataContentType(),
 	}
 	body, err := clt.doRequestWithHeaders("POST", "/application/yaml", requestBody, headers)
-
 	if err != nil {
 		return nil, err
 	}
@@ -71,7 +70,7 @@ func (clt *Client) UpdateApplicationFromYAML(name string, file io.Reader) (*Appl
 	if err != nil {
 		return nil, err
 	}
-	writer.Close()
+	_ = writer.Close()
 
 	headers := map[string]string{
 		"Content-Type": writer.FormDataContentType(),
@@ -110,39 +109,39 @@ func (clt *Client) StopApplication(name string) (*ApplicationInfo, error) {
 }
 
 // GetAllApplications retrieve all flows information from the Controller REST API
-func (clt *Client) GetAllApplications() (response *ApplicationListResponse, err error) {
+func (clt *Client) GetAllApplications() (*ApplicationListResponse, error) {
 	body, err := clt.doRequest("GET", "/application", nil)
 	if err != nil {
-		return
+		return nil, err
 	}
-	response = new(ApplicationListResponse)
+	response := new(ApplicationListResponse)
 	if err = json.Unmarshal(body, response); err != nil {
-		return
+		return nil, err
 	}
 	return response, nil
 }
 
 // GetAllSystemApplications retrieve all system applications information from the Controller REST API
-func (clt *Client) GetAllSystemApplications() (response *ApplicationListResponse, err error) {
+func (clt *Client) GetAllSystemApplications() (*ApplicationListResponse, error) {
 	body, err := clt.doRequest("GET", "/application/system", nil)
 	if err != nil {
-		return
+		return nil, err
 	}
-	response = new(ApplicationListResponse)
+	response := new(ApplicationListResponse)
 	if err = json.Unmarshal(body, response); err != nil {
-		return
+		return nil, err
 	}
 	return response, nil
 }
 
 // DeleteApplication deletes an application using the Controller REST API
-func (clt *Client) DeleteApplication(name string) (err error) {
-	_, err = clt.doRequest("DELETE", fmt.Sprintf("/application/%s", name), nil)
-	return
+func (clt *Client) DeleteApplication(name string) error {
+	_, err := clt.doRequest("DELETE", fmt.Sprintf("/application/%s", name), nil)
+	return err
 }
 
 // DeleteSystemApplication deletes an application using the Controller REST API
-func (clt *Client) DeleteSystemApplication(name string) (err error) {
-	_, err = clt.doRequest("DELETE", fmt.Sprintf("/application/system/%s", name), nil)
-	return
+func (clt *Client) DeleteSystemApplication(name string) error {
+	_, err := clt.doRequest("DELETE", fmt.Sprintf("/application/system/%s", name), nil)
+	return err
 }

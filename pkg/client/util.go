@@ -31,14 +31,13 @@ var RegistryTypeIDRegistryTypeDict = map[int]string{
 	2: "local",
 }
 
-func getString(in io.Reader) (out string, err error) {
+func getString(in io.Reader) (string, error) {
 	buf := new(bytes.Buffer)
-	if _, err = buf.ReadFrom(in); err != nil {
-		return
+	if _, err := buf.ReadFrom(in); err != nil {
+		return "", err
 	}
 
-	out = buf.String()
-	return
+	return buf.String(), nil
 }
 
 func checkStatusCode(code int, method, url string, body io.Reader) error {

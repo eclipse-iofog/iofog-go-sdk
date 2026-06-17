@@ -2,16 +2,15 @@ package client
 
 import "encoding/json"
 
-func (clt *Client) GetStatus() (status ControllerStatus, err error) {
-	// Prepare request
+func (clt *Client) GetStatus() (ControllerStatus, error) {
+	var status ControllerStatus
 	body, err := clt.doRequest("GET", "/status", nil)
 	if err != nil {
-		return
+		return status, err
 	}
 
-	// Return body
 	if err = json.Unmarshal(body, &status); err != nil {
-		return
+		return status, err
 	}
-	return
+	return status, nil
 }

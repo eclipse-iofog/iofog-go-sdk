@@ -11,7 +11,7 @@ func SetVerbosity(verbose bool) {
 
 func Verbose(msg string) {
 	if IsVerbose {
-		fmt.Printf("[HTTP]: %s\n", msg)
+		_, _ = fmt.Printf("[HTTP]: %s\n", msg)
 	}
 }
 

@@ -21,10 +21,7 @@ func (clt *Client) CreateRegistry(request *RegistryCreateRequest) (int, error) {
 // UpdateRegistry patches a registry using the Controller REST API
 func (clt *Client) UpdateRegistry(request RegistryUpdateRequest) error {
 	_, err := clt.doRequest("PATCH", fmt.Sprintf("/registries/%d", request.ID), request)
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }
 
 // GetRegistry retrieves a single registry by ID from the Controller REST API
@@ -41,19 +38,20 @@ func (clt *Client) GetRegistry(id int) (*RegistryInfo, error) {
 }
 
 // ListRegistries retrieve all registries information from the Controller REST API
-func (clt *Client) ListRegistries() (response RegistryListResponse, err error) {
+func (clt *Client) ListRegistries() (RegistryListResponse, error) {
+	var response RegistryListResponse
 	body, err := clt.doRequest("GET", "/registries", nil)
 	if err != nil {
-		return
+		return response, err
 	}
 	if err = json.Unmarshal(body, &response); err != nil {
-		return
+		return response, err
 	}
 	return response, nil
 }
 
 // DeleteRegistry deletes a registry using the Controller REST API
-func (clt *Client) DeleteRegistry(id int) (err error) {
-	_, err = clt.doRequest("DELETE", fmt.Sprintf("/registries/%d", id), nil)
-	return
+func (clt *Client) DeleteRegistry(id int) error {
+	_, err := clt.doRequest("DELETE", fmt.Sprintf("/registries/%d", id), nil)
+	return err
 }

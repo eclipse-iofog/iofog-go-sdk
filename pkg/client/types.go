@@ -83,14 +83,14 @@ type ApplicationTemplate struct {
 type ApplicationTemplateCreateRequest = ApplicationTemplate
 
 type TemplateVariable struct {
-	Key          string      `json:"key" yaml:"key,omitempty"`
-	Description  string      `json:"description" yaml:"description,omitempty"`
-	DefaultValue interface{} `json:"defaultValue,omitempty" yaml:"defaultValue,omitempty"`
-	Value        interface{} `json:"value,omitempty" yaml:"value,omitempty"`
+	Key          string `json:"key" yaml:"key,omitempty"`
+	Description  string `json:"description" yaml:"description,omitempty"`
+	DefaultValue any    `json:"defaultValue,omitempty" yaml:"defaultValue,omitempty"`
+	Value        any    `json:"value,omitempty" yaml:"value,omitempty"`
 }
 
 type ApplicationTemplateInfo struct {
-	Microservices []interface{}          `json:"microservices"`
+	Microservices []any                  `json:"microservices"`
 	NatsConfig    *ApplicationNatsConfig `json:"natsConfig,omitempty"`
 }
 
@@ -390,11 +390,11 @@ type MicroserviceInfo struct {
 	PubTags           []string                        `json:"pubTags"`
 	SubTags           []string                        `json:"subTags"`
 	Annotations       string                          `json:"annotations"`
-	CpuSetCpus        string                          `json:"cpuSetCpus,omitempty"`
+	CPUSetCpus        string                          `json:"cpuSetCpus,omitempty"`
 	MemoryLimit       int64                           `json:"memoryLimit,omitempty"`
 	HealthCheck       MicroserviceHealthCheck         `json:"healthCheck,omitempty"`
 	NatsConfig        *MicroserviceNatsConfig         `json:"natsConfig,omitempty"`
-	ServiceAccount    *MicroserviceServiceAccountRef   `json:"serviceAccount,omitempty"`
+	ServiceAccount    *MicroserviceServiceAccountRef  `json:"serviceAccount,omitempty"`
 }
 
 // MicroserviceServiceAccountRef is the optional serviceAccount field in a microservice spec (YAML or API).
@@ -496,7 +496,7 @@ type ListAgentsRequest struct {
 }
 
 type CreateAgentRequest struct {
-	AgentUpdateRequest `json:",inline"`
+	AgentUpdateRequest `json:",inline"` //nolint:revive // inline embedding matches Controller API JSON
 }
 
 type CreateAgentResponse struct {
@@ -590,7 +590,7 @@ type AgentInfo struct {
 	NatsLeafPort        *int      `json:"natsLeafPort,omitempty" yaml:"natsLeafPort,omitempty"`
 	NatsClusterPort     *int      `json:"natsClusterPort,omitempty" yaml:"natsClusterPort,omitempty"`
 	NatsMqttPort        *int      `json:"natsMqttPort,omitempty" yaml:"natsMqttPort,omitempty"`
-	NatsHttpPort        *int      `json:"natsHttpPort,omitempty" yaml:"natsHttpPort,omitempty"`
+	NatsHTTPPort        *int      `json:"natsHttpPort,omitempty" yaml:"natsHttpPort,omitempty"`
 	UpstreamNatsServers *[]string `json:"upstreamNatsServers,omitempty" yaml:"upstreamNatsServers,omitempty"`
 	JsStorageSize       *string   `json:"jsStorageSize,omitempty" yaml:"jsStorageSize,omitempty"`
 	JsMemoryStoreSize   *string   `json:"jsMemoryStoreSize,omitempty" yaml:"jsMemoryStoreSize,omitempty"`
@@ -609,7 +609,7 @@ type NatsConfig struct {
 	NatsLeafPort      *int    `json:"natsLeafPort,omitempty" yaml:"natsLeafPort,omitempty"`
 	NatsClusterPort   *int    `json:"natsClusterPort,omitempty" yaml:"natsClusterPort,omitempty"`
 	NatsMqttPort      *int    `json:"natsMqttPort,omitempty" yaml:"natsMqttPort,omitempty"`
-	NatsHttpPort      *int    `json:"natsHttpPort,omitempty" yaml:"natsHttpPort,omitempty"`
+	NatsHTTPPort      *int    `json:"natsHttpPort,omitempty" yaml:"natsHttpPort,omitempty"`
 	JsStorageSize     *string `json:"jsStorageSize,omitempty" yaml:"jsStorageSize,omitempty"`
 	JsMemoryStoreSize *string `json:"jsMemoryStoreSize,omitempty" yaml:"jsMemoryStoreSize,omitempty"`
 }
@@ -714,14 +714,14 @@ type EdgeResourceDisplay struct {
 }
 
 type EdgeResourceMetadata struct {
-	Name              string                 `json:"name,omitempty"`
-	Description       string                 `json:"description,omitempty"`
-	Version           string                 `json:"version,omitempty"`
-	InterfaceProtocol string                 `json:"interfaceProtocol,omitempty"`
-	Display           *EdgeResourceDisplay   `json:"display,omitempty"`
-	Interface         HTTPEdgeResource       `json:"interface,omitempty"` // TODO: Make this generic
-	OrchestrationTags []string               `json:"orchestrationTags,omitempty"`
-	Custom            map[string]interface{} `json:"custom,omitempty"`
+	Name              string               `json:"name,omitempty"`
+	Description       string               `json:"description,omitempty"`
+	Version           string               `json:"version,omitempty"`
+	InterfaceProtocol string               `json:"interfaceProtocol,omitempty"`
+	Display           *EdgeResourceDisplay `json:"display,omitempty"`
+	Interface         HTTPEdgeResource     `json:"interface,omitempty"` // TODO: Make this generic
+	OrchestrationTags []string             `json:"orchestrationTags,omitempty"`
+	Custom            map[string]any       `json:"custom,omitempty"`
 }
 
 type HTTPEdgeResource struct {
@@ -991,7 +991,7 @@ type NatsHubResponse struct {
 	ClusterPort int    `json:"clusterPort"`
 	LeafPort    int    `json:"leafPort"`
 	MqttPort    int    `json:"mqttPort"`
-	HttpPort    int    `json:"httpPort"`
+	HTTPPort    int    `json:"httpPort"`
 }
 
 // NatsHubRequest is the request body for PUT /nats/hub.
@@ -1001,7 +1001,7 @@ type NatsHubRequest struct {
 	ClusterPort *int    `json:"clusterPort,omitempty"`
 	LeafPort    *int    `json:"leafPort,omitempty"`
 	MqttPort    *int    `json:"mqttPort,omitempty"`
-	HttpPort    *int    `json:"httpPort,omitempty"`
+	HTTPPort    *int    `json:"httpPort,omitempty"`
 }
 
 // NatsBootstrapResponse is the response for GET /nats/bootstrap.
@@ -1145,46 +1145,46 @@ func (v FlexInt) MarshalJSON() ([]byte, error) {
 // NatsRuleInfo is a generic NATS account or user rule (list responses).
 // Rule payloads from the Controller can have many optional fields; use map or extend as needed.
 type NatsRuleInfo struct {
-	ID                     int         `json:"id"`
-	Name                   string      `json:"name"`
-	Description            string      `json:"description,omitempty"`
-	IsSystem               bool        `json:"isSystem,omitempty"`
-	InfoUrl                string      `json:"infoUrl,omitempty"`
-	MaxConnections         *FlexInt    `json:"maxConnections,omitempty"`
-	MaxLeafNodeConnections *FlexInt    `json:"maxLeafNodeConnections,omitempty"`
-	MaxData                *FlexInt64  `json:"maxData,omitempty"`
-	MaxExports             *FlexInt    `json:"maxExports,omitempty"`
-	MaxImports             *FlexInt    `json:"maxImports,omitempty"`
-	MaxMsgPayload          *FlexInt64  `json:"maxMsgPayload,omitempty"`
-	MaxSubscriptions       *FlexInt    `json:"maxSubscriptions,omitempty"`
-	ExportsAllowWildcards  *bool       `json:"exportsAllowWildcards,omitempty"`
-	DisallowBearer         *bool       `json:"disallowBearer,omitempty"`
-	ResponsePermissions    interface{} `json:"responsePermissions,omitempty"`
-	RespMax                *FlexInt    `json:"respMax,omitempty"`
-	RespTtl                *FlexInt64  `json:"respTtl,omitempty"`
-	Imports                interface{} `json:"imports,omitempty"`
-	Exports                interface{} `json:"exports,omitempty"`
-	MemStorage             *FlexInt64  `json:"memStorage,omitempty"`
-	DiskStorage            *FlexInt64  `json:"diskStorage,omitempty"`
-	Streams                interface{} `json:"streams,omitempty"`
-	Consumer               interface{} `json:"consumer,omitempty"`
-	MaxAckPending          *FlexInt    `json:"maxAckPending,omitempty"`
-	MemMaxStreamBytes      *FlexInt64  `json:"memMaxStreamBytes,omitempty"`
-	DiskMaxStreamBytes     *FlexInt64  `json:"diskMaxStreamBytes,omitempty"`
-	MaxBytesRequired       *bool       `json:"maxBytesRequired,omitempty"`
-	TieredLimits           interface{} `json:"tieredLimits,omitempty"`
-	MaxPayload             *FlexInt64  `json:"maxPayload,omitempty"`
-	BearerToken            *bool       `json:"bearerToken,omitempty"`
-	ProxyRequired          *bool       `json:"proxyRequired,omitempty"`
-	AllowedConnectionTypes interface{} `json:"allowedConnectionTypes,omitempty"`
-	Src                    interface{} `json:"src,omitempty"`
-	Times                  interface{} `json:"times,omitempty"`
-	TimesLocation          string      `json:"timesLocation,omitempty"`
-	PubAllow               interface{} `json:"pubAllow,omitempty"`
-	PubDeny                interface{} `json:"pubDeny,omitempty"`
-	SubAllow               interface{} `json:"subAllow,omitempty"`
-	SubDeny                interface{} `json:"subDeny,omitempty"`
-	Tags                   interface{} `json:"tags,omitempty"`
+	ID                     int        `json:"id"`
+	Name                   string     `json:"name"`
+	Description            string     `json:"description,omitempty"`
+	IsSystem               bool       `json:"isSystem,omitempty"`
+	InfoURL                string     `json:"infoUrl,omitempty"`
+	MaxConnections         *FlexInt   `json:"maxConnections,omitempty"`
+	MaxLeafNodeConnections *FlexInt   `json:"maxLeafNodeConnections,omitempty"`
+	MaxData                *FlexInt64 `json:"maxData,omitempty"`
+	MaxExports             *FlexInt   `json:"maxExports,omitempty"`
+	MaxImports             *FlexInt   `json:"maxImports,omitempty"`
+	MaxMsgPayload          *FlexInt64 `json:"maxMsgPayload,omitempty"`
+	MaxSubscriptions       *FlexInt   `json:"maxSubscriptions,omitempty"`
+	ExportsAllowWildcards  *bool      `json:"exportsAllowWildcards,omitempty"`
+	DisallowBearer         *bool      `json:"disallowBearer,omitempty"`
+	ResponsePermissions    any        `json:"responsePermissions,omitempty"`
+	RespMax                *FlexInt   `json:"respMax,omitempty"`
+	RespTTL                *FlexInt64 `json:"respTtl,omitempty"`
+	Imports                any        `json:"imports,omitempty"`
+	Exports                any        `json:"exports,omitempty"`
+	MemStorage             *FlexInt64 `json:"memStorage,omitempty"`
+	DiskStorage            *FlexInt64 `json:"diskStorage,omitempty"`
+	Streams                any        `json:"streams,omitempty"`
+	Consumer               any        `json:"consumer,omitempty"`
+	MaxAckPending          *FlexInt   `json:"maxAckPending,omitempty"`
+	MemMaxStreamBytes      *FlexInt64 `json:"memMaxStreamBytes,omitempty"`
+	DiskMaxStreamBytes     *FlexInt64 `json:"diskMaxStreamBytes,omitempty"`
+	MaxBytesRequired       *bool      `json:"maxBytesRequired,omitempty"`
+	TieredLimits           any        `json:"tieredLimits,omitempty"`
+	MaxPayload             *FlexInt64 `json:"maxPayload,omitempty"`
+	BearerToken            *bool      `json:"bearerToken,omitempty"`
+	ProxyRequired          *bool      `json:"proxyRequired,omitempty"`
+	AllowedConnectionTypes any        `json:"allowedConnectionTypes,omitempty"`
+	Src                    any        `json:"src,omitempty"`
+	Times                  any        `json:"times,omitempty"`
+	TimesLocation          string     `json:"timesLocation,omitempty"`
+	PubAllow               any        `json:"pubAllow,omitempty"`
+	PubDeny                any        `json:"pubDeny,omitempty"`
+	SubAllow               any        `json:"subAllow,omitempty"`
+	SubDeny                any        `json:"subDeny,omitempty"`
+	Tags                   any        `json:"tags,omitempty"`
 }
 
 // NatsListAccountRulesResponse is the response for GET /nats/account-rules.
@@ -1199,7 +1199,7 @@ type NatsListUserRulesResponse struct {
 
 // NatsAccountRulePayload is the request body for creating/patching an account rule (JSON).
 // Omit empty fields; Controller validates per schema.
-type NatsAccountRulePayload map[string]interface{}
+type NatsAccountRulePayload map[string]any
 
 // NatsUserRulePayload is the request body for creating/patching a user rule (JSON).
-type NatsUserRulePayload map[string]interface{}
+type NatsUserRulePayload map[string]any

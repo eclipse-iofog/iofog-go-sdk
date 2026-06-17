@@ -6,32 +6,35 @@ import (
 )
 
 // GetCatalog retrieves all catalog items using Controller REST API
-func (clt *Client) GetCatalog() (response *CatalogListResponse, err error) {
+func (clt *Client) GetCatalog() (*CatalogListResponse, error) {
 	body, err := clt.doRequest("GET", "/catalog/microservices", nil)
 	if err != nil {
-		return
+		return nil, err
 	}
 
-	response = new(CatalogListResponse)
-	err = json.Unmarshal(body, response)
-	return
+	response := new(CatalogListResponse)
+	if err = json.Unmarshal(body, response); err != nil {
+		return nil, err
+	}
+	return response, nil
 }
 
 // GetCatalogItem retrieves one catalog item using Controller REST API
-func (clt *Client) GetCatalogItem(id int) (response *CatalogItemInfo, err error) {
+func (clt *Client) GetCatalogItem(id int) (*CatalogItemInfo, error) {
 	body, err := clt.doRequest("GET", fmt.Sprintf("/catalog/microservices/%d", id), nil)
 	if err != nil {
-		return
+		return nil, err
 	}
 
-	response = new(CatalogItemInfo)
-	err = json.Unmarshal(body, response)
-	return
+	response := new(CatalogItemInfo)
+	if err = json.Unmarshal(body, response); err != nil {
+		return nil, err
+	}
+	return response, nil
 }
 
 // CreateCatalogItem creates one catalog item using Controller REST API
 func (clt *Client) CreateCatalogItem(request *CatalogItemCreateRequest) (*CatalogItemInfo, error) {
-	// Set registry to public docker by default
 	if request.RegistryID == 0 {
 		request.RegistryID = 1
 	}
@@ -57,20 +60,18 @@ func (clt *Client) UpdateCatalogItem(request *CatalogItemUpdateRequest) (*Catalo
 }
 
 // DeleteCatalogItem deletes one catalog item using Controller REST API
-func (clt *Client) DeleteCatalogItem(id int) (err error) {
-	_, err = clt.doRequest("DELETE", fmt.Sprintf("/catalog/microservices/%d", id), nil)
-	return
+func (clt *Client) DeleteCatalogItem(id int) error {
+	_, err := clt.doRequest("DELETE", fmt.Sprintf("/catalog/microservices/%d", id), nil)
+	return err
 }
 
-// GetCatalogItemByName returns a catalog item by listing all catalog items and returning the first occurence of the specified name
+// GetCatalogItemByName returns a catalog item by listing all catalog items and returning the first occurrence of the specified name
 func (clt *Client) GetCatalogItemByName(name string) (*CatalogItemInfo, error) {
-	// Get all catalog items
 	catalog, err := clt.GetCatalog()
 	if err != nil {
 		return nil, err
 	}
 
-	// Find catalog item
 	for _, item := range catalog.CatalogItems {
 		if item.Name == name {
 			return &item, nil

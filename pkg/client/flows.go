@@ -6,16 +6,16 @@ import (
 )
 
 // GetFlowByID retrieve flow information using the Controller REST API
-func (clt *Client) GetFlowByID(id int) (flow *FlowInfo, err error) {
+func (clt *Client) GetFlowByID(id int) (*FlowInfo, error) {
 	body, err := clt.doRequest("GET", fmt.Sprintf("/flow/%d", id), nil)
 	if err != nil {
-		return
+		return nil, err
 	}
-	flow = new(FlowInfo)
+	flow := new(FlowInfo)
 	if err = json.Unmarshal(body, flow); err != nil {
-		return
+		return nil, err
 	}
-	return
+	return flow, nil
 }
 
 // CreateFlow creates a new flow using the Controller REST API
@@ -53,23 +53,23 @@ func (clt *Client) StopFlow(id int) (*FlowInfo, error) {
 }
 
 // GetAllFlows retrieve all flows information from the Controller REST API
-func (clt *Client) GetAllFlows() (response *FlowListResponse, err error) {
+func (clt *Client) GetAllFlows() (*FlowListResponse, error) {
 	body, err := clt.doRequest("GET", "/flow", nil)
 	if err != nil {
-		return
+		return nil, err
 	}
-	response = new(FlowListResponse)
+	response := new(FlowListResponse)
 	if err = json.Unmarshal(body, response); err != nil {
-		return
+		return nil, err
 	}
 	return response, nil
 }
 
-// GetFlowByName retrieve the flow information by getting all flows then searching for the first occurance in the list
-func (clt *Client) GetFlowByName(name string) (_ *FlowInfo, err error) {
+// GetFlowByName retrieve the flow information by getting all flows then searching for the first occurrence in the list
+func (clt *Client) GetFlowByName(name string) (*FlowInfo, error) {
 	list, err := clt.GetAllFlows()
 	if err != nil {
-		return
+		return nil, err
 	}
 	for _, flow := range list.Flows {
 		if flow.Name == name {
@@ -80,7 +80,7 @@ func (clt *Client) GetFlowByName(name string) (_ *FlowInfo, err error) {
 }
 
 // DeleteFlow deletes a flow using the Controller REST API
-func (clt *Client) DeleteFlow(id int) (err error) {
-	_, err = clt.doRequest("DELETE", fmt.Sprintf("/flow/%d", id), nil)
-	return
+func (clt *Client) DeleteFlow(id int) error {
+	_, err := clt.doRequest("DELETE", fmt.Sprintf("/flow/%d", id), nil)
+	return err
 }
