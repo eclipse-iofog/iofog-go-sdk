@@ -53,7 +53,7 @@ func (clt *Client) CreateApplicationFromYAML(file io.Reader) (*ApplicationInfo, 
 	if err != nil {
 		return nil, err
 	}
-	response := FlowCreateResponse{}
+	response := ApplicationCreateResponse{}
 	if err := json.Unmarshal(body, &response); err != nil {
 		return nil, err
 	}
@@ -108,7 +108,7 @@ func (clt *Client) StopApplication(name string) (*ApplicationInfo, error) {
 	return clt.PatchApplication(name, &ApplicationPatchRequest{IsActivated: &active})
 }
 
-// GetAllApplications retrieve all flows information from the Controller REST API
+// GetAllApplications retrieve all applications from the Controller REST API
 func (clt *Client) GetAllApplications() (*ApplicationListResponse, error) {
 	body, err := clt.doRequest("GET", "/application", nil)
 	if err != nil {

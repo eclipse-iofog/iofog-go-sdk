@@ -20,8 +20,8 @@ func (clt *Client) GetCatalog() (*CatalogListResponse, error) {
 }
 
 // GetCatalogItem retrieves one catalog item using Controller REST API
-func (clt *Client) GetCatalogItem(id int) (*CatalogItemInfo, error) {
-	body, err := clt.doRequest("GET", fmt.Sprintf("/catalog/microservices/%d", id), nil)
+func (clt *Client) GetCatalogItem(id string) (*CatalogItemInfo, error) {
+	body, err := clt.doRequest("GET", fmt.Sprintf("/catalog/microservices/%s", id), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -52,7 +52,7 @@ func (clt *Client) CreateCatalogItem(request *CatalogItemCreateRequest) (*Catalo
 
 // UpdateCatalogItem updates one catalog item using Controller REST API
 func (clt *Client) UpdateCatalogItem(request *CatalogItemUpdateRequest) (*CatalogItemInfo, error) {
-	_, err := clt.doRequest("PATCH", fmt.Sprintf("/catalog/microservices/%d", request.ID), request)
+	_, err := clt.doRequest("PATCH", fmt.Sprintf("/catalog/microservices/%s", request.ID), request)
 	if err != nil {
 		return nil, err
 	}
@@ -60,8 +60,8 @@ func (clt *Client) UpdateCatalogItem(request *CatalogItemUpdateRequest) (*Catalo
 }
 
 // DeleteCatalogItem deletes one catalog item using Controller REST API
-func (clt *Client) DeleteCatalogItem(id int) error {
-	_, err := clt.doRequest("DELETE", fmt.Sprintf("/catalog/microservices/%d", id), nil)
+func (clt *Client) DeleteCatalogItem(id string) error {
+	_, err := clt.doRequest("DELETE", fmt.Sprintf("/catalog/microservices/%s", id), nil)
 	return err
 }
 

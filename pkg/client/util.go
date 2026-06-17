@@ -5,19 +5,15 @@ import (
 	"fmt"
 	"io"
 	"strings"
+
+	"github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/arch"
 )
 
-// AgentTypeAgentTypeIDDict Map from string agent type to numeric id
-var AgentTypeAgentTypeIDDict = map[string]int{
-	"x86": 1,
-	"arm": 2,
-}
+// ArchNameToID maps canonical architecture names to Controller/Edgelet integer codes.
+var ArchNameToID = arch.NameToID
 
-// AgentTypeIDAgentTypeDict Map from numeric id agent type to string agent type
-var AgentTypeIDAgentTypeDict = map[int]string{
-	1: "x86",
-	2: "arm",
-}
+// ArchIDToName maps Controller/Edgelet integer codes to canonical architecture names.
+var ArchIDToName = arch.IDToName
 
 // RegistryTypeRegistryTypeIDDict Map from string registry type to numeric id
 var RegistryTypeRegistryTypeIDDict = map[string]int{

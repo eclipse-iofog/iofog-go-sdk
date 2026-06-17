@@ -102,16 +102,6 @@ func isAuthError(err error) bool {
 	return strings.Contains(strings.ToLower(errStr), "failed to login")
 }
 
-// create user can be removed!!
-func (clt *Client) CreateUser(request User) error {
-	// Send request
-	if _, err := clt.doRequest("POST", "/user/signup", request); err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func (clt *Client) Login(request LoginRequest) error {
 	maxAttempts := 3
 	attempt := 0
@@ -200,8 +190,8 @@ func (clt *Client) Refresh(request RefreshTokenRequest) error {
 	return nil
 }
 
-func (clt *Client) Profile(request WithTokenRequest) (UserResponse, error) {
-	var userResponse UserResponse
+func (clt *Client) Profile(request WithTokenRequest) (UserProfile, error) {
+	var profile UserProfile
 	clt.SetAccessToken(request.AccessToken)
 
 	headers := map[string]string{
@@ -211,17 +201,22 @@ func (clt *Client) Profile(request WithTokenRequest) (UserResponse, error) {
 
 	bodyGetUser, err := clt.doRequestWithHeaders("GET", "/user/profile", nil, headers)
 	if err != nil {
-		return userResponse, fmt.Errorf("failed to fetch user profile: %w", err)
+		return profile, fmt.Errorf("failed to fetch user profile: %w", err)
 	}
 
-	if err := json.Unmarshal(bodyGetUser, &userResponse); err != nil {
-		return userResponse, fmt.Errorf("failed to parse user profile: %w", err)
+	if err := json.Unmarshal(bodyGetUser, &profile); err != nil {
+		return profile, fmt.Errorf("failed to parse user profile: %w", err)
 	}
 
-	return userResponse, nil
+	return profile, nil
 }
 
-func (clt *Client) UpdateUserPassword(request UpdateUserPasswordRequest) error {
-	_, err := clt.doRequest("PATCH", "/user/password", request)
+func (clt *Client) ChangePassword(request ChangePasswordRequest) error {
+	_, err := clt.doRequest("POST", "/user/change-password", request)
+	return err
+}
+
+func (clt *Client) Logout() error {
+	_, err := clt.doRequest("POST", "/user/logout", nil)
 	return err
 }

@@ -85,23 +85,6 @@ func SessionLogin(opt Options, token, email, password string) (clt *Client, err 
 	return clt, nil
 }
 
-func RefreshUserSubscriptionKey(opt Options, refreshToken, email, password string) (clt *Client, subscriptionKey string, err error) {
-	// Attempt session login using the refresh token
-	clt, err = SessionLogin(opt, refreshToken, email, password)
-	if err != nil {
-		return nil, "", fmt.Errorf("failed to login: %w", err)
-	}
-
-	// Get the access token and fetch user profile
-	accessToken := clt.GetAccessToken()
-	userResponse, err := clt.Profile(WithTokenRequest{AccessToken: accessToken})
-	if err != nil {
-		return nil, "", fmt.Errorf("failed to fetch profile: %w", err)
-	}
-
-	return clt, userResponse.SubscriptionKey, nil
-}
-
 func NewWithToken(opt Options, token string) (*Client, error) {
 	clt := New(opt)
 	clt.SetAccessToken(token)

@@ -6,36 +6,17 @@ import (
 	"time"
 )
 
-// Flows - Keep for legacy
-type FlowInfo struct {
-	Name        string `json:"name"`
-	Description string `json:"description"`
-	IsActivated bool   `json:"isActivated"`
-	IsSystem    bool   `json:"isSystem"`
-	UserID      int    `json:"userId"`
+// Architecture is a deploy target architecture (Controller architectures table).
+type Architecture struct {
 	ID          int    `json:"id"`
-}
-
-type FlowCreateRequest struct {
 	Name        string `json:"name"`
-	Description string `json:"description,omitempty"`
+	Image       string `json:"image"`
+	Description string `json:"description"`
 }
 
-type FlowCreateResponse struct {
-	ID   int    `json:"id"`
-	Name string `json:"name"`
-}
-
-type FlowUpdateRequest struct {
-	Name        *string `json:"name,omitempty"`
-	Description *string `json:"description,omitempty"`
-	IsActivated *bool   `json:"isActivated,omitempty"`
-	IsSystem    *bool   `json:"isSystem,omitempty"`
-	ID          int     `json:"-"`
-}
-
-type FlowListResponse struct {
-	Flows []FlowInfo `json:"flows"`
+// ArchitecturesListResponse is the response for GET /architectures/.
+type ArchitecturesListResponse struct {
+	Architectures []Architecture `json:"architectures"`
 }
 
 // ApplicationNatsConfig holds NATS configuration for an application (Controller applicationNatsConfig).
@@ -57,7 +38,8 @@ type ApplicationInfo struct {
 }
 
 type ApplicationCreateResponse struct {
-	ID int `json:"id"`
+	ID   int    `json:"id"`
+	Name string `json:"name"`
 }
 
 type ApplicationPatchRequest struct {
@@ -274,39 +256,71 @@ type ServiceAccountResponse struct {
 	ServiceAccount ServiceAccountInfo `json:"serviceAccount"`
 }
 
-// Catalog (Keeping it basic, because it will be reworked soon)
+// Catalog
 
 type CatalogImage struct {
 	ContainerImage string `json:"containerImage"`
-	AgentTypeID    int    `json:"fogTypeId"`
+	ArchID         int    `json:"archId"`
+}
+
+// InfoTypeResponse describes catalog item input/output type metadata.
+type InfoTypeResponse struct {
+	InfoType   string `json:"infoType"`
+	InfoFormat string `json:"infoFormat"`
 }
 
 type CatalogItemInfo struct {
-	ID          int            `json:"id"`
-	Name        string         `json:"name"`
-	Description string         `json:"description"`
-	Images      []CatalogImage `json:"images"`
-	RegistryID  int            `json:"registryId"`
-	Category    string         `json:"category"`
+	ID            string            `json:"id"`
+	Name          string            `json:"name"`
+	Description   string            `json:"description"`
+	Category      string            `json:"category"`
+	Publisher     string            `json:"publisher,omitempty"`
+	DiskRequired  int               `json:"diskRequired,omitempty"`
+	RAMRequired   int               `json:"ramRequired,omitempty"`
+	Picture       string            `json:"picture,omitempty"`
+	IsPublic      bool              `json:"isPublic,omitempty"`
+	RegistryID    int               `json:"registryId"`
+	InputType     *InfoTypeResponse `json:"inputType,omitempty"`
+	OutputType    *InfoTypeResponse `json:"outputType,omitempty"`
+	ConfigExample string            `json:"configExample,omitempty"`
+	Images        []CatalogImage    `json:"images"`
 }
 
 type CatalogItemCreateRequest struct {
-	Name        string         `json:"name"`
-	Description string         `json:"description"`
-	Images      []CatalogImage `json:"images"`
-	RegistryID  int            `json:"registryId"`
+	Name          string            `json:"name"`
+	Description   string            `json:"description,omitempty"`
+	Category      string            `json:"category,omitempty"`
+	Images        []CatalogImage    `json:"images"`
+	Publisher     string            `json:"publisher,omitempty"`
+	DiskRequired  int               `json:"diskRequired,omitempty"`
+	RAMRequired   int               `json:"ramRequired,omitempty"`
+	Picture       string            `json:"picture,omitempty"`
+	IsPublic      bool              `json:"isPublic,omitempty"`
+	RegistryID    int               `json:"registryId"`
+	InputType     *InfoTypeResponse `json:"inputType,omitempty"`
+	OutputType    *InfoTypeResponse `json:"outputType,omitempty"`
+	ConfigExample string            `json:"configExample,omitempty"`
 }
 
 type CatalogItemCreateResponse struct {
-	ID int `json:"id"`
+	ID string `json:"id"`
 }
 
 type CatalogItemUpdateRequest struct {
-	ID          int
-	Name        string         `json:"name,omitempty"`
-	Description string         `json:"description,omitempty"`
-	Images      []CatalogImage `json:"images,omitempty"`
-	RegistryID  int            `json:"registryId,omitempty"`
+	ID            string
+	Name          string            `json:"name,omitempty"`
+	Description   string            `json:"description,omitempty"`
+	Category      string            `json:"category,omitempty"`
+	Images        []CatalogImage    `json:"images,omitempty"`
+	Publisher     string            `json:"publisher,omitempty"`
+	DiskRequired  int               `json:"diskRequired,omitempty"`
+	RAMRequired   int               `json:"ramRequired,omitempty"`
+	Picture       string            `json:"picture,omitempty"`
+	IsPublic      bool              `json:"isPublic,omitempty"`
+	RegistryID    int               `json:"registryId,omitempty"`
+	InputType     *InfoTypeResponse `json:"inputType,omitempty"`
+	OutputType    *InfoTypeResponse `json:"outputType,omitempty"`
+	ConfigExample string            `json:"configExample,omitempty"`
 }
 
 type CatalogListResponse struct {
@@ -372,8 +386,6 @@ type MicroserviceInfo struct {
 	LogSize           int                             `json:"logSize"`
 	Delete            bool                            `json:"delete"`
 	DeleteWithCleanup bool                            `json:"deleteWithCleanup"`
-	FlowID            int                             `json:"flowId"`
-	ApplicationID     int                             `json:"applicationID"`
 	Application       string                          `json:"application"`
 	CatalogItemID     int                             `json:"catalogItemId"`
 	AgentUUID         string                          `json:"iofogUuid"`
@@ -438,21 +450,44 @@ type MicroservicePortMappingListResponse struct {
 
 // Users
 
-type User struct {
-	Name            string `json:"firstName"`
-	Surname         string `json:"lastName"`
-	Email           string `json:"email"`
-	Password        string `json:"password"`
-	SubscriptionKey string `json:"subscriptionKey"`
-	AccessToken     string `json:"accessToken"`
-	RefreshToken    string `json:"refreshToken"`
+type UserProfile struct {
+	Sub                    string   `json:"sub"`
+	Email                  string   `json:"email"`
+	PreferredUsername      string   `json:"preferred_username"`
+	Groups                 []string `json:"groups"`
+	PasswordChangeRequired bool     `json:"password_change_required"`
 }
 
-type UserResponse struct {
-	Name            string `json:"firstName"`
-	Surname         string `json:"lastName"`
-	Email           string `json:"email"`
-	SubscriptionKey string `json:"subscriptionKey"`
+type AuthUserCreateRequest struct {
+	Email    string   `json:"email"`
+	Password string   `json:"password"`
+	Groups   []string `json:"groups,omitempty"`
+}
+
+type AuthUserUpdateRequest struct {
+	Email  string   `json:"email,omitempty"`
+	Groups []string `json:"groups,omitempty"`
+}
+
+type AuthUserResponse struct {
+	ID                 string   `json:"id"`
+	Email              string   `json:"email"`
+	Groups             []string `json:"groups"`
+	MustChangePassword bool     `json:"mustChangePassword"`
+	MfaEnabled         bool     `json:"mfaEnabled"`
+	IsBootstrap        bool     `json:"isBootstrap"`
+	CreatedAt          string   `json:"createdAt"`
+	UpdatedAt          string   `json:"updatedAt"`
+}
+
+type AuthUserResetPasswordResponse struct {
+	TemporaryPassword  string `json:"temporaryPassword"`
+	MustChangePassword bool   `json:"mustChangePassword"`
+}
+
+type AuthUserResetTokenResponse struct {
+	ResetToken string `json:"resetToken"`
+	ExpiresIn  int    `json:"expiresIn"`
 }
 
 type ControllerVersions struct {
@@ -480,9 +515,14 @@ type WithTokenRequest struct {
 	AccessToken string `json:"accessToken"`
 }
 
-type UpdateUserPasswordRequest struct {
-	OldPassword string `json:"oldPassword"`
-	NewPassword string `json:"newPassword"`
+type ChangePasswordRequest struct {
+	CurrentPassword string `json:"currentPassword,omitempty"`
+	NewPassword     string `json:"newPassword"`
+	ResetToken      string `json:"resetToken,omitempty"`
+}
+
+type StatusResponse struct {
+	Status string `json:"status"`
 }
 
 type LoginResponse struct {
@@ -517,7 +557,7 @@ type AgentInfo struct {
 	Latitude                  float64           `json:"latitude" yaml:"latitude"`
 	Longitude                 float64           `json:"longitude" yaml:"longitude"`
 	Description               string            `json:"description" yaml:"description"`
-	DockerURL                 string            `json:"dockerUrl" yaml:"dockerUrl"`
+	ContainerEngineURL        string            `json:"containerEngineUrl" yaml:"containerEngineUrl"`
 	ContainerEngine           string            `json:"containerEngine" yaml:"containerEngine"`
 	DeploymentType            string            `json:"deploymentType" yaml:"deploymentType"`
 	DiskLimit                 int64             `json:"diskLimit" yaml:"diskLimit"`
@@ -557,16 +597,17 @@ type AgentInfo struct {
 	LastStatusTimeMsUTC       int64             `json:"lastStatusTime" yaml:"lastStatusTime"`
 	IPAddress                 string            `json:"ipAddress" yaml:"ipAddress"`
 	IPAddressExternal         string            `json:"ipAddressExternal" yaml:"ipAddressExternal"`
-	ProcessedMessaged         int64             `json:"processedMessages" yaml:"ProcessedMessages"`
-	MicroserviceMessageCount  int64             `json:"microserviceMessageCounts" yaml:"microserviceMessageCount"`
-	MessageSpeed              float64           `json:"messageSpeed" yaml:"messageSpeed"`
 	LastCommandTimeMsUTC      int64             `json:"lastCommandTime" yaml:"lastCommandTime"`
 	NetworkInterface          string            `json:"networkInterface" yaml:"networkInterface"`
 	Version                   string            `json:"version" yaml:"version"`
 	IsReadyToUpgrade          bool              `json:"isReadyToUpgrade" yaml:"isReadyToUpgrade"`
 	IsReadyToRollback         bool              `json:"isReadyToRollback" yaml:"isReadyToRollback"`
 	Tunnel                    string            `json:"tunnel" yaml:"tunnel"`
-	FogType                   int               `json:"fogTypeId" yaml:"fogTypeId"`
+	ArchID                    int               `json:"archId" yaml:"archId"`
+	Arch                      *Architecture     `json:"arch,omitempty" yaml:"arch,omitempty"`
+	AvailableRuntimes         []string          `json:"availableRuntimes,omitempty" yaml:"availableRuntimes,omitempty"`
+	RuntimeAgentPhase         string            `json:"runtimeAgentPhase,omitempty" yaml:"runtimeAgentPhase,omitempty"`
+	ControlPlaneQuiesced      bool              `json:"controlPlaneQuiesced,omitempty" yaml:"controlPlaneQuiesced,omitempty"`
 	RouterMode                string            `json:"routerMode" yaml:"routerMode"`
 	NetworkRouter             *string           `json:"networkRouter,omitempty" yaml:"networkRouter,omitempty"`
 	UpstreamRouters           *[]string         `json:"upstreamRouters,omitempty" yaml:"upstreamRouters,omitempty"`
@@ -574,7 +615,7 @@ type AgentInfo struct {
 	EdgeRouterPort            *int              `json:"edgeRouterPort,omitempty" yaml:"edgeRouterPort,omitempty"`
 	InterRouterPort           *int              `json:"interRouterPort,omitempty" yaml:"interRouterPort,omitempty"`
 	LogLevel                  *string           `json:"logLevel" yaml:"logLevel"`
-	DockerPruningFrequency    *float64          `json:"dockerPruningFrequency" yaml:"dockerPruningFrequency"`
+	PruningFrequency          *float64          `json:"pruningFrequency" yaml:"pruningFrequency"`
 	AvailableDiskThreshold    *float64          `json:"availableDiskThreshold" yaml:"availableDiskThreshold"`
 	Tags                      *[]string         `json:"tags,omitempty" yaml:"tags,omitempty"`
 	TimeZone                  string            `json:"timeZone" yaml:"timeZone"`
@@ -616,7 +657,7 @@ type NatsConfig struct {
 
 type AgentConfiguration struct {
 	NetworkInterface          *string   `json:"networkInterface,omitempty" yaml:"networkInterface"`
-	DockerURL                 *string   `json:"dockerUrl,omitempty" yaml:"dockerUrl"`
+	ContainerEngineURL        *string   `json:"containerEngineUrl,omitempty" yaml:"containerEngineUrl"`
 	ContainerEngine           *string   `json:"containerEngine,omitempty" yaml:"containerEngine"`
 	DeploymentType            *string   `json:"deploymentType,omitempty" yaml:"deploymentType"`
 	DiskLimit                 *int64    `json:"diskLimit,omitempty" yaml:"diskLimit"`
@@ -642,8 +683,9 @@ type AgentConfiguration struct {
 	Host                      *string   `json:"host,omitempty" yaml:"host,omitempty"`
 	RouterConfig              `json:",omitempty" yaml:"routerConfig,omitempty"`
 	LogLevel                  *string   `json:"logLevel,omitempty" yaml:"logLevel"`
-	DockerPruningFrequency    *float64  `json:"dockerPruningFrequency,omitempty" yaml:"dockerPruningFrequency"`
+	PruningFrequency          *float64  `json:"pruningFrequency,omitempty" yaml:"pruningFrequency"`
 	AvailableDiskThreshold    *float64  `json:"availableDiskThreshold,omitempty" yaml:"availableDiskThreshold"`
+	ArchID                    *int64    `json:"archId,omitempty" yaml:"archId,omitempty"`
 	TimeZone                  string    `json:"timeZone,omitempty" yaml:"timeZone"`
 	UpstreamNatsServers       *[]string `json:"upstreamNatsServers,omitempty" yaml:"upstreamNatsServers,omitempty"`
 	NatsConfig                `json:",omitempty" yaml:"natsConfig,omitempty"`
@@ -656,7 +698,6 @@ type AgentUpdateRequest struct {
 	Latitude    float64   `json:"latitude,omitempty" yaml:"latitude"`
 	Longitude   float64   `json:"longitude,omitempty" yaml:"longitude"`
 	Description string    `json:"description,omitempty" yaml:"description"`
-	FogType     *int64    `json:"fogType,omitempty" yaml:"agentType"`
 	Tags        *[]string `json:"tags,omitempty" yaml:"tags"`
 	AgentConfiguration
 }
