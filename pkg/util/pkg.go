@@ -1,3 +1,4 @@
+//revive:disable:package-naming
 package util
 
 var pkg struct {

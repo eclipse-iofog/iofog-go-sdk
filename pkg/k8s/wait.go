@@ -15,23 +15,26 @@ func getErrorMsg(resource, namespace, name, event string) string {
 	return fmt.Sprintf("Failed to wait for %s %s/%s because it is %s", resource, namespace, name, event)
 }
 
-func (cl *Client) WaitForLoadBalancer(namespace, name string, timeoutSeconds int64) (addr string, err error) {
+func (cl *Client) WaitForLoadBalancer(namespace, name string, timeoutSeconds int64) (string, error) {
 	// Get watch handler to observe changes to services
 	watch, err := cl.CoreV1().Services(namespace).Watch(context.Background(), metav1.ListOptions{TimeoutSeconds: &timeoutSeconds})
 	if err != nil {
-		return
+		return "", err
 	}
+
+	var addr string
+	var waitErr error
 
 	// Wait for Services to have addresses allocated
 	for event := range watch.ResultChan() {
 		if event.Type == k8swatch.Error || event.Type == k8swatch.Deleted {
-			err = errors.New(getErrorMsg("service", namespace, name, string(event.Type)))
-			return
+			waitErr = errors.New(getErrorMsg("service", namespace, name, string(event.Type)))
+			return "", waitErr
 		}
 		svc, ok := event.Object.(*corev1.Service)
 		if !ok {
-			err = errors.New(getErrorMsg("service", namespace, name, string(event.Type)))
-			return
+			waitErr = errors.New(getErrorMsg("service", namespace, name, string(event.Type)))
+			return "", waitErr
 		}
 
 		// Ignore irrelevant service events
@@ -62,9 +65,9 @@ func (cl *Client) WaitForLoadBalancer(namespace, name string, timeoutSeconds int
 	}
 
 	if addr == "" {
-		err = errors.New("IP and Hostname values were empty")
+		return "", errors.New("IP and Hostname values were empty")
 	}
-	return addr, err
+	return addr, nil
 }
 
 func (cl *Client) WaitForPod(namespace, name string, timeoutSeconds int64) error {

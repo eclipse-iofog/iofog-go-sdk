@@ -1,13 +1,13 @@
 package operator
 
 import (
-	"fmt"
+	"errors"
 	"testing"
 	"time"
 )
 
 func TestReconciliation(t *testing.T) {
-	if ReconcileWithError(fmt.Errorf("err")).Err == nil {
+	if ReconcileWithError(errors.New("err")).Err == nil {
 		t.Error("ReconcileWithError.Err is nil")
 	}
 	if !ReconcileWithRequeue(time.Second).Requeue {
