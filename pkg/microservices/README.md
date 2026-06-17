@@ -2,6 +2,8 @@
 
 This package is the Edgelet microservice SDK for EdgeletAPI v1.
 
+Import path: `github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/microservices`
+
 It supports:
 - reading microservice config over `GET /v1/microservices/config`
 - receiving control signals over `GET /v1/microservices/control` WebSocket
