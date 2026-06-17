@@ -1,17 +1,17 @@
-# Microservices Package (LocalAPI v3)
+# Microservices Package (EdgeletAPI v1)
 
-This package is the ioFog microservice SDK for LocalAPI v3.
+This package is the Edgelet microservice SDK for EdgeletAPI v1.
 
 It supports:
 - reading microservice config over `GET /v1/microservices/config`
 - receiving control signals over `GET /v1/microservices/control` WebSocket
 
-It does not support LocalAPI v2 messagebus APIs.
+It does not support legacy LocalAPI v2 messagebus APIs.
 For data-plane messaging, use NATS.
 
 ## Runtime Assumptions
 
-The running microservice has service-account material mounted by ioFog Agent:
+The running microservice has service-account material mounted by Edgelet:
 
 - token: `/var/run/secrets/edgelet.iofog.org/serviceaccount/token`
 - CA: `/var/run/secrets/edgelet.iofog.org/serviceaccount/ca.crt`
@@ -28,7 +28,7 @@ import (
 )
 
 func run() error {
-	client, err := msvcs.NewDefaultIoFogClientV3()
+	client, err := msvcs.NewDefaultEdgeletAPIClient()
 	if err != nil {
 		return err
 	}
@@ -54,13 +54,13 @@ func run() error {
 ## Advanced Configuration
 
 ```go
-client, err := msvcs.NewIoFogClientV3(
+client, err := msvcs.NewEdgeletAPIClient(
 	"microservice-id",
 	msvcs.WithHost("edgelet.default.svc.bridge.local"),
-	msvcs.WithPort(54321),
+	msvcs.WithPort(msvcs.PortEdgeletAPI),
 	msvcs.WithTLS(true),
-	msvcs.WithTokenPath("/var/run/secrets/iofog.org/serviceaccount/token"),
-	msvcs.WithCAPath("/var/run/secrets/iofog.org/serviceaccount/ca.crt"),
+	msvcs.WithTokenPath("/var/run/secrets/edgelet.iofog.org/serviceaccount/token"),
+	msvcs.WithCAPath("/var/run/secrets/edgelet.iofog.org/serviceaccount/ca.crt"),
 )
 ```
 
@@ -68,7 +68,7 @@ client, err := msvcs.NewIoFogClientV3(
 
 - Removed v2 endpoints (`/v2/...`) and messagebus methods.
 - Removed `IoMessage`/`IoMessageReadable` types from the SDK surface.
-- `GetConfig` now uses `GET /v1/microservices/config` and v3 response envelope parsing.
+- `GetConfig` now uses `GET /v1/microservices/config` and EdgeletAPI response envelope parsing.
 - `EstablishControlWsConnection` now uses `/v1/microservices/control` with Bearer JWT auth.
 - Token and CA are loaded from mounted service-account files.
 - Use NATS for message exchange.

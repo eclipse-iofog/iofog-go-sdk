@@ -9,21 +9,21 @@ import (
 	ws "github.com/gorilla/websocket"
 )
 
-type ioFogWsClient struct {
+type edgeletAPIWsClient struct {
 	options ClientOptions
 }
 
-func newIoFogWsClient(options ClientOptions) *ioFogWsClient {
-	return &ioFogWsClient{options: options}
+func newEdgeletAPIWsClient(options ClientOptions) *edgeletAPIWsClient {
+	return &edgeletAPIWsClient{options: options}
 }
 
-func (client *ioFogWsClient) connectToControlWs(signalChannel chan<- byte) {
+func (client *edgeletAPIWsClient) connectToControlWs(signalChannel chan<- byte) {
 	attempt := 0
 	for {
 		conn, err := client.dialControlWS()
 		if err != nil {
 			attempt++
-			logger.Println(err.Error(), "Reconnecting to v3 control ws...")
+			logger.Println(err.Error(), "Reconnecting to EdgeletAPI control ws...")
 			sleepWithCap(attempt, client.options.WSReconnectBaseDelay, client.options.WSReconnectMaxDelay)
 			continue
 		}
@@ -36,7 +36,7 @@ func (client *ioFogWsClient) connectToControlWs(signalChannel chan<- byte) {
 	}
 }
 
-func (client *ioFogWsClient) dialControlWS() (*ws.Conn, error) {
+func (client *edgeletAPIWsClient) dialControlWS() (*ws.Conn, error) {
 	dialer := ws.Dialer{
 		HandshakeTimeout: client.options.WSHandshakeTimeout,
 	}
@@ -73,7 +73,7 @@ func (client *ioFogWsClient) dialControlWS() (*ws.Conn, error) {
 	return nil, lastErr
 }
 
-func (client *ioFogWsClient) listenControl(conn *ws.Conn, signalChannel chan<- byte) error {
+func (client *edgeletAPIWsClient) listenControl(conn *ws.Conn, signalChannel chan<- byte) error {
 	for {
 		_, payload, err := conn.ReadMessage()
 		if err != nil {

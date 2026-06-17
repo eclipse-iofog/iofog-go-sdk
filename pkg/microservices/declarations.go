@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	PortIoFog         = 54321
+	PortEdgeletAPI    = 54321
 	MicroserviceUID   = "EDGELET_MICROSERVICE_UID"
 	SSL               = "SSL"
 	SSLDefault        = true

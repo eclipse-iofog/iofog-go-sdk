@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-// ClientOptions configures LocalAPI v3 transport/auth behavior.
+// ClientOptions configures EdgeletAPI v1 transport/auth behavior.
 type ClientOptions struct {
 	Host                 string
 	FallbackHosts        []string
@@ -26,7 +26,7 @@ func defaultClientOptions() ClientOptions {
 	return ClientOptions{
 		Host:                 HostDefault,
 		FallbackHosts:        []string{FallbackHostLocal},
-		Port:                 PortIoFog,
+		Port:                 PortEdgeletAPI,
 		UseTLS:               SSLDefault,
 		TokenPath:            DefaultServiceAccountTokenPath,
 		CAPath:               DefaultServiceAccountCAPath,
@@ -49,7 +49,7 @@ func applyClientOptions(base ClientOptions, opts ...ClientOption) ClientOptions 
 	}
 	out.FallbackHosts = sanitizeFallbackHosts(out.Host, out.FallbackHosts)
 	if out.Port <= 0 {
-		out.Port = PortIoFog
+		out.Port = PortEdgeletAPI
 	}
 	if out.TokenPath == "" {
 		out.TokenPath = DefaultServiceAccountTokenPath
@@ -97,17 +97,17 @@ func sanitizeFallbackHosts(primary string, hosts []string) []string {
 	return out
 }
 
-// WithHost overrides LocalAPI host.
+// WithHost overrides EdgeletAPI host.
 func WithHost(host string) ClientOption {
 	return func(opts *ClientOptions) { opts.Host = host }
 }
 
-// WithFallbackHosts overrides fallback LocalAPI hosts.
+// WithFallbackHosts overrides fallback EdgeletAPI hosts.
 func WithFallbackHosts(hosts ...string) ClientOption {
 	return func(opts *ClientOptions) { opts.FallbackHosts = hosts }
 }
 
-// WithPort overrides LocalAPI port.
+// WithPort overrides EdgeletAPI port.
 func WithPort(port int) ClientOption {
 	return func(opts *ClientOptions) { opts.Port = port }
 }

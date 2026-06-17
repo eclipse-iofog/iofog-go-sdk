@@ -23,20 +23,20 @@ func (e *AuthMaterialError) Unwrap() error {
 	return e.Err
 }
 
-// V3APIError describes a structured LocalAPI v3 API error envelope.
-type V3APIError struct {
+// EdgeletAPIError describes a structured EdgeletAPI v1 error envelope.
+type EdgeletAPIError struct {
 	StatusCode int
 	Code       string
 	Message    string
 	Details    map[string]interface{}
 }
 
-func (e *V3APIError) Error() string {
+func (e *EdgeletAPIError) Error() string {
 	if e == nil {
 		return ""
 	}
 	if e.Code == "" {
-		return fmt.Sprintf("localapi request failed (%d): %s", e.StatusCode, e.Message)
+		return fmt.Sprintf("edgeletapi request failed (%d): %s", e.StatusCode, e.Message)
 	}
-	return fmt.Sprintf("localapi %s (%d): %s", e.Code, e.StatusCode, e.Message)
+	return fmt.Sprintf("edgeletapi %s (%d): %s", e.Code, e.StatusCode, e.Message)
 }

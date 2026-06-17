@@ -18,7 +18,7 @@ Each package contains its own README.md so please refer to those for further det
 #### Microservices
 
 The `microservices` package contains functionality required to implement edge microservices that run on ioFog Edge
-Compute Networks. It is aligned with LocalAPI v3 and includes microservice configuration retrieval and control websocket
+Compute Networks. It is aligned with EdgeletAPI v1 and includes microservice configuration retrieval and control websocket
 signal handling over HTTPS/WSS using mounted service-account token and CA material.
 
 #### Client

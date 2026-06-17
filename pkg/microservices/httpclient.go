@@ -7,16 +7,16 @@ import (
 	"net/http"
 )
 
-type ioFogHttpClient struct {
+type edgeletAPIHttpClient struct {
 	options       ClientOptions
 	tokenProvider func(string) (string, error)
 }
 
-func newIoFogHttpClient(options ClientOptions) *ioFogHttpClient {
-	return &ioFogHttpClient{options: options, tokenProvider: readBearerToken}
+func newEdgeletAPIHttpClient(options ClientOptions) *edgeletAPIHttpClient {
+	return &edgeletAPIHttpClient{options: options, tokenProvider: readBearerToken}
 }
 
-func (client *ioFogHttpClient) getConfig() (map[string]interface{}, error) {
+func (client *edgeletAPIHttpClient) getConfig() (map[string]interface{}, error) {
 	resp, err := client.makeRequest(http.MethodGet, URLGetConfigV1, nil)
 	if err != nil {
 		return nil, err
@@ -39,7 +39,7 @@ func (client *ioFogHttpClient) getConfig() (map[string]interface{}, error) {
 	}
 }
 
-func (client *ioFogHttpClient) getConfigIntoStruct(config interface{}) error {
+func (client *edgeletAPIHttpClient) getConfigIntoStruct(config interface{}) error {
 	configMap, err := client.getConfig()
 	if err != nil {
 		return err
@@ -54,7 +54,7 @@ func (client *ioFogHttpClient) getConfigIntoStruct(config interface{}) error {
 	return nil
 }
 
-func (client *ioFogHttpClient) makeRequest(method, path string, body io.Reader) (map[string]interface{}, error) {
+func (client *edgeletAPIHttpClient) makeRequest(method, path string, body io.Reader) (map[string]interface{}, error) {
 	httpClient, err := buildHTTPClient(client.options)
 	if err != nil {
 		return nil, fmt.Errorf("failed to build HTTP client: %w", err)
@@ -88,7 +88,7 @@ func (client *ioFogHttpClient) makeRequest(method, path string, body io.Reader) 
 		if readErr != nil {
 			return nil, readErr
 		}
-		return parseV3Envelope(responseBody, resp.StatusCode)
+		return parseEdgeletAPIEnvelope(responseBody, resp.StatusCode)
 	}
 	return nil, lastErr
 }

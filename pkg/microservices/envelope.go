@@ -5,7 +5,7 @@ import (
 	"fmt"
 )
 
-type v3Envelope struct {
+type edgeletAPIEnvelope struct {
 	Success bool                   `json:"success"`
 	Data    map[string]interface{} `json:"data"`
 	Error   struct {
@@ -15,8 +15,8 @@ type v3Envelope struct {
 	} `json:"error"`
 }
 
-func parseV3Envelope(body []byte, statusCode int) (map[string]interface{}, error) {
-	var env v3Envelope
+func parseEdgeletAPIEnvelope(body []byte, statusCode int) (map[string]interface{}, error) {
+	var env edgeletAPIEnvelope
 	if err := json.Unmarshal(body, &env); err != nil {
 		if statusCode >= 200 && statusCode < 300 {
 			// Fallback for non-enveloped payloads.
@@ -28,7 +28,7 @@ func parseV3Envelope(body []byte, statusCode int) (map[string]interface{}, error
 		return nil, fmt.Errorf("failed to decode response envelope: %w", err)
 	}
 	if statusCode < 200 || statusCode >= 300 || !env.Success {
-		return nil, &V3APIError{
+		return nil, &EdgeletAPIError{
 			StatusCode: statusCode,
 			Code:       env.Error.Code,
 			Message:    env.Error.Message,

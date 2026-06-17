@@ -13,7 +13,7 @@ import (
 	"testing"
 )
 
-func TestHTTPClientGetConfigV3(t *testing.T) {
+func TestEdgeletAPIHTTPClientGetConfig(t *testing.T) {
 	caPEM, certPEM, keyPEM := generateCAAndServerCert(t)
 	cert, err := tls.X509KeyPair(certPEM, keyPEM)
 	if err != nil {
@@ -73,7 +73,7 @@ func TestHTTPClientGetConfigV3(t *testing.T) {
 		WithTokenPath(tokenPath),
 		WithCAPath(caPath),
 	)
-	client := newIoFogHttpClient(opts)
+	client := newEdgeletAPIHttpClient(opts)
 	cfg, err := client.getConfig()
 	if err != nil {
 		t.Fatalf("unexpected getConfig error: %v", err)

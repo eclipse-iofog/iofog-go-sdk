@@ -67,7 +67,7 @@ func TestDialControlWSUsesBearerAndPath(t *testing.T) {
 		WithTLS(false),
 		WithTokenPath(tokenPath),
 	)
-	client := newIoFogWsClient(opts)
+	client := newEdgeletAPIWsClient(opts)
 	conn, err := client.dialControlWS()
 	if err != nil {
 		t.Fatalf("unexpected dial error: %v", err)

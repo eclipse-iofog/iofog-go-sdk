@@ -5,9 +5,9 @@ import (
 	"testing"
 )
 
-func TestParseV3EnvelopeSuccess(t *testing.T) {
+func TestParseEdgeletAPIEnvelopeSuccess(t *testing.T) {
 	body := []byte(`{"success":true,"data":{"config":{"k":"v"}}}`)
-	data, err := parseV3Envelope(body, 200)
+	data, err := parseEdgeletAPIEnvelope(body, 200)
 	if err != nil {
 		t.Fatalf("unexpected parse error: %v", err)
 	}
@@ -20,15 +20,15 @@ func TestParseV3EnvelopeSuccess(t *testing.T) {
 	}
 }
 
-func TestParseV3EnvelopeFailure(t *testing.T) {
+func TestParseEdgeletAPIEnvelopeFailure(t *testing.T) {
 	body := []byte(`{"success":false,"error":{"code":"UNAUTHORIZED","message":"invalid JWT token","details":{"a":"b"}}}`)
-	_, err := parseV3Envelope(body, 401)
+	_, err := parseEdgeletAPIEnvelope(body, 401)
 	if err == nil {
 		t.Fatal("expected parse error for failed envelope")
 	}
-	var apiErr *V3APIError
+	var apiErr *EdgeletAPIError
 	if !errors.As(err, &apiErr) {
-		t.Fatalf("expected V3APIError, got %T", err)
+		t.Fatalf("expected EdgeletAPIError, got %T", err)
 	}
 	if apiErr.Code != "UNAUTHORIZED" {
 		t.Fatalf("unexpected code: %s", apiErr.Code)
