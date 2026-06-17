@@ -1,16 +1,3 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2024 Contributors to the Eclipse ioFog Project
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 package apps
 
 import (
@@ -155,7 +142,7 @@ func (exe *microserviceExecutor) create() (newMsvc *client.MicroserviceInfo, err
 		return nil, fmt.Errorf("cannot create system microservice")
 	}
 	file := IofogHeader{
-		APIVersion: "iofog.org/v3",
+		APIVersion: "datasance.com/v3",
 		Kind:       MicroserviceKind,
 		Metadata: HeaderMetadata{
 			Name: strings.Join([]string{exe.appName, exe.name}, "/"),
@@ -171,7 +158,7 @@ func (exe *microserviceExecutor) create() (newMsvc *client.MicroserviceInfo, err
 
 func (exe *microserviceExecutor) update() (newMsvc *client.MicroserviceInfo, err error) {
 	file := IofogHeader{
-		APIVersion: "iofog.org/v3",
+		APIVersion: "datasance.com/v3",
 		Kind:       MicroserviceKind,
 		Metadata: HeaderMetadata{
 			Name: strings.Join([]string{exe.appName, exe.name}, "/"),

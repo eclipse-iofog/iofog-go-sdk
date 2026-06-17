@@ -1,16 +1,3 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2024 Contributors to the Eclipse ioFog Project
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 package client
 
 import (
@@ -407,7 +394,7 @@ type MicroserviceInfo struct {
 	MemoryLimit       int64                           `json:"memoryLimit,omitempty"`
 	HealthCheck       MicroserviceHealthCheck         `json:"healthCheck,omitempty"`
 	NatsConfig        *MicroserviceNatsConfig         `json:"natsConfig,omitempty"`
-	ServiceAccount    *MicroserviceServiceAccountRef  `json:"serviceAccount,omitempty"`
+	ServiceAccount    *MicroserviceServiceAccountRef   `json:"serviceAccount,omitempty"`
 }
 
 // MicroserviceServiceAccountRef is the optional serviceAccount field in a microservice spec (YAML or API).
@@ -452,18 +439,20 @@ type MicroservicePortMappingListResponse struct {
 // Users
 
 type User struct {
-	Name         string `json:"firstName"`
-	Surname      string `json:"lastName"`
-	Email        string `json:"email"`
-	Password     string `json:"password"`
-	AccessToken  string `json:"accessToken"`
-	RefreshToken string `json:"refreshToken"`
+	Name            string `json:"firstName"`
+	Surname         string `json:"lastName"`
+	Email           string `json:"email"`
+	Password        string `json:"password"`
+	SubscriptionKey string `json:"subscriptionKey"`
+	AccessToken     string `json:"accessToken"`
+	RefreshToken    string `json:"refreshToken"`
 }
 
 type UserResponse struct {
-	Name    string `json:"firstName"`
-	Surname string `json:"lastName"`
-	Email   string `json:"email"`
+	Name            string `json:"firstName"`
+	Surname         string `json:"lastName"`
+	Email           string `json:"email"`
+	SubscriptionKey string `json:"subscriptionKey"`
 }
 
 type ControllerVersions struct {

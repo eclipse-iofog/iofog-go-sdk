@@ -24,7 +24,7 @@ Default client behavior is HTTPS/WSS to:
 
 ```go
 import (
-	msvcs "github.com/datasance/iofog-go-sdk/v3/pkg/microservices"
+	msvcs "github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/microservices"
 )
 
 func run() error {

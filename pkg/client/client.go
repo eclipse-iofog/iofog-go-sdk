@@ -1,16 +1,3 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2024 Contributors to the Eclipse ioFog Project
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 package client
 
 import (
@@ -95,6 +82,23 @@ func SessionLogin(opt Options, token, email, password string) (clt *Client, err 
 	}
 
 	return clt, nil
+}
+
+func RefreshUserSubscriptionKey(opt Options, refreshToken, email, password string) (clt *Client, subscriptionKey string, err error) {
+	// Attempt session login using the refresh token
+	clt, err = SessionLogin(opt, refreshToken, email, password)
+	if err != nil {
+		return nil, "", fmt.Errorf("failed to login: %v", err)
+	}
+
+	// Get the access token and fetch user profile
+	accessToken := clt.GetAccessToken()
+	err, userResponse := clt.Profile(WithTokenRequest{AccessToken: accessToken})
+	if err != nil {
+		return nil, "", fmt.Errorf("failed to fetch profile: %v", err)
+	}
+
+	return clt, userResponse.SubscriptionKey, nil
 }
 
 func NewWithToken(opt Options, token string) (clt *Client, err error) {

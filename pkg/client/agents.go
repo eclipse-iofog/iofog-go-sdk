@@ -1,16 +1,3 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2024 Contributors to the Eclipse ioFog Project
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 package client
 
 import (
@@ -162,7 +149,12 @@ func (clt *Client) PruneAgent(uuid string) (err error) {
 }
 
 func generateListAgentURL(request ListAgentsRequest) string {
-	url := fmt.Sprintf("/iofog-list?system=%t", request.System)
+	// Embed request options into URL as query params
+	// url := "/iofog-list?system=false"
+	// if request.System {
+	// 	url = strings.Replace(url, "false", "true", 1)
+	// }
+	url := "/iofog-list"
 	for idx, filter := range request.Filters {
 		params := []string{
 			fmt.Sprintf("&filters[%d][key]=%s", idx, filter.Key),
@@ -170,7 +162,7 @@ func generateListAgentURL(request ListAgentsRequest) string {
 			fmt.Sprintf("&filters[%d][condition]=%s", idx, filter.Condition),
 		}
 		for _, param := range params {
-			url += param
+			url = fmt.Sprintf("%s%s", url, param)
 		}
 	}
 	return url
