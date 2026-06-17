@@ -1,3 +1,4 @@
+//revive:disable:package-naming
 package util
 
 import "fmt"

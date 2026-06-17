@@ -1,7 +1,6 @@
 package resttest
 
 import (
-	"fmt"
 	"net/url"
 	"testing"
 
@@ -55,12 +54,12 @@ func TestNewAndLogin(t *testing.T) {
 
 	clt, err := client.NewAndLogin(opt, existingState.email, existingState.password)
 	if err != nil {
-		t.Fatalf(fmt.Sprintf("Failed to create client and login: %s", err.Error()))
+		t.Fatalf("Failed to create client and login: %s", err)
 	}
 
 	_, err = clt.GetStatus()
 	if err != nil {
-		t.Fatalf(fmt.Sprintf("Failed to get status: %s", err.Error()))
+		t.Fatalf("Failed to get status: %s", err)
 	}
 }
 
@@ -70,24 +69,24 @@ func TestNewAndCreate(t *testing.T) {
 	}
 	adminClt, err := client.NewAndLogin(opt, "user@domain.com", "g9hr823rhuoi")
 	if err != nil {
-		t.Fatalf(fmt.Sprintf("Failed to login as admin: %s", err.Error()))
+		t.Fatalf("Failed to login as admin: %s", err)
 	}
 
 	if _, err := adminClt.CreateAuthUser(client.AuthUserCreateRequest{
 		Email:    state.email,
 		Password: state.password,
 	}); err != nil {
-		t.Fatalf(fmt.Sprintf("Failed to create user: %s", err.Error()))
+		t.Fatalf("Failed to create user: %s", err)
 	}
 
 	clt, err = client.NewAndLogin(opt, state.email, state.password)
 	if err != nil {
-		t.Fatalf(fmt.Sprintf("Failed to login: %s", err.Error()))
+		t.Fatalf("Failed to login: %s", err)
 	}
 
 	_, err = clt.GetStatus()
 	if err != nil {
-		t.Fatalf(fmt.Sprintf("Failed to get status: %s", err.Error()))
+		t.Fatalf("Failed to get status: %s", err)
 	}
 }
 
@@ -101,31 +100,31 @@ func TestCreateAgent(t *testing.T) {
 
 	response, err := clt.CreateAgent(request)
 	if err != nil {
-		t.Fatalf(fmt.Sprintf("Failed to create Agent: %s", err.Error()))
+		t.Fatalf("Failed to create Agent: %s", err)
 	}
 
 	getResponse, err := clt.GetAgentByID(response.UUID)
 	if err != nil {
-		t.Fatalf((fmt.Sprintf("Failed to get Agent by UUID: %s", err.Error())))
+		t.Fatalf("Failed to get Agent by UUID: %s", err)
 	}
 
 	if getResponse.Name != request.Name {
-		t.Fatalf(fmt.Sprintf("Controller returned unexpected Agent name: %s", getResponse.Name))
+		t.Fatalf("Controller returned unexpected Agent name: %s", getResponse.Name)
 	}
 
-	nameInfo, err := clt.GetAgentByName(state.agent, false)
+	nameInfo, err := clt.GetAgentByName(state.agent)
 	if err != nil {
-		t.Fatalf("Failed to get Agent by name: %s", err.Error())
+		t.Fatalf("Failed to get Agent by name: %s", err)
 	}
 	idInfo, err := clt.GetAgentByID(nameInfo.UUID)
 	if err != nil {
-		t.Fatalf("Failed to get Agent by UUID: %s", err.Error())
+		t.Fatalf("Failed to get Agent by UUID: %s", err)
 	}
 	state.uuid = idInfo.UUID
 }
 
 func TestDeleteAgent(t *testing.T) {
 	if err := clt.DeleteAgent(state.uuid); err != nil {
-		t.Fatalf("Failed to delete Agent: %s", err.Error())
+		t.Fatalf("Failed to delete Agent: %s", err)
 	}
 }
