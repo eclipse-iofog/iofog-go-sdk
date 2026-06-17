@@ -22,7 +22,6 @@ type ApplicationData struct {
 	CatalogByID        map[int]*client.CatalogItemInfo
 	RegistryByID       map[int]*client.RegistryInfo
 	CatalogByName      map[string]*client.CatalogItemInfo
-	FlowInfo           *client.FlowInfo
 }
 
 type microserviceExecutor struct {

@@ -41,7 +41,9 @@ type Header struct {
 // +k8s:deepcopy-gen=true
 type CatalogItem struct {
 	ID            int    `yaml:"id" json:"id"`
-	X86           string `yaml:"x86" json:"x86"`
+	AMD64         string `yaml:"amd64" json:"amd64"`
+	ARM64         string `yaml:"arm64" json:"arm64"`
+	RISCV64       string `yaml:"riscv64" json:"riscv64"`
 	ARM           string `yaml:"arm" json:"arm"`
 	Registry      string `yaml:"registry" json:"registry"`
 	Name          string `yaml:"name" json:"name"`
@@ -53,7 +55,9 @@ type CatalogItem struct {
 // +k8s:deepcopy-gen=true
 type MicroserviceImages struct {
 	CatalogID int    `yaml:"catalogId" json:"catalogId"`
-	X86       string `yaml:"x86" json:"x86"`
+	AMD64     string `yaml:"amd64" json:"amd64"`
+	ARM64     string `yaml:"arm64" json:"arm64"`
+	RISCV64   string `yaml:"riscv64" json:"riscv64"`
 	ARM       string `yaml:"arm" json:"arm"`
 	Registry  string `yaml:"registry" json:"registry"`
 }
@@ -134,8 +138,7 @@ type Microservice struct {
 	NatsConfig  *MicroserviceNatsConfig    `yaml:"natsConfig,omitempty" json:"natsConfig,omitempty"`
 	Schedule    int                        `yaml:"schedule" json:"schedule"`
 	Config      ArbitraryJSON              `yaml:"config" json:"config"`
-	Flow        *string                    `yaml:"flow,omitempty" json:"flow,omitempty"`
-	Application *string                    `yaml:"application,omitempty" json:"application,omitempty"`
+	Application string                     `yaml:"application,omitempty" json:"application,omitempty"`
 	Created     string                     `yaml:"created,omitempty" json:"created,omitempty"`
 	Rebuild     bool                       `yaml:"rebuild,omitempty" json:"rebuild,omitempty"`
 	Status      MicroserviceStatusInfo     `yaml:"status,omitempty" json:"status,omitempty"`
@@ -260,6 +263,8 @@ type MicroservicePortMapping struct {
 	Protocol string `json:"protocol,omitempty"`
 }
 
+// MicroserviceVolumeMapping maps a host path or service account into the container.
+// Type is the mapping kind (e.g. bind, serviceAccount).
 // +k8s:deepcopy-gen=true
 type MicroserviceVolumeMapping struct {
 	HostDestination      string `yaml:"hostDestination" json:"hostDestination"`
@@ -285,7 +290,7 @@ type MicroserviceExtraHost struct {
 
 // +k8s:deepcopy-gen=true
 type AgentConfiguration struct {
-	DockerURL                 *string   `yaml:"dockerUrl,omitempty" json:"dockerUrl,omitempty"`
+	ContainerEngineURL        *string   `yaml:"containerEngineUrl,omitempty" json:"containerEngineUrl,omitempty"`
 	ContainerEngine           *string   `yaml:"containerEngine,omitempty" json:"containerEngine,omitempty"`
 	DeploymentType            *string   `yaml:"deploymentType,omitempty" json:"deploymentType,omitempty"`
 	DiskLimit                 *int64    `yaml:"diskLimit,omitempty" json:"diskLimit,omitempty"`
@@ -319,6 +324,8 @@ type AgentConfiguration struct {
 	UpstreamNatsServers *[]string `yaml:"upstreamNatsServers,omitempty" json:"upstreamNatsServers,omitempty"`
 	JsStorageSize       *string   `yaml:"jsStorageSize,omitempty" json:"jsStorageSize,omitempty"`
 	JsMemoryStoreSize   *string   `yaml:"jsMemoryStoreSize,omitempty" json:"jsMemoryStoreSize,omitempty"`
+	PruningFrequency    *float64  `yaml:"pruningFrequency,omitempty" json:"pruningFrequency,omitempty"`
+	ArchID              *int64    `yaml:"archId,omitempty" json:"archId,omitempty"`
 }
 
 // Microservices is a list of Microservice
