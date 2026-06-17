@@ -40,19 +40,44 @@ clean: ## Clean the working area and the project
 APPS_IMPORT_PATH = github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/apps
 MODULE_PATH      = github.com/eclipse-iofog/iofog-go-sdk/v3
 
-.PHONY: gen
-gen: install-tools ## Generate code
+# Pin deepcopy-gen to k8s.io/apimachinery minor (go.mod uses v0.32.1)
+DEEPCOPY_GEN_VERSION ?= v0.32.0
+
+.PHONY: install-tools
+install-tools: ## Install deepcopy-gen (pinned to DEEPCOPY_GEN_VERSION)
+	go install -v k8s.io/code-generator/cmd/deepcopy-gen@$(DEEPCOPY_GEN_VERSION)
+
+.PHONY: gen gen-darwin gen-linux gen-check gen-deepcopy-run
+gen: install-tools ## Generate deepcopy (auto-selects darwin vs linux sed)
+ifeq ($(OS),darwin)
+	@$(MAKE) gen-darwin
+else
+	@$(MAKE) gen-linux
+endif
+
+gen-darwin: install-tools ## Generate deepcopy for pkg/apps (macOS BSD sed)
 	@sed -i '' -E 's|//(.*// \+k8s:deepcopy-gen=ignore)|\1|g' pkg/apps/types.go
 	@sed -i '' -E 's|(.*// \+k8s:deepcopy-gen=ignore)|//\1|g' pkg/apps/types.go
-	deepcopy-gen \
-		--bounding-dirs $(MODULE_PATH) \
-		-i $(APPS_IMPORT_PATH) \
-		-O deepcopy_generated \
-		-o . \
-		-p $(APPS_IMPORT_PATH) \
-		--trim-path-prefix $(MODULE_PATH) \
-		--go-header-file ./boilerplate.go.txt
+	@$(MAKE) gen-deepcopy-run
 	@sed -i '' -E 's|//(.*// \+k8s:deepcopy-gen=ignore)|\1|g' pkg/apps/types.go
+
+gen-linux: install-tools ## Generate deepcopy for pkg/apps (GNU sed; use in CI)
+	@sed -i -E 's|//(.*// \+k8s:deepcopy-gen=ignore)|\1|g' pkg/apps/types.go
+	@sed -i -E 's|(.*// \+k8s:deepcopy-gen=ignore)|//\1|g' pkg/apps/types.go
+	@$(MAKE) gen-deepcopy-run
+	@sed -i -E 's|//(.*// \+k8s:deepcopy-gen=ignore)|\1|g' pkg/apps/types.go
+
+gen-deepcopy-run:
+	cd pkg/apps && deepcopy-gen \
+		--bounding-dirs=$(MODULE_PATH) \
+		--output-file=deepcopy_generated.go \
+		--go-header-file=../../boilerplate.go.txt \
+		$(APPS_IMPORT_PATH)
+
+gen-check: gen ## Fail if pkg/apps/deepcopy_generated.go drift
+	@git diff --exit-code pkg/apps/deepcopy_generated.go pkg/apps/types.go \
+		|| (echo "ERROR: deepcopy drift — run 'make gen' (or 'make gen-linux' on CI) and commit" && exit 1)
+	@echo "pkg/apps/deepcopy_generated.go is up to date"
 
 $(GOLANGCI_LINT):
 	@echo "⬇️  Installing golangci-lint $(GOLANGCI_LINT_VERSION) → $(GOBIN)..."
@@ -119,11 +144,3 @@ help: ## Get help output
 # Variable outputting/exporting rules
 var-%: ; @echo $($*)
 varexport-%: ; @echo $*=$($*)
-
-
-# Pin code-generator to a version compatible with Go 1.21+ (avoid @latest which requires Go 1.25+)
-DEEPCOPY_GEN_VERSION ?= v0.29.0
-
-.PHONY: install-tools
-install-tools:
-	go install -v k8s.io/code-generator/cmd/deepcopy-gen@$(DEEPCOPY_GEN_VERSION)
