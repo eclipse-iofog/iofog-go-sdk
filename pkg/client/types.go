@@ -605,7 +605,7 @@ type AgentInfo struct {
 	Tunnel                    string            `json:"tunnel" yaml:"tunnel"`
 	ArchID                    int               `json:"archId" yaml:"archId"`
 	Arch                      *Architecture     `json:"arch,omitempty" yaml:"arch,omitempty"`
-	AvailableRuntimes         []string          `json:"availableRuntimes,omitempty" yaml:"availableRuntimes,omitempty"`
+	AvailableRuntimes         FlexStringSlice   `json:"availableRuntimes,omitempty" yaml:"availableRuntimes,omitempty"`
 	RuntimeAgentPhase         string            `json:"runtimeAgentPhase,omitempty" yaml:"runtimeAgentPhase,omitempty"`
 	ControlPlaneQuiesced      bool              `json:"controlPlaneQuiesced,omitempty" yaml:"controlPlaneQuiesced,omitempty"`
 	RouterMode                string            `json:"routerMode" yaml:"routerMode"`
@@ -1119,6 +1119,46 @@ type NatsCreateMqttBearerRequest struct {
 	Name      string `json:"name"`
 	ExpiresIn *int64 `json:"expiresIn,omitempty"`
 	NatsRule  string `json:"natsRule,omitempty"`
+}
+
+// FlexStringSlice unmarshals from JSON array or stringified JSON array (legacy Controller payloads).
+type FlexStringSlice []string
+
+func (v *FlexStringSlice) UnmarshalJSON(data []byte) error {
+	if len(data) == 0 || string(data) == "null" {
+		*v = nil
+		return nil
+	}
+	if data[0] == '"' {
+		var encoded string
+		if err := json.Unmarshal(data, &encoded); err != nil {
+			return err
+		}
+		if encoded == "" {
+			*v = nil
+			return nil
+		}
+		var parsed []string
+		if err := json.Unmarshal([]byte(encoded), &parsed); err != nil {
+			*v = []string{encoded}
+			return nil
+		}
+		*v = parsed
+		return nil
+	}
+	var parsed []string
+	if err := json.Unmarshal(data, &parsed); err != nil {
+		return err
+	}
+	*v = parsed
+	return nil
+}
+
+func (v FlexStringSlice) MarshalJSON() ([]byte, error) {
+	if v == nil {
+		return []byte("null"), nil
+	}
+	return json.Marshal([]string(v))
 }
 
 // FlexInt64 unmarshals from JSON string or number (Controller may send e.g. "-1" as string for BIGINT).
