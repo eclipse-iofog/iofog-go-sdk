@@ -270,7 +270,7 @@ type InfoTypeResponse struct {
 }
 
 type CatalogItemInfo struct {
-	ID            string            `json:"id"`
+	ID            int               `json:"id"`
 	Name          string            `json:"name"`
 	Description   string            `json:"description"`
 	Category      string            `json:"category"`
@@ -303,11 +303,11 @@ type CatalogItemCreateRequest struct {
 }
 
 type CatalogItemCreateResponse struct {
-	ID string `json:"id"`
+	ID int `json:"id"`
 }
 
 type CatalogItemUpdateRequest struct {
-	ID            string
+	ID            int
 	Name          string            `json:"name,omitempty"`
 	Description   string            `json:"description,omitempty"`
 	Category      string            `json:"category,omitempty"`
