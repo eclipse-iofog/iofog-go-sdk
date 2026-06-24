@@ -98,6 +98,9 @@ func (clt *Client) DeleteSecret(name string) error {
 }
 
 // Services
+
+// CreateService creates a service. Hub provisioning runs asynchronously; poll GetService
+// for provisioningStatus or use WaitForServiceProvisioningReady.
 func (clt *Client) CreateService(request *ServiceCreateRequest) error {
 	_, err := clt.doRequest("POST", "/services", request)
 	return err
@@ -123,6 +126,8 @@ func (clt *Client) CreateServiceFromYaml(file io.Reader) error {
 	return err
 }
 
+// UpdateService patches a service. Hub provisioning runs asynchronously; poll GetService
+// for provisioningStatus or use WaitForServiceProvisioningReady.
 func (clt *Client) UpdateService(name string, request *ServiceUpdateRequest) error {
 	_, err := clt.doRequest("PATCH", fmt.Sprintf("/services/%s", name), request)
 	return err
@@ -181,6 +186,8 @@ func (clt *Client) ListServices() (*ServiceListResponse, error) {
 	return response, nil
 }
 
+// DeleteService removes a service. Teardown is enqueued asynchronously; poll GetService
+// until the service is gone or provisioningStatus reflects delete progress.
 func (clt *Client) DeleteService(name string) error {
 	_, err := clt.doRequest("DELETE", fmt.Sprintf("/services/%s", name), nil)
 	return err

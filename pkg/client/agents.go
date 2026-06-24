@@ -6,7 +6,9 @@ import (
 	// "strings"
 )
 
-// CreateAgent creates an ioFog Agent using Controller REST API
+// CreateAgent creates an ioFog Agent using Controller REST API.
+// Platform router/NATS provisioning runs asynchronously; poll GetAgentByID for
+// platformStatus.phase or use WaitForAgentPlatformReady after create.
 func (clt *Client) CreateAgent(request *CreateAgentRequest) (CreateAgentResponse, error) {
 	var response CreateAgentResponse
 	if !clt.isLoggedIn() {
@@ -87,7 +89,8 @@ func (clt *Client) GetAgentByID(uuid string) (*AgentInfo, error) {
 	return response, nil
 }
 
-// UpdateAgent patches an ioFog Agent using Controller REST API
+// UpdateAgent patches an ioFog Agent using Controller REST API.
+// Platform changes are applied asynchronously; poll platformStatus after update.
 func (clt *Client) UpdateAgent(request *AgentUpdateRequest) (*AgentInfo, error) {
 	_, err := clt.doRequest("PATCH", fmt.Sprintf("/iofog/%s", request.UUID), request)
 	if err != nil {
@@ -102,7 +105,8 @@ func (clt *Client) RebootAgent(uuid string) error {
 	return err
 }
 
-// DeleteAgent removes an ioFog Agent from the Controller using Controller REST API
+// DeleteAgent removes an ioFog Agent from the Controller using Controller REST API.
+// Teardown runs asynchronously via platformStatus Deleting phase.
 func (clt *Client) DeleteAgent(uuid string) error {
 	if !clt.isLoggedIn() {
 		return NewError("Controller client must be logged into perform Delete Agent request")

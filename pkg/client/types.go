@@ -549,6 +549,35 @@ type GetAgentProvisionKeyResponse struct {
 	ExpireTimeMsUTC int64  `json:"expirationTime"`
 }
 
+// PlatformPhase is the fog platform reconcile lifecycle phase (GET /iofog/{uuid} only).
+type PlatformPhase string
+
+const (
+	PlatformPending     PlatformPhase = "Pending"
+	PlatformProgressing PlatformPhase = "Progressing"
+	PlatformReady       PlatformPhase = "Ready"
+	PlatformFailed      PlatformPhase = "Failed"
+	PlatformDeleting    PlatformPhase = "Deleting"
+)
+
+// PlatformCondition reports readiness of a platform sub-component after reconcile.
+type PlatformCondition struct {
+	Type    string `json:"type"`
+	Status  string `json:"status"`
+	Reason  string `json:"reason,omitempty"`
+	Message string `json:"message,omitempty"`
+}
+
+// PlatformStatus is present on GET single fog responses; omitted on list responses.
+type PlatformStatus struct {
+	Phase              PlatformPhase       `json:"phase"`
+	Generation         int                 `json:"generation"`
+	ObservedGeneration int                 `json:"observedGeneration"`
+	LastError          *string             `json:"lastError"`
+	LastTransitionAt   *time.Time          `json:"lastTransitionAt"`
+	Conditions         []PlatformCondition `json:"conditions,omitempty"`
+}
+
 type AgentInfo struct {
 	UUID                      string            `json:"uuid" yaml:"uuid"`
 	Name                      string            `json:"name" yaml:"name"`
@@ -635,6 +664,7 @@ type AgentInfo struct {
 	UpstreamNatsServers *[]string `json:"upstreamNatsServers,omitempty" yaml:"upstreamNatsServers,omitempty"`
 	JsStorageSize       *string   `json:"jsStorageSize,omitempty" yaml:"jsStorageSize,omitempty"`
 	JsMemoryStoreSize   *string   `json:"jsMemoryStoreSize,omitempty" yaml:"jsMemoryStoreSize,omitempty"`
+	PlatformStatus      *PlatformStatus `json:"platformStatus,omitempty" yaml:"platformStatus,omitempty"`
 }
 
 type RouterConfig struct {
@@ -810,22 +840,35 @@ type SecretListResponse struct {
 	Secrets []SecretInfo `json:"secrets"`
 }
 
+// ProvisioningStatus is the hub-side service provisioning lifecycle.
+//
+// pending — reconcile queued or in progress. ready — hub connector/listener and K8s
+// Service provisioning completed; edge fog bridge updates converge asynchronously via
+// fog platform reconcile. failed — max worker attempts exhausted; use ReconcileService.
+type ProvisioningStatus string
+
+const (
+	ProvisioningPending ProvisioningStatus = "pending"
+	ProvisioningReady   ProvisioningStatus = "ready"
+	ProvisioningFailed  ProvisioningStatus = "failed"
+)
+
 // Services
 type ServiceInfo struct {
-	Tags               []string `json:"tags"`
-	Name               string   `json:"name"`
-	Type               string   `json:"type"`
-	Resource           string   `json:"resource"`
-	TargetPort         int      `json:"targetPort"`
-	ServicePort        int      `json:"servicePort"`
-	K8sType            string   `json:"k8sType"`
-	BridgePort         int      `json:"bridgePort"`
-	DefaultBridge      string   `json:"defaultBridge"`
-	ServiceEndpoint    string   `json:"serviceEndpoint"`
-	ProvisioningStatus string   `json:"provisioningStatus"`
-	ProvisioningError  string   `json:"provisioningError"`
-	CreatedAt          string   `json:"createdAt,omitempty"`
-	UpdatedAt          string   `json:"updatedAt,omitempty"`
+	Tags               []string           `json:"tags"`
+	Name               string             `json:"name"`
+	Type               string             `json:"type"`
+	Resource           string             `json:"resource"`
+	TargetPort         int                `json:"targetPort"`
+	ServicePort        int                `json:"servicePort"`
+	K8sType            *string            `json:"k8sType"`
+	BridgePort         int                `json:"bridgePort"`
+	DefaultBridge      string             `json:"defaultBridge"`
+	ServiceEndpoint    string             `json:"serviceEndpoint"`
+	ProvisioningStatus ProvisioningStatus `json:"provisioningStatus"`
+	ProvisioningError  *string            `json:"provisioningError"`
+	CreatedAt          string             `json:"createdAt,omitempty"`
+	UpdatedAt          string             `json:"updatedAt,omitempty"`
 }
 
 type ServiceCreateRequest struct {
