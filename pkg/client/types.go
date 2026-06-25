@@ -655,15 +655,15 @@ type AgentInfo struct {
 	WarningMessage            string            `json:"warningMessage" yaml:"warningMessage"`
 	GpsStatus                 string            `json:"gpsStatus" yaml:"gpsStatus"`
 	// NATS-related fields (Controller iofog schema)
-	NatsMode            *string   `json:"natsMode,omitempty" yaml:"natsMode,omitempty"` // none, leaf, server
-	NatsServerPort      *int      `json:"natsServerPort,omitempty" yaml:"natsServerPort,omitempty"`
-	NatsLeafPort        *int      `json:"natsLeafPort,omitempty" yaml:"natsLeafPort,omitempty"`
-	NatsClusterPort     *int      `json:"natsClusterPort,omitempty" yaml:"natsClusterPort,omitempty"`
-	NatsMqttPort        *int      `json:"natsMqttPort,omitempty" yaml:"natsMqttPort,omitempty"`
-	NatsHTTPPort        *int      `json:"natsHttpPort,omitempty" yaml:"natsHttpPort,omitempty"`
-	UpstreamNatsServers *[]string `json:"upstreamNatsServers,omitempty" yaml:"upstreamNatsServers,omitempty"`
-	JsStorageSize       *string   `json:"jsStorageSize,omitempty" yaml:"jsStorageSize,omitempty"`
-	JsMemoryStoreSize   *string   `json:"jsMemoryStoreSize,omitempty" yaml:"jsMemoryStoreSize,omitempty"`
+	NatsMode            *string         `json:"natsMode,omitempty" yaml:"natsMode,omitempty"` // none, leaf, server
+	NatsServerPort      *int            `json:"natsServerPort,omitempty" yaml:"natsServerPort,omitempty"`
+	NatsLeafPort        *int            `json:"natsLeafPort,omitempty" yaml:"natsLeafPort,omitempty"`
+	NatsClusterPort     *int            `json:"natsClusterPort,omitempty" yaml:"natsClusterPort,omitempty"`
+	NatsMqttPort        *int            `json:"natsMqttPort,omitempty" yaml:"natsMqttPort,omitempty"`
+	NatsHTTPPort        *int            `json:"natsHttpPort,omitempty" yaml:"natsHttpPort,omitempty"`
+	UpstreamNatsServers *[]string       `json:"upstreamNatsServers,omitempty" yaml:"upstreamNatsServers,omitempty"`
+	JsStorageSize       *string         `json:"jsStorageSize,omitempty" yaml:"jsStorageSize,omitempty"`
+	JsMemoryStoreSize   *string         `json:"jsMemoryStoreSize,omitempty" yaml:"jsMemoryStoreSize,omitempty"`
 	PlatformStatus      *PlatformStatus `json:"platformStatus,omitempty" yaml:"platformStatus,omitempty"`
 }
 
