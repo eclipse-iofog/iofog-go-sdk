@@ -1,6 +1,7 @@
 package client
 
 import (
+	"crypto/tls"
 	"errors"
 	"fmt"
 	"net/url"
@@ -22,12 +23,14 @@ type Client struct {
 	retries      Retries
 	status       controllerStatus
 	timeout      int
+	tlsConfig    *tls.Config
 }
 
 type Options struct {
-	BaseURL *url.URL
-	Retries *Retries
-	Timeout int
+	BaseURL   *url.URL
+	Retries   *Retries
+	Timeout   int
+	TLSConfig *tls.Config
 }
 
 func New(opt Options) *Client {
@@ -39,9 +42,10 @@ func New(opt Options) *Client {
 		retries = *opt.Retries
 	}
 	client := &Client{
-		retries: retries,
-		baseURL: opt.BaseURL,
-		timeout: opt.Timeout,
+		retries:   retries,
+		baseURL:   opt.BaseURL,
+		timeout:   opt.Timeout,
+		tlsConfig: opt.TLSConfig,
 	}
 	if client.baseURL.Scheme == "" {
 		client.baseURL.Path = "http"
@@ -127,7 +131,7 @@ func (clt *Client) SetRefreshToken(token string) {
 
 func (clt *Client) doRequestWithRetries(currentRetries Retries, method, requestURL string, headers map[string]string, request any) ([]byte, error) {
 	// Send request
-	httpDo := httpDo{timeout: clt.timeout}
+	httpDo := httpDo{timeout: clt.timeout, tlsConfig: clt.tlsConfig}
 	bytes, err := httpDo.do(method, requestURL, headers, request)
 	if err != nil {
 		httpErr := &HTTPError{}

@@ -13,7 +13,19 @@ import (
 )
 
 type httpDo struct {
-	timeout int
+	timeout   int
+	tlsConfig *tls.Config
+}
+
+func defaultTLSConfig() *tls.Config {
+	return &tls.Config{InsecureSkipVerify: true} // #nosec G402 -- Controller deployments commonly use self-signed TLS
+}
+
+func (hd *httpDo) transportTLS() *tls.Config {
+	if hd.tlsConfig != nil {
+		return hd.tlsConfig
+	}
+	return defaultTLSConfig()
 }
 
 func (hd *httpDo) do(method, url string, headers map[string]string, requestBody any) ([]byte, error) {
@@ -52,7 +64,7 @@ func (hd *httpDo) do(method, url string, headers map[string]string, requestBody 
 	}
 
 	tr := &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: true}, // #nosec G402 -- Controller deployments commonly use self-signed TLS
+		TLSClientConfig: hd.transportTLS(),
 	}
 
 	client := &http.Client{
