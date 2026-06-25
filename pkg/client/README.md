@@ -37,3 +37,7 @@ if err != nil {
 }
 println(resp.Status)
 ```
+
+## HTTPS / TLS
+
+Optional `Options.TLSConfig` for HTTPS Controller endpoints. If omitted, the SDK skips certificate verification (self-signed friendly). CLI tools should set this from their trust store; use `InsecureSkipVerify: true` only in explicit insecure mode.
