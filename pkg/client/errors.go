@@ -127,3 +127,23 @@ func (err *NotSupportedError) Error() string {
 // Controller endpoints. The Controller no longer exposes /api/v3/routes or
 // /api/v3/microservices/:uuid/routes; use NATS for messaging instead.
 var ErrRoutesNotSupported = errors.New("routes API is no longer supported by the Controller; use NATS for messaging")
+
+// Exec WebSocket close errors (Controller Plan 17).
+var (
+	ErrExecSessionQuotaExceeded = errors.New("maximum concurrent exec sessions exceeded")
+	ErrExecAgentTimeout         = errors.New("timeout waiting for agent connection")
+	ErrMicroserviceNotRunning   = errors.New("microservice is not running")
+	ErrExecRouterUnavailable    = errors.New("exec router unavailable")
+)
+
+// Log WebSocket close errors.
+var (
+	ErrLogSessionUnavailable      = errors.New("no available log session")
+	ErrLogAuthenticationFailed    = errors.New("log stream authentication failed")
+	ErrAgentNotRunning            = errors.New("agent is not running")
+	ErrLogInsufficientPermissions = errors.New("insufficient permissions for log stream")
+	ErrLogPolicyViolation         = errors.New("log stream policy violation")
+	ErrLogConnectionLost          = errors.New("log stream connection lost")
+	ErrLogMessageTooLarge         = errors.New("log stream message too large")
+	ErrLogServerError             = errors.New("log stream server error")
+)

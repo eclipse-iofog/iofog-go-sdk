@@ -16,6 +16,7 @@
 - **`pkg/apps`:** default deploy YAML `apiVersion` is `iofog.org/v3`. Datasance-flavored callers use `apps.WithAPIVersion("datasance.com/v3")`.
 - **`pkg/apps` deploy types:** canonical image keys `amd64`, `arm64`, `riscv64`, `arm` (removed `x86`/`arm`); `flow` → `application`; `dockerUrl` → `containerEngineUrl`.
 - **`pkg/client` — Controller REST v3.8:** `fogTypeId`/`FogType`/`agentType` → `archId`/`ArchID`/`arch`; flow APIs removed in favor of application name; auth endpoint updates (`POST /users`, `POST /user/change-password`); `RefreshUserSubscriptionKey` removed.
+- **`pkg/client` — microservice exec:** removed `AttachExecMicroservice`, `DetachExecMicroservice`, `AttachExecSystemMicroservice`, and `DetachExecSystemMicroservice`. Use WebSocket dial instead of REST enable/disable before exec.
 
 ### Added
 
@@ -24,16 +25,20 @@
 - GitHub Actions CI (`.github/workflows/ci.yml`): `make lint`, `make security-code`, `make vulncheck`.
 - `SECURITY.md` maintainer security gates and documented gosec exceptions.
 - `NOTICE` Eclipse ioFog attribution; per-file Datasance copyright headers removed from `pkg/**`.
+- **`pkg/client` — exec sessions:** `DialMicroserviceExec`, `DialSystemMicroserviceExec`, `ExecSession` IO (`Read`, `WriteStdin`, `WriteControl`, `Close`), `DialExecOptions` (`WaitForAgentReady`, `OnStatusLine`), and exec WebSocket error constants. Fog debug provision unchanged (`AttachExecToAgent` / `DetachExecFromAgent`).
+- **`pkg/client` — log streaming:** `DialMicroserviceLogs`, `DialSystemMicroserviceLogs`, `DialFogLogs`, `LogSession` (`Read`, `Close`), `LogTailOptions` (`tail`, `follow`, `since`, `until`), and log WebSocket error constants (`ErrLogSessionUnavailable`, `ErrLogAuthenticationFailed`, `ErrAgentNotRunning`, etc.).
 
 ### Changed
 
 - Copyright attribution consolidated in `NOTICE`.
 - golangci-lint v2 config; gosec runs via `make security-code` (not inside golangci-lint).
+- **`pkg/client` — WebSocket sessions:** `ExecSession.Close` and `LogSession.Close` are idempotent.
 
 ### Removed
 
 - Azure Pipelines workflow (`azure-pipelines.yml`).
 - Deprecated `IoFogClient` / `V3APIError` aliases and legacy four-argument `NewIoFogClient` constructor.
+- **`pkg/client`:** microservice exec REST attach/detach methods (`AttachExecMicroservice`, `DetachExecMicroservice`, system variants).
 
 ### Migration
 
@@ -60,6 +65,10 @@ apps.DeployApplication(ctrl, app, name, apps.WithAPIVersion("datasance.com/v3"))
 ```
 
 The Datasance git mirror (`github.com/Datasance/iofog-go-sdk`) ships the same commit SHA as `eclipse-iofog/iofog-go-sdk`; only the **module import path** changes.
+
+Remote log tailing: replace local WebSocket URL/auth assembly with `DialMicroserviceLogs`, `DialSystemMicroserviceLogs`, or `DialFogLogs` (see `pkg/client/README.md`).
+
+Microservice exec: replace `AttachExecMicroservice` / detach REST calls with `DialMicroserviceExec` or `DialSystemMicroserviceExec`; close the session locally instead of REST detach.
 
 ## [v3.0.0-beta1] - 13 Auguest 2021
 
