@@ -41,3 +41,67 @@ println(resp.Status)
 ## HTTPS / TLS
 
 Optional `Options.TLSConfig` for HTTPS Controller endpoints. If omitted, the SDK skips certificate verification (self-signed friendly). CLI tools should set this from their trust store; use `InsecureSkipVerify: true` only in explicit insecure mode.
+
+## Microservice exec (WebSocket)
+
+Interactive exec is WebSocket-first. Dial directly — no REST attach step:
+
+```go
+session, err := clt.DialMicroserviceExecWithOptions(microserviceUUID, &client.DialExecOptions{
+	OnStatusLine: func(line string) {
+		fmt.Fprintln(os.Stdout, line)
+	},
+})
+if err != nil {
+	return err
+}
+defer session.Close()
+
+for {
+	frame, err := session.Read()
+	if err != nil {
+		return err
+	}
+	if frame.Type == client.ExecMessageStdout {
+		os.Stdout.Write(frame.Data)
+	}
+}
+```
+
+`OnStatusLine` receives STDERR status lines emitted while waiting for the agent (for example `Waiting for agent connection...`). `ExecSession.Close()` is idempotent.
+
+System microservices use `DialSystemMicroserviceExec` / `DialSystemMicroserviceExecWithOptions`.
+
+Fog node debug still provisions a debug microservice via `AttachExecToAgent`, then uses `DialSystemMicroserviceExec` on the debug microservice UUID.
+
+## Log streaming (WebSocket)
+
+Remote log tailing uses WebSocket sessions with optional query parameters:
+
+```go
+session, err := clt.DialMicroserviceLogs(microserviceUUID, &client.LogTailOptions{
+	Tail:   100,
+	Follow: true,
+})
+if err != nil {
+	return err
+}
+defer session.Close()
+
+for {
+	frame, err := session.Read()
+	if err != nil {
+		return err
+	}
+	switch frame.Type {
+	case client.LogMessageLine:
+		os.Stdout.Write(frame.Data)
+	case client.LogMessageStop:
+		return nil
+	case client.LogMessageError:
+		return fmt.Errorf("%s", frame.Data)
+	}
+}
+```
+
+Use `DialSystemMicroserviceLogs` for system microservices and `DialFogLogs` for Agent (fog node) logs.

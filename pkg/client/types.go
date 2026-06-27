@@ -1042,14 +1042,6 @@ type CAListResponse struct {
 	CAs []CAInfo `json:"cas"`
 }
 
-type AttachExecMicroserviceRequest struct {
-	UUID string `json:"uuid"`
-}
-
-type DetachExecMicroserviceRequest struct {
-	UUID string `json:"uuid"`
-}
-
 type AttachExecToAgentRequest struct {
 	UUID  string  `json:"uuid"`
 	Image *string `json:"image,omitempty"`
