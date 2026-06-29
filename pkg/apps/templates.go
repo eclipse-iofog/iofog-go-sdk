@@ -2,7 +2,6 @@ package apps
 
 import (
 	"bytes"
-	"errors"
 	"net/url"
 
 	"github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/client"
@@ -63,9 +62,7 @@ func (exe *applicationTemplateExecutor) deploy() error {
 		return err
 	}
 	existingAppTemplate, err := exe.client.GetApplicationTemplate(exe.name)
-	// If not notfound error, return error
-	notFoundError := &client.NotFoundError{}
-	if errors.As(err, &notFoundError) {
+	if err = lookupErrorAllowNotFound(err); err != nil {
 		return err
 	}
 	if existingAppTemplate == nil {

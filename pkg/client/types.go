@@ -490,6 +490,25 @@ type AuthUserResetTokenResponse struct {
 	ExpiresIn  int    `json:"expiresIn"`
 }
 
+type AuthGroupCreateRequest struct {
+	Name        string `json:"name"`
+	MfaRequired *bool  `json:"mfaRequired,omitempty"`
+}
+
+type AuthGroupUpdateRequest struct {
+	Name        *string `json:"name,omitempty"`
+	MfaRequired *bool   `json:"mfaRequired,omitempty"`
+}
+
+type AuthGroupResponse struct {
+	ID          int    `json:"id"`
+	Name        string `json:"name"`
+	IsSystem    bool   `json:"isSystem"`
+	MfaRequired bool   `json:"mfaRequired"`
+	CreatedAt   string `json:"createdAt"`
+	UpdatedAt   string `json:"updatedAt"`
+}
+
 type ControllerVersions struct {
 	Controller string `json:"controller"`
 	EcnViewer  string `json:"ecnViewer"`
