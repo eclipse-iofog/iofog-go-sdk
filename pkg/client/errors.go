@@ -128,12 +128,17 @@ func (err *NotSupportedError) Error() string {
 // /api/v3/microservices/:uuid/routes; use NATS for messaging instead.
 var ErrRoutesNotSupported = errors.New("routes API is no longer supported by the Controller; use NATS for messaging")
 
-// Exec WebSocket close errors (Controller Plan 17).
+// WebSocket close errors shared by exec and log sessions.
+var (
+	ErrWsRelayUnavailable = errors.New("cross-replica relay unavailable")
+	ErrWsServerDraining   = errors.New("server draining")
+	ErrWsAgentTimeout     = errors.New("timeout waiting for agent connection")
+)
+
+// Exec WebSocket close errors .
 var (
 	ErrExecSessionQuotaExceeded = errors.New("maximum concurrent exec sessions exceeded")
-	ErrExecAgentTimeout         = errors.New("timeout waiting for agent connection")
 	ErrMicroserviceNotRunning   = errors.New("microservice is not running")
-	ErrExecRouterUnavailable    = errors.New("exec router unavailable")
 )
 
 // Log WebSocket close errors.

@@ -17,6 +17,7 @@
 - **`pkg/apps` deploy types:** canonical image keys `amd64`, `arm64`, `riscv64`, `arm` (removed `x86`/`arm`); `flow` → `application`; `dockerUrl` → `containerEngineUrl`.
 - **`pkg/client` — Controller REST v3.8:** `fogTypeId`/`FogType`/`agentType` → `archId`/`ArchID`/`arch`; flow APIs removed in favor of application name; auth endpoint updates (`POST /users`, `POST /user/change-password`); `RefreshUserSubscriptionKey` removed.
 - **`pkg/client` — microservice exec:** removed `AttachExecMicroservice`, `DetachExecMicroservice`, `AttachExecSystemMicroservice`, and `DetachExecSystemMicroservice`. Use WebSocket dial instead of REST enable/disable before exec.
+- **`pkg/client` — WebSocket errors:** removed `ErrExecRouterUnavailable`; use `ErrWsRelayUnavailable` for close 1013 on exec and log sessions. Removed `ErrExecAgentTimeout`; use shared `ErrWsAgentTimeout` for pending agent timeout on exec and log (close 1008).
 
 ### Added
 
@@ -33,6 +34,7 @@
 - Copyright attribution consolidated in `NOTICE`.
 - golangci-lint v2 config; gosec runs via `make security-code` (not inside golangci-lint).
 - **`pkg/client` — WebSocket sessions:** `ExecSession.Close` and `LogSession.Close` are idempotent.
+- **`pkg/client` — WebSocket close errors (R112):** cross-replica relay failures map to shared `ErrWsRelayUnavailable` (close 1013) for both exec and log; server drain maps to `ErrWsServerDraining` (1001); pending agent timeout maps to shared `ErrWsAgentTimeout` (1008) for both exec and log. Replaces exec-only `ErrExecRouterUnavailable` and `ErrExecAgentTimeout`.
 
 ### Removed
 

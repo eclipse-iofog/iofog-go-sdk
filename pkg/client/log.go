@@ -175,6 +175,8 @@ func mapLogCloseError(err error) error {
 			return fmt.Errorf("%w: %s", ErrMicroserviceNotRunning, reason)
 		case strings.Contains(reason, "Insufficient permissions"):
 			return fmt.Errorf("%w: %s", ErrLogInsufficientPermissions, reason)
+		case strings.Contains(reason, "Timeout waiting for agent connection"):
+			return fmt.Errorf("%w: %s", ErrWsAgentTimeout, reason)
 		}
 		return fmt.Errorf("%w: %s", ErrLogPolicyViolation, reason)
 	case ws.CloseAbnormalClosure: // 1006
@@ -183,6 +185,9 @@ func mapLogCloseError(err error) error {
 		return fmt.Errorf("%w: %s", ErrLogMessageTooLarge, reason)
 	case ws.CloseInternalServerErr: // 1011
 		return fmt.Errorf("%w: %s", ErrLogServerError, reason)
+	}
+	if err := sharedWSCloseErr(closeErr.Code, reason); err != nil {
+		return err
 	}
 	return fmt.Errorf("log WebSocket closed (code %d): %s", closeErr.Code, reason)
 }
