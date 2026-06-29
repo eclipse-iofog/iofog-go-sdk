@@ -204,6 +204,36 @@ func TestExecSessionCloseIsIdempotent(t *testing.T) {
 	}
 }
 
+func TestMapLogCloseError(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name   string
+		code   int
+		reason string
+		target error
+	}{
+		{"relay unavailable", 1013, "Relay unavailable for cross-replica session", ErrWsRelayUnavailable},
+		{"legacy router reason", 1013, "Router unavailable for cross-replica session", ErrWsRelayUnavailable},
+		{"server draining", ws.CloseGoingAway, "Server draining", ErrWsServerDraining},
+		{"quota", ws.ClosePolicyViolation, "No available log session", ErrLogSessionUnavailable},
+		{"agent timeout", ws.ClosePolicyViolation, "Timeout waiting for agent connection", ErrWsAgentTimeout},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			err := mapLogCloseError(&ws.CloseError{Code: tt.code, Text: tt.reason})
+			if err == nil {
+				t.Fatal("expected mapped error")
+			}
+			if !strings.Contains(err.Error(), tt.target.Error()) {
+				t.Fatalf("expected error containing %q, got %v", tt.target.Error(), err)
+			}
+		})
+	}
+}
+
 func TestLogSessionCloseIsIdempotent(t *testing.T) {
 	t.Parallel()
 

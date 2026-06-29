@@ -265,18 +265,18 @@ func mapExecCloseError(err error) error {
 	}
 
 	reason := closeErr.Text
-	switch closeErr.Code {
-	case ws.ClosePolicyViolation: // 1008
+	if closeErr.Code == ws.ClosePolicyViolation { // 1008
 		switch {
 		case strings.Contains(reason, "Maximum of 3 concurrent exec sessions"):
 			return fmt.Errorf("%w: %s", ErrExecSessionQuotaExceeded, reason)
 		case strings.Contains(reason, "Timeout waiting for agent connection"):
-			return fmt.Errorf("%w: %s", ErrExecAgentTimeout, reason)
+			return fmt.Errorf("%w: %s", ErrWsAgentTimeout, reason)
 		case strings.Contains(reason, "not running"), strings.Contains(reason, "Not running"):
 			return fmt.Errorf("%w: %s", ErrMicroserviceNotRunning, reason)
 		}
-	case 1013:
-		return fmt.Errorf("%w: %s", ErrExecRouterUnavailable, reason)
+	}
+	if err := sharedWSCloseErr(closeErr.Code, reason); err != nil {
+		return err
 	}
 	return fmt.Errorf("exec WebSocket closed (code %d): %s", closeErr.Code, reason)
 }

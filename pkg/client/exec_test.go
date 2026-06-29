@@ -118,9 +118,11 @@ func TestMapExecCloseError(t *testing.T) {
 		target error
 	}{
 		{"quota", ws.ClosePolicyViolation, "Maximum of 3 concurrent exec sessions allowed", ErrExecSessionQuotaExceeded},
-		{"agent timeout", ws.ClosePolicyViolation, "Timeout waiting for agent connection", ErrExecAgentTimeout},
+		{"agent timeout", ws.ClosePolicyViolation, "Timeout waiting for agent connection", ErrWsAgentTimeout},
 		{"not running", ws.ClosePolicyViolation, "Microservice is not running", ErrMicroserviceNotRunning},
-		{"router unavailable", 1013, "Try again later", ErrExecRouterUnavailable},
+		{"relay unavailable", 1013, "Relay unavailable for cross-replica session", ErrWsRelayUnavailable},
+		{"legacy router reason", 1013, "Router unavailable for cross-replica session", ErrWsRelayUnavailable},
+		{"server draining", ws.CloseGoingAway, "Server draining", ErrWsServerDraining},
 	}
 
 	for _, tt := range tests {
