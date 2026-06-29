@@ -2,7 +2,6 @@ package apps
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 	"net/url"
 
@@ -35,17 +34,12 @@ func (exe *applicationExecutor) execute() (err error) {
 		return err
 	}
 
-	// Try application API
-	// Look for exisiting application
+	// Look up existing application; NotFound means create on deploy.
 	exe.applicationInfo, err = exe.client.GetApplicationByName(exe.name)
-
-	// If not notfound error, return error
-	notFoundError := &client.NotFoundError{}
-	if errors.As(err, &notFoundError) {
+	if err = lookupErrorAllowNotFound(err); err != nil {
 		return err
 	}
 
-	// Deploy application
 	return exe.deploy()
 }
 
