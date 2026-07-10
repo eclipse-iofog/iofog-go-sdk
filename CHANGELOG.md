@@ -1,5 +1,15 @@
 # Changelog
 
+## [v3.8.1] - 10 July 2026
+
+### Fixed
+
+- **`pkg/client` — ConfigMaps:** align `ConfigMapInfo`, `ConfigMapCreateRequest`, and `ConfigMapUpdateRequest` with Controller REST JSON (`useVault`, `created_at`, `updated_at`); use pointer booleans for `immutable` and `useVault` so explicit `false` values are encoded on create/update.
+
+### Changed
+
+- **Go 1.26.5** minimum (see `go.mod`).
+
 ## [v3.8.0] - 17 June 2026
 
 ### Breaking changes
