@@ -1,7 +1,7 @@
 # ioFog Go SDK
 
 [![CI](https://github.com/eclipse-iofog/iofog-go-sdk/actions/workflows/ci.yml/badge.svg)](https://github.com/eclipse-iofog/iofog-go-sdk/actions/workflows/ci.yml)
-[![Go](https://img.shields.io/badge/Go-1.26.4-blue.svg)](https://go.dev/)
+[![Go](https://img.shields.io/badge/Go-1.26.5-blue.svg)](https://go.dev/)
 [![License](https://img.shields.io/badge/License-EPL--2.0-blue.svg)](LICENSE)
 
 **Upstream:** [eclipse-iofog/iofog-go-sdk](https://github.com/eclipse-iofog/iofog-go-sdk) · **Datasance distribution:** [Datasance/iofog-go-sdk](https://github.com/Datasance/iofog-go-sdk)
@@ -13,7 +13,7 @@ This SDK contains a set of Golang packages developers can use for the purposes o
 
 ## Go
 
-The SDK requires **Go 1.26.4+** (see `go.mod`).
+The SDK requires **Go 1.26.5+** (see `go.mod`).
 
 ```bash
 go get github.com/eclipse-iofog/iofog-go-sdk/v3
