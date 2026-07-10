@@ -922,20 +922,23 @@ type ConfigMapInfo struct {
 	Name      string            `json:"name"`
 	Data      map[string]string `json:"data"`
 	Immutable bool              `json:"immutable,omitempty"`
-	CreatedAt string            `json:"createdAt,omitempty"`
-	UpdatedAt string            `json:"updatedAt,omitempty"`
+	UseVault  bool              `json:"useVault"`
+	CreatedAt string            `json:"created_at,omitempty"`
+	UpdatedAt string            `json:"updated_at,omitempty"`
 }
 
 type ConfigMapCreateRequest struct {
 	Name      string            `json:"name"`
 	Data      map[string]string `json:"data"`
-	Immutable bool              `json:"immutable,omitempty"`
+	Immutable *bool             `json:"immutable,omitempty"`
+	UseVault  *bool             `json:"useVault,omitempty"`
 }
 
 type ConfigMapUpdateRequest struct {
 	Name      string            `json:"name,omitempty"`
 	Data      map[string]string `json:"data,omitempty"`
-	Immutable bool              `json:"immutable,omitempty"`
+	Immutable *bool             `json:"immutable,omitempty"`
+	UseVault  *bool             `json:"useVault,omitempty"`
 }
 
 type ConfigMapListResponse struct {
