@@ -154,28 +154,49 @@ func generateListAgentURL(request ListAgentsRequest) string {
 	return url
 }
 
-func (clt *Client) UpgradeAgent(name string) error {
-	agent, err := clt.GetAgentByName(name)
-	if err != nil {
-		return err
+// SetNodeVersionCommand sets an upgrade or rollback version command on a Controller-managed fog node.
+// versionCommand must be "upgrade" or "rollback". Pass req nil or req.Semver nil to omit a target semver.
+func (clt *Client) SetNodeVersionCommand(uuid, versionCommand string, req *SetNodeVersionCommandRequest) error {
+	var semver *string
+	if req != nil {
+		semver = req.Semver
 	}
-
-	if _, err := clt.doRequest("POST", fmt.Sprintf("/iofog/%s/version/upgrade", agent.UUID), nil); err != nil {
-		return err
-	}
-
-	return nil
+	return clt.setNodeVersionCommand(uuid, versionCommand, semver)
 }
 
-func (clt *Client) RollbackAgent(name string) error {
+// UpgradeNode requests an upgrade for a fog node by UUID. Pass semver nil to use Controller default behavior.
+func (clt *Client) UpgradeNode(uuid string, semver *string) error {
+	return clt.setNodeVersionCommand(uuid, "upgrade", semver)
+}
+
+// RollbackNode requests a rollback for a fog node by UUID. Pass semver nil to use Controller default behavior.
+func (clt *Client) RollbackNode(uuid string, semver *string) error {
+	return clt.setNodeVersionCommand(uuid, "rollback", semver)
+}
+
+// UpgradeAgent requests an upgrade for a fog node looked up by name. Pass semver nil for default behavior.
+func (clt *Client) UpgradeAgent(name string, semver *string) error {
 	agent, err := clt.GetAgentByName(name)
 	if err != nil {
 		return err
 	}
+	return clt.setNodeVersionCommand(agent.UUID, "upgrade", semver)
+}
 
-	if _, err := clt.doRequest("POST", fmt.Sprintf("/iofog/%s/version/rollback", agent.UUID), nil); err != nil {
+// RollbackAgent requests a rollback for a fog node looked up by name. Pass semver nil for default behavior.
+func (clt *Client) RollbackAgent(name string, semver *string) error {
+	agent, err := clt.GetAgentByName(name)
+	if err != nil {
 		return err
 	}
+	return clt.setNodeVersionCommand(agent.UUID, "rollback", semver)
+}
 
-	return nil
+func (clt *Client) setNodeVersionCommand(uuid, command string, semver *string) error {
+	var body any
+	if semver != nil && *semver != "" {
+		body = SetNodeVersionCommandRequest{Semver: semver}
+	}
+	_, err := clt.doRequest("POST", fmt.Sprintf("/iofog/%s/version/%s", uuid, command), body)
+	return err
 }
