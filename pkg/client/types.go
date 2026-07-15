@@ -761,6 +761,12 @@ type AgentListFilter struct {
 	Condition string `json:"condition"`
 }
 
+// SetNodeVersionCommandRequest is the optional body for POST /iofog/{uuid}/version/{versionCommand}.
+// Omit Semver (nil) to use Controller default upgrade/rollback behavior.
+type SetNodeVersionCommandRequest struct {
+	Semver *string `json:"semver,omitempty"`
+}
+
 type Router struct {
 	RouterConfig
 	Host string `json:"host"`

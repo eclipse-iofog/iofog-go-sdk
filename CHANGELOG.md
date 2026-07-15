@@ -1,5 +1,11 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+
+- **`pkg/client` — node version commands:** optional target `semver` on upgrade/rollback via `SetNodeVersionCommand`, `UpgradeNode`, `RollbackNode`, and extended `UpgradeAgent` / `RollbackAgent`. Matches Controller v3.8 `POST /iofog/{uuid}/version/{versionCommand}` body.
+
 ## [v3.8.1] - 10 July 2026
 
 ### Fixed
