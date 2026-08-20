@@ -2,9 +2,22 @@
 
 ## [Unreleased]
 
+## [v3.8.3] - 20 August 2026
+
+### Changed
+
+- **Go 1.26.6** minimum (see `go.mod`).
+- Dependency bumps so `make vulncheck` is clean: `golang.org/x/text` v0.39.0 ([GO-2026-5970](https://pkg.go.dev/vuln/GO-2026-5970)), `golang.org/x/net` v0.56.0 ([GO-2026-5942](https://pkg.go.dev/vuln/GO-2026-5942)), `golang.org/x/oauth2` v0.27.0 ([GO-2025-3488](https://pkg.go.dev/vuln/GO-2025-3488)).
+
+## [v3.8.2] - 15 July 2026
+
 ### Added
 
 - **`pkg/client` — node version commands:** optional target `semver` on upgrade/rollback via `SetNodeVersionCommand`, `UpgradeNode`, `RollbackNode`, and extended `UpgradeAgent` / `RollbackAgent`. Matches Controller v3.8 `POST /iofog/{uuid}/version/{versionCommand}` body.
+
+### Changed
+
+- **`UpgradeAgent` / `RollbackAgent` signatures:** both now take an optional `semver *string` (`nil` keeps Controller default). Callers that used `UpgradeAgent(name)` / `RollbackAgent(name)` must pass `nil` as the second argument.
 
 ## [v3.8.1] - 10 July 2026
 
@@ -154,7 +167,10 @@ Microservice exec: replace `AttachExecMicroservice` / detach REST calls with `Di
 * Add client package to the repo
 * Re-organize the repo to maintain multiple packages
   
-[Unreleased]: https://github.com/eclipse-iofog/iofog-go-sdk/compare/v3.8.0..HEAD
+[Unreleased]: https://github.com/eclipse-iofog/iofog-go-sdk/compare/v3.8.3..HEAD
+[v3.8.3]: https://github.com/eclipse-iofog/iofog-go-sdk/compare/v3.8.2..v3.8.3
+[v3.8.2]: https://github.com/eclipse-iofog/iofog-go-sdk/compare/v3.8.1..v3.8.2
+[v3.8.1]: https://github.com/eclipse-iofog/iofog-go-sdk/compare/v3.8.0..v3.8.1
 [v3.8.0]: https://github.com/eclipse-iofog/iofog-go-sdk/compare/v3.8.0-beta.2..v3.8.0
 [v2.0.0-beta3]: https://github.com/eclipse-iofog/iofog-go-sdk/compare/v2.0.0-beta2..v2.0.0-beta3
 [v2.0.0-beta]: https://github.com/eclipse-iofog/iofog-go-sdk/compare/v2.0.0-alpha..v2.0.0-beta2
