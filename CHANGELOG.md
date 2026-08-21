@@ -1,5 +1,106 @@
 # Changelog
 
+## [Unreleased]
+
+## [v3.8.3] - 20 August 2026
+
+### Changed
+
+- **Go 1.26.6** minimum (see `go.mod`).
+- Dependency bumps so `make vulncheck` is clean: `golang.org/x/text` v0.39.0 ([GO-2026-5970](https://pkg.go.dev/vuln/GO-2026-5970)), `golang.org/x/net` v0.56.0 ([GO-2026-5942](https://pkg.go.dev/vuln/GO-2026-5942)), `golang.org/x/oauth2` v0.27.0 ([GO-2025-3488](https://pkg.go.dev/vuln/GO-2025-3488)).
+
+## [v3.8.2] - 15 July 2026
+
+### Added
+
+- **`pkg/client` — node version commands:** optional target `semver` on upgrade/rollback via `SetNodeVersionCommand`, `UpgradeNode`, `RollbackNode`, and extended `UpgradeAgent` / `RollbackAgent`. Matches Controller v3.8 `POST /iofog/{uuid}/version/{versionCommand}` body.
+
+### Changed
+
+- **`UpgradeAgent` / `RollbackAgent` signatures:** both now take an optional `semver *string` (`nil` keeps Controller default). Callers that used `UpgradeAgent(name)` / `RollbackAgent(name)` must pass `nil` as the second argument.
+
+## [v3.8.1] - 10 July 2026
+
+### Fixed
+
+- **`pkg/client` — ConfigMaps:** align `ConfigMapInfo`, `ConfigMapCreateRequest`, and `ConfigMapUpdateRequest` with Controller REST JSON (`useVault`, `created_at`, `updated_at`); use pointer booleans for `immutable` and `useVault` so explicit `false` values are encoded on create/update.
+
+### Changed
+
+- **Go 1.26.5** minimum (see `go.mod`).
+
+## [v3.8.0] - 17 June 2026
+
+### Breaking changes
+
+- **Module path:** `github.com/eclipse-iofog/iofog-go-sdk/v3` (neutral upstream). Update imports from `github.com/datasance/iofog-go-sdk/v3`.
+- **Go 1.26.4** minimum (see `go.mod`).
+- **`pkg/microservices` — EdgeletAPI v1:** greenfield renames with no deprecated aliases:
+  - `IoFogClient` → `EdgeletAPIClient`
+  - `NewIoFogClient` / `NewIoFogClientV3` → `NewEdgeletAPIClient(id string, opts ...ClientOption)`
+  - `NewDefaultIoFogClient` / `NewDefaultIoFogClientV3` → `NewDefaultEdgeletAPIClient`
+  - `V3APIError` → `EdgeletAPIError`
+  - `PortIoFog` → `PortEdgeletAPI`
+  - Defaults and routes target **EdgeletAPI v1** (`/v1/microservices/*` on port 54321).
+- **`pkg/apps`:** default deploy YAML `apiVersion` is `iofog.org/v3`. Datasance-flavored callers use `apps.WithAPIVersion("datasance.com/v3")`.
+- **`pkg/apps` deploy types:** canonical image keys `amd64`, `arm64`, `riscv64`, `arm` (removed `x86`/`arm`); `flow` → `application`; `dockerUrl` → `containerEngineUrl`.
+- **`pkg/client` — Controller REST v3.8:** `fogTypeId`/`FogType`/`agentType` → `archId`/`ArchID`/`arch`; flow APIs removed in favor of application name; auth endpoint updates (`POST /users`, `POST /user/change-password`); `RefreshUserSubscriptionKey` removed.
+- **`pkg/client` — microservice exec:** removed `AttachExecMicroservice`, `DetachExecMicroservice`, `AttachExecSystemMicroservice`, and `DetachExecSystemMicroservice`. Use WebSocket dial instead of REST enable/disable before exec.
+- **`pkg/client` — WebSocket errors:** removed `ErrExecRouterUnavailable`; use `ErrWsRelayUnavailable` for close 1013 on exec and log sessions. Removed `ErrExecAgentTimeout`; use shared `ErrWsAgentTimeout` for pending agent timeout on exec and log (close 1008).
+
+### Added
+
+- `pkg/apps.DefaultAPIVersion` and `WithAPIVersion` deploy option.
+- `pkg/arch` shared architecture codes for Controller v3.8.
+- GitHub Actions CI (`.github/workflows/ci.yml`): `make lint`, `make security-code`, `make vulncheck`.
+- `SECURITY.md` maintainer security gates and documented gosec exceptions.
+- `NOTICE` Eclipse ioFog attribution; per-file Datasance copyright headers removed from `pkg/**`.
+- **`pkg/client` — exec sessions:** `DialMicroserviceExec`, `DialSystemMicroserviceExec`, `ExecSession` IO (`Read`, `WriteStdin`, `WriteControl`, `Close`), `DialExecOptions` (`WaitForAgentReady`, `OnStatusLine`), and exec WebSocket error constants. Fog debug provision unchanged (`AttachExecToAgent` / `DetachExecFromAgent`).
+- **`pkg/client` — log streaming:** `DialMicroserviceLogs`, `DialSystemMicroserviceLogs`, `DialFogLogs`, `LogSession` (`Read`, `Close`), `LogTailOptions` (`tail`, `follow`, `since`, `until`), and log WebSocket error constants (`ErrLogSessionUnavailable`, `ErrLogAuthenticationFailed`, `ErrAgentNotRunning`, etc.).
+
+### Changed
+
+- Copyright attribution consolidated in `NOTICE`.
+- golangci-lint v2 config; gosec runs via `make security-code` (not inside golangci-lint).
+- **`pkg/client` — WebSocket sessions:** `ExecSession.Close` and `LogSession.Close` are idempotent.
+- **`pkg/client` — WebSocket close errors (R112):** cross-replica relay failures map to shared `ErrWsRelayUnavailable` (close 1013) for both exec and log; server drain maps to `ErrWsServerDraining` (1001); pending agent timeout maps to shared `ErrWsAgentTimeout` (1008) for both exec and log. Replaces exec-only `ErrExecRouterUnavailable` and `ErrExecAgentTimeout`.
+
+### Removed
+
+- Azure Pipelines workflow (`azure-pipelines.yml`).
+- Deprecated `IoFogClient` / `V3APIError` aliases and legacy four-argument `NewIoFogClient` constructor.
+- **`pkg/client`:** microservice exec REST attach/detach methods (`AttachExecMicroservice`, `DetachExecMicroservice`, system variants).
+
+### Migration
+
+Replace Datasance module imports with the neutral upstream path:
+
+```go
+// before
+import "github.com/datasance/iofog-go-sdk/v3/pkg/microservices"
+
+// after
+import "github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/microservices"
+```
+
+Update microservice client construction:
+
+```go
+client, err := msvcs.NewDefaultEdgeletAPIClient()
+```
+
+For Datasance-flavored deploy YAML, pass the apiVersion override at the caller:
+
+```go
+apps.DeployApplication(ctrl, app, name, apps.WithAPIVersion("datasance.com/v3"))
+```
+
+The Datasance git mirror (`github.com/Datasance/iofog-go-sdk`) ships the same commit SHA as `eclipse-iofog/iofog-go-sdk`; only the **module import path** changes.
+
+Remote log tailing: replace local WebSocket URL/auth assembly with `DialMicroserviceLogs`, `DialSystemMicroserviceLogs`, or `DialFogLogs` (see `pkg/client/README.md`).
+
+Microservice exec: replace `AttachExecMicroservice` / detach REST calls with `DialMicroserviceExec` or `DialSystemMicroserviceExec`; close the session locally instead of REST detach.
+
 ## [v3.0.0-beta1] - 13 Auguest 2021
 
 * No changes since alpha2
@@ -66,7 +167,11 @@
 * Add client package to the repo
 * Re-organize the repo to maintain multiple packages
   
-[Unreleased]: https://github.com/eclipse-iofog/iofog-go-sdk/compare/v2.0.0-beta3..HEAD
+[Unreleased]: https://github.com/eclipse-iofog/iofog-go-sdk/compare/v3.8.3..HEAD
+[v3.8.3]: https://github.com/eclipse-iofog/iofog-go-sdk/compare/v3.8.2..v3.8.3
+[v3.8.2]: https://github.com/eclipse-iofog/iofog-go-sdk/compare/v3.8.1..v3.8.2
+[v3.8.1]: https://github.com/eclipse-iofog/iofog-go-sdk/compare/v3.8.0..v3.8.1
+[v3.8.0]: https://github.com/eclipse-iofog/iofog-go-sdk/compare/v3.8.0-beta.2..v3.8.0
 [v2.0.0-beta3]: https://github.com/eclipse-iofog/iofog-go-sdk/compare/v2.0.0-beta2..v2.0.0-beta3
 [v2.0.0-beta]: https://github.com/eclipse-iofog/iofog-go-sdk/compare/v2.0.0-alpha..v2.0.0-beta2
 [v2.0.0-alpha]: https://github.com/eclipse-iofog/iofog-go-sdk/compare/v1.3.0..v2.0.0-beta

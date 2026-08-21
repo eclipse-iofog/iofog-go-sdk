@@ -1,6 +1,22 @@
 SHELL = /bin/bash
 OS = $(shell uname -s | tr '[:upper:]' '[:lower:]')
 
+GOBIN ?= $(shell go env GOBIN)
+ifeq ($(GOBIN),)
+GOBIN := $(shell go env GOPATH)/bin
+endif
+
+export PATH := $(GOBIN):$(PATH)
+
+# golangci-lint — pinned version; override with GOLANGCI_LINT_VERSION=vX.Y.Z
+GOLANGCI_LINT_VERSION ?= v2.12.2
+GOLANGCI_LINT         := $(GOBIN)/golangci-lint
+
+# Security tooling — gosec runs outside golangci-lint (edgelet pattern)
+GOVULNCHECK_VERSION ?= v1.1.4
+GOSEC_VERSION       ?= v2.22.2
+GOSEC_SCOPE         := ./pkg/...
+
 # Build variables
 VERSION ?= $(shell git tag | tail -1 | sed "s|v||g")-dev
 COMMIT ?= $(shell git rev-parse HEAD 2>/dev/null)
@@ -20,31 +36,95 @@ all: test ## Generate code and run tests
 clean: ## Clean the working area and the project
 	rm -rf $(REPORTS_DIR)
 
-.PHONY: gen
-gen: install-tools ## Generate code
-	@sed -i'' -E "s|//(.*// \+k8s:deepcopy-gen=ignore)|\1|g" pkg/apps/types.go
-	@sed -i'' -E "s|(.*// \+k8s:deepcopy-gen=ignore)|//\1|g" pkg/apps/types.go
-	deepcopy-gen -i ./pkg/apps -o . --go-header-file ./boilerplate.go.txt
-	@sed -i'' -E "s|//(.*// \+k8s:deepcopy-gen=ignore)|\1|g" pkg/apps/types.go
+# Import path for pkg/apps (must match go.mod module)
+APPS_IMPORT_PATH = github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/apps
+MODULE_PATH      = github.com/eclipse-iofog/iofog-go-sdk/v3
+
+# Pin deepcopy-gen to k8s.io/apimachinery minor (go.mod uses v0.32.1)
+DEEPCOPY_GEN_VERSION ?= v0.32.0
+
+.PHONY: install-tools
+install-tools: ## Install deepcopy-gen (pinned to DEEPCOPY_GEN_VERSION)
+	go install -v k8s.io/code-generator/cmd/deepcopy-gen@$(DEEPCOPY_GEN_VERSION)
+
+.PHONY: gen gen-darwin gen-linux gen-check gen-deepcopy-run
+gen: install-tools ## Generate deepcopy (auto-selects darwin vs linux sed)
+ifeq ($(OS),darwin)
+	@$(MAKE) gen-darwin
+else
+	@$(MAKE) gen-linux
+endif
+
+gen-darwin: install-tools ## Generate deepcopy for pkg/apps (macOS BSD sed)
+	@sed -i '' -E 's|//(.*// \+k8s:deepcopy-gen=ignore)|\1|g' pkg/apps/types.go
+	@sed -i '' -E 's|(.*// \+k8s:deepcopy-gen=ignore)|//\1|g' pkg/apps/types.go
+	@$(MAKE) gen-deepcopy-run
+	@sed -i '' -E 's|//(.*// \+k8s:deepcopy-gen=ignore)|\1|g' pkg/apps/types.go
+
+gen-linux: install-tools ## Generate deepcopy for pkg/apps (GNU sed; use in CI)
+	@sed -i -E 's|//(.*// \+k8s:deepcopy-gen=ignore)|\1|g' pkg/apps/types.go
+	@sed -i -E 's|(.*// \+k8s:deepcopy-gen=ignore)|//\1|g' pkg/apps/types.go
+	@$(MAKE) gen-deepcopy-run
+	@sed -i -E 's|//(.*// \+k8s:deepcopy-gen=ignore)|\1|g' pkg/apps/types.go
+
+gen-deepcopy-run:
+	cd pkg/apps && deepcopy-gen \
+		--bounding-dirs=$(MODULE_PATH) \
+		--output-file=deepcopy_generated.go \
+		--go-header-file=../../boilerplate.go.txt \
+		$(APPS_IMPORT_PATH)
+
+gen-check: gen ## Fail if pkg/apps/deepcopy_generated.go drift
+	@git diff --exit-code pkg/apps/deepcopy_generated.go pkg/apps/types.go \
+		|| (echo "ERROR: deepcopy drift — run 'make gen' (or 'make gen-linux' on CI) and commit" && exit 1)
+	@echo "pkg/apps/deepcopy_generated.go is up to date"
+
+$(GOLANGCI_LINT):
+	@echo "⬇️  Installing golangci-lint $(GOLANGCI_LINT_VERSION) → $(GOBIN)..."
+	@curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh \
+		| sh -s -- -b $(GOBIN) $(GOLANGCI_LINT_VERSION)
+	@echo "✓ golangci-lint $(GOLANGCI_LINT_VERSION) installed"
+
+.PHONY: install-lint
+install-lint: $(GOLANGCI_LINT) ## Install golangci-lint (pinned to GOLANGCI_LINT_VERSION)
+	@$(GOLANGCI_LINT) version
 
 .PHONY: lint
-lint: golangci-lint fmt ## Lint the source
-	@$(GOLANGCI_LINT) run --timeout 5m0s
+lint: $(GOLANGCI_LINT) ## Run linters (auto-installs golangci-lint if needed)
+	@echo "Running golangci-lint $(GOLANGCI_LINT_VERSION)..."
+	@$(GOLANGCI_LINT) run --config .golangci.yaml ./pkg/...
 
-golangci-lint: ## Install golangci
-ifeq (, $(shell which golangci-lint))
-	@{ \
-	set -e ;\
-	go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.50.1 ;\
-	}
-GOLANGCI_LINT=$(GOBIN)/golangci-lint
-else
-GOLANGCI_LINT=$(shell which golangci-lint)
-endif
+.PHONY: lint-fix
+lint-fix: $(GOLANGCI_LINT) ## Run linters and auto-fix issues where possible
+	@echo "Running golangci-lint $(GOLANGCI_LINT_VERSION) with --fix..."
+	@$(GOLANGCI_LINT) run --config .golangci.yaml ./pkg/... --fix
 
 .PHONY: fmt
 fmt: ## Format the source
 	@gofmt -s -w .
+
+.PHONY: security-code
+security-code: ## Static Go security analysis (gosec; not in golangci-lint)
+	@echo "🔍 Running Go static security analysis..."
+	@if ! command -v gosec >/dev/null 2>&1; then \
+		echo "⬇️  Installing gosec $(GOSEC_VERSION)..."; \
+		go install github.com/securego/gosec/v2/cmd/gosec@$(GOSEC_VERSION); \
+	fi
+	@gosec -exclude-dir=reports -exclude-generated $(GOSEC_SCOPE)
+
+.PHONY: vulncheck
+vulncheck: ## Dependency vulnerability scan (govulncheck + go mod verify)
+	@echo "🔐 Running govulncheck..."
+	@if ! command -v govulncheck >/dev/null 2>&1; then \
+		echo "⬇️  Installing govulncheck $(GOVULNCHECK_VERSION)..."; \
+		go install golang.org/x/vuln/cmd/govulncheck@$(GOVULNCHECK_VERSION); \
+	fi
+	@govulncheck ./pkg/...
+	@echo "🔍 Verifying module integrity..."
+	@go mod verify
+
+.PHONY: quality
+quality: lint security-code vulncheck ## Full Plan 4 quality gate
 
 .PHONY: test
 test: gen fmt ## Run unit tests
@@ -64,8 +144,3 @@ help: ## Get help output
 # Variable outputting/exporting rules
 var-%: ; @echo $($*)
 varexport-%: ; @echo $*=$($*)
-
-
-.PHONE: install-tools
-install-tools:
-	go install -v k8s.io/code-generator/cmd/deepcopy-gen@v0.26

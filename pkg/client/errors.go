@@ -1,19 +1,7 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2019 Edgeworx, Inc.
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 package client
 
 import (
+	"errors"
 	"fmt"
 )
 
@@ -96,7 +84,7 @@ func NewInternalError(message string) (err *InternalError) {
 
 // Error export
 func (err *InternalError) Error() string {
-	return "Unexpected internal behaviour\n" + err.message
+	return "Unexpected internal behavior\n" + err.message
 }
 
 // HTTPError export
@@ -134,3 +122,33 @@ func NewNotSupportedError(capability string) (err *NotSupportedError) {
 func (err *NotSupportedError) Error() string {
 	return "Controller API does not support " + err.capability
 }
+
+// ErrRoutesNotSupported is returned when calling deprecated route or microservice-route
+// Controller endpoints. The Controller no longer exposes /api/v3/routes or
+// /api/v3/microservices/:uuid/routes; use NATS for messaging instead.
+var ErrRoutesNotSupported = errors.New("routes API is no longer supported by the Controller; use NATS for messaging")
+
+// WebSocket close errors shared by exec and log sessions.
+var (
+	ErrWsRelayUnavailable = errors.New("cross-replica relay unavailable")
+	ErrWsServerDraining   = errors.New("server draining")
+	ErrWsAgentTimeout     = errors.New("timeout waiting for agent connection")
+)
+
+// Exec WebSocket close errors .
+var (
+	ErrExecSessionQuotaExceeded = errors.New("maximum concurrent exec sessions exceeded")
+	ErrMicroserviceNotRunning   = errors.New("microservice is not running")
+)
+
+// Log WebSocket close errors.
+var (
+	ErrLogSessionUnavailable      = errors.New("no available log session")
+	ErrLogAuthenticationFailed    = errors.New("log stream authentication failed")
+	ErrAgentNotRunning            = errors.New("agent is not running")
+	ErrLogInsufficientPermissions = errors.New("insufficient permissions for log stream")
+	ErrLogPolicyViolation         = errors.New("log stream policy violation")
+	ErrLogConnectionLost          = errors.New("log stream connection lost")
+	ErrLogMessageTooLarge         = errors.New("log stream message too large")
+	ErrLogServerError             = errors.New("log stream server error")
+)

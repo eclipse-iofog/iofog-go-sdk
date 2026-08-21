@@ -1,5 +1,8 @@
 reports/*
 
+
+.cursor/
+AGENTS.md
 .idea/
 
 test.txt

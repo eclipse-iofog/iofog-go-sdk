@@ -1,20 +1,8 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2019 Edgeworx, Inc.
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 package apps
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"net/url"
 	"strings"
@@ -34,16 +22,17 @@ type ApplicationData struct {
 	CatalogByID        map[int]*client.CatalogItemInfo
 	RegistryByID       map[int]*client.RegistryInfo
 	CatalogByName      map[string]*client.CatalogItemInfo
-	FlowInfo           *client.FlowInfo
 }
 
 type microserviceExecutor struct {
 	controller IofogController
-	msvc       interface{}
+	msvc       any
 	name       string
 	appName    string
+	apiVersion string
 	uuid       string
 	client     *client.Client
+	isSystem   bool
 }
 
 func ParseFQMsvcName(fqName string) (appName, name string, err error) {
@@ -61,15 +50,15 @@ func ParseFQMsvcName(fqName string) (appName, name string, err error) {
 	}
 }
 
-func newMicroserviceExecutor(controller IofogController, msvc interface{}, appName, name string) *microserviceExecutor {
-	exe := &microserviceExecutor{
+func newMicroserviceExecutor(controller IofogController, msvc any, appName, name string, opts ...DeployOption) *microserviceExecutor {
+	resolved := resolveDeployOptions(opts...)
+	return &microserviceExecutor{
 		controller: controller,
 		msvc:       msvc,
 		name:       name,
 		appName:    appName,
+		apiVersion: resolved.apiVersion,
 	}
-
-	return exe
 }
 
 func (exe *microserviceExecutor) execute() error {
@@ -93,7 +82,7 @@ func (exe *microserviceExecutor) init() (err error) {
 	if exe.controller.Token != "" {
 		exe.client, err = client.NewWithToken(client.Options{BaseURL: baseURL}, exe.controller.Token)
 	} else {
-		exe.client, err = client.NewAndLogin(client.Options{BaseURL: baseURL}, exe.controller.Email, exe.controller.Password)
+		exe.client, err = client.SessionLogin(client.Options{BaseURL: baseURL}, exe.controller.RefreshToken, exe.controller.Email, exe.controller.Password)
 	}
 	if err != nil {
 		return err
@@ -101,20 +90,43 @@ func (exe *microserviceExecutor) init() (err error) {
 	if exe.appName == "" {
 		return NewInputError(fmt.Sprintf("Application name missing for microservice %s", exe.name))
 	}
-	listMsvcs, err := exe.client.GetMicroservicesByApplication(exe.appName)
+
+	var listMsvcs *client.MicroserviceListResponse
+
+	// Try regular application first
+	listMsvcs, err = exe.client.GetMicroservicesByApplication(exe.appName)
 	if err != nil {
-		return err
+		// Check if error indicates application not found
+		if strings.Contains(err.Error(), "Invalid application id") {
+			// Try system application
+			systemMsvcs, err := exe.client.GetSystemMicroservicesByApplication(exe.appName)
+			if err != nil {
+				return err
+			}
+			if len(systemMsvcs.Microservices) > 0 {
+				exe.isSystem = true
+				listMsvcs = systemMsvcs
+			} else {
+				return errors.New("no microservices found in system application")
+			}
+		} else {
+			// Return other types of errors
+			return err
+		}
 	}
 
-	for i := 0; i < len(listMsvcs.Microservices); i++ {
-		// If msvc already exists, set UUID
-		if listMsvcs.Microservices[i].Name == exe.name {
-			if exe.uuid == "" {
-				exe.uuid = listMsvcs.Microservices[i].UUID
+	if listMsvcs != nil {
+		for i := 0; i < len(listMsvcs.Microservices); i++ {
+			// If msvc already exists, set UUID
+			if listMsvcs.Microservices[i].Name == exe.name {
+				if exe.uuid == "" {
+					exe.uuid = listMsvcs.Microservices[i].UUID
+				}
 			}
 		}
 	}
-	return err
+	// Empty list is valid for initial deploy (first microservice in application)
+	return nil
 }
 
 func (exe *microserviceExecutor) deploy() (newMsvc *client.MicroserviceInfo, err error) {
@@ -127,8 +139,11 @@ func (exe *microserviceExecutor) deploy() (newMsvc *client.MicroserviceInfo, err
 }
 
 func (exe *microserviceExecutor) create() (newMsvc *client.MicroserviceInfo, err error) {
+	if exe.isSystem {
+		return nil, errors.New("cannot create system microservice")
+	}
 	file := IofogHeader{
-		APIVersion: "iofog.org/v3",
+		APIVersion: exe.apiVersion,
 		Kind:       MicroserviceKind,
 		Metadata: HeaderMetadata{
 			Name: strings.Join([]string{exe.appName, exe.name}, "/"),
@@ -144,7 +159,7 @@ func (exe *microserviceExecutor) create() (newMsvc *client.MicroserviceInfo, err
 
 func (exe *microserviceExecutor) update() (newMsvc *client.MicroserviceInfo, err error) {
 	file := IofogHeader{
-		APIVersion: "iofog.org/v3",
+		APIVersion: exe.apiVersion,
 		Kind:       MicroserviceKind,
 		Metadata: HeaderMetadata{
 			Name: strings.Join([]string{exe.appName, exe.name}, "/"),
@@ -154,6 +169,9 @@ func (exe *microserviceExecutor) update() (newMsvc *client.MicroserviceInfo, err
 	yamlBytes, err := yaml.Marshal(file)
 	if err != nil {
 		return nil, err
+	}
+	if exe.isSystem {
+		return exe.client.UpdateSystemMicroserviceFromYAML(exe.uuid, bytes.NewReader(yamlBytes))
 	}
 	return exe.client.UpdateMicroserviceFromYAML(exe.uuid, bytes.NewReader(yamlBytes))
 }

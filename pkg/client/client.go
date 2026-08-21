@@ -1,19 +1,8 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2019 Edgeworx, Inc.
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 package client
 
 import (
+	"crypto/tls"
+	"errors"
 	"fmt"
 	"net/url"
 	"path"
@@ -28,31 +17,35 @@ type controllerStatus struct {
 }
 
 type Client struct {
-	baseURL     *url.URL
-	accessToken string
-	retries     Retries
-	status      controllerStatus
-	timeout     int
+	baseURL      *url.URL
+	accessToken  string
+	refreshToken string
+	retries      Retries
+	status       controllerStatus
+	timeout      int
+	tlsConfig    *tls.Config
 }
 
 type Options struct {
-	BaseURL *url.URL
-	Retries *Retries
-	Timeout int
+	BaseURL   *url.URL
+	Retries   *Retries
+	Timeout   int
+	TLSConfig *tls.Config
 }
 
 func New(opt Options) *Client {
 	if opt.Timeout == 0 {
-		opt.Timeout = 5
+		opt.Timeout = 10
 	}
 	retries := GlobalRetriesPolicy
 	if opt.Retries != nil {
 		retries = *opt.Retries
 	}
 	client := &Client{
-		retries: retries,
-		baseURL: opt.BaseURL,
-		timeout: opt.Timeout,
+		retries:   retries,
+		baseURL:   opt.BaseURL,
+		timeout:   opt.Timeout,
+		tlsConfig: opt.TLSConfig,
 	}
 	if client.baseURL.Scheme == "" {
 		client.baseURL.Path = "http"
@@ -73,18 +66,39 @@ func New(opt Options) *Client {
 	return client
 }
 
-func NewAndLogin(opt Options, email, password string) (clt *Client, err error) {
-	clt = New(opt)
-	if err = clt.Login(LoginRequest{Email: email, Password: password}); err != nil {
-		return
+func NewAndLogin(opt Options, email, password string) (*Client, error) {
+	clt := New(opt)
+	if err := clt.Login(LoginRequest{Email: email, Password: password}); err != nil {
+		return nil, err
 	}
-	return
+	return clt, nil
 }
 
-func NewWithToken(opt Options, token string) (clt *Client, err error) {
+func SessionLogin(opt Options, token, email, password string) (clt *Client, err error) {
 	clt = New(opt)
+
+	// Attempt to login using the refresh token
+	if err = clt.Refresh(RefreshTokenRequest{RefreshToken: token}); err != nil {
+		// If session login fails, fall back to normal login with email and password
+		clt, err = NewAndLogin(opt, email, password)
+		if err != nil {
+			return nil, fmt.Errorf("fallback login failed: %w", err)
+		}
+	}
+
+	return clt, nil
+}
+
+func NewWithToken(opt Options, token string) (*Client, error) {
+	clt := New(opt)
 	clt.SetAccessToken(token)
-	return
+	return clt, nil
+}
+
+func NewWithRefreshToken(opt Options, refreshToken string) (*Client, error) {
+	clt := New(opt)
+	clt.SetAccessToken(refreshToken)
+	return clt, nil
 }
 
 func (clt *Client) GetBaseURL() string {
@@ -107,12 +121,21 @@ func (clt *Client) SetAccessToken(token string) {
 	clt.accessToken = token
 }
 
-func (clt *Client) doRequestWithRetries(currentRetries Retries, method, requestURL string, headers map[string]string, request interface{}) ([]byte, error) {
+func (clt *Client) GetRefreshToken() string {
+	return clt.refreshToken
+}
+
+func (clt *Client) SetRefreshToken(token string) {
+	clt.refreshToken = token
+}
+
+func (clt *Client) doRequestWithRetries(currentRetries Retries, method, requestURL string, headers map[string]string, request any) ([]byte, error) {
 	// Send request
-	httpDo := httpDo{timeout: clt.timeout}
+	httpDo := httpDo{timeout: clt.timeout, tlsConfig: clt.tlsConfig}
 	bytes, err := httpDo.do(method, requestURL, headers, request)
 	if err != nil {
-		httpErr, ok := err.(*HTTPError)
+		httpErr := &HTTPError{}
+		ok := errors.As(err, &httpErr)
 		// If HTTP Error
 		if ok {
 			if httpErr.Code == 408 { // HTTP Timeout
@@ -141,7 +164,7 @@ func (clt *Client) doRequestWithRetries(currentRetries Retries, method, requestU
 	return bytes, err
 }
 
-func (clt *Client) doRequestWithHeaders(method, requestPath string, request interface{}, headers map[string]string) ([]byte, error) {
+func (clt *Client) doRequestWithHeaders(method, requestPath string, request any, headers map[string]string) ([]byte, error) {
 	// Copy the base URL
 	requestURL, err := url.Parse(clt.baseURL.String())
 	if err != nil {
@@ -160,7 +183,7 @@ func (clt *Client) doRequestWithHeaders(method, requestPath string, request inte
 	}
 
 	// Set auth header
-	headers["Authorization"] = clt.accessToken
+	headers["Authorization"] = "Bearer " + clt.accessToken
 
 	currentRetries := Retries{CustomMessage: make(map[string]int)}
 	if clt.retries.CustomMessage != nil {
@@ -172,7 +195,7 @@ func (clt *Client) doRequestWithHeaders(method, requestPath string, request inte
 	return clt.doRequestWithRetries(currentRetries, method, requestURL.String(), headers, request)
 }
 
-func (clt *Client) doRequest(method, requestPath string, request interface{}) ([]byte, error) {
+func (clt *Client) doRequest(method, requestPath string, request any) ([]byte, error) {
 	headers := map[string]string{
 		"Content-Type": "application/json",
 	}

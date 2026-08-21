@@ -1,21 +1,9 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2019 Edgeworx, Inc.
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 package client
 
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"mime/multipart"
@@ -24,7 +12,8 @@ import (
 func (clt *Client) IsApplicationTemplateCapable() error {
 	if _, err := clt.doRequest("HEAD", "/capabilities/applicationTemplates", nil); err != nil {
 		// If 404, not capable
-		if _, ok := err.(*NotFoundError); ok {
+		notFoundError := &NotFoundError{}
+		if errors.As(err, &notFoundError) {
 			return NewNotSupportedError("Application Templates")
 		}
 		return err
@@ -55,7 +44,7 @@ func (clt *Client) CreateApplicationTemplateFromYAML(file io.Reader) (*Applicati
 	if err != nil {
 		return nil, err
 	}
-	writer.Close()
+	_ = writer.Close()
 
 	headers := map[string]string{
 		"Content-Type": writer.FormDataContentType(),
@@ -82,7 +71,7 @@ func (clt *Client) UpdateApplicationTemplateFromYAML(name string, file io.Reader
 	if err != nil {
 		return nil, err
 	}
-	writer.Close()
+	_ = writer.Close()
 
 	headers := map[string]string{
 		"Content-Type": writer.FormDataContentType(),
