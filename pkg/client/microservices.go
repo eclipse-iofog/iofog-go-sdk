@@ -240,6 +240,17 @@ func (clt *Client) UpdateSystemMicroserviceFromYAML(uuid string, file io.Reader)
 	return clt.GetSystemMicroserviceByID(uuid)
 }
 
+// PatchMicroserviceModels is a catalog-only update. Sets the microservice-models
+// change flag only (does not reload the full microservice list). Rebuilds the
+// workload when the catalog goes empty to non-empty or non-empty to empty, or
+// when bindPath or permissions change. Adding or removing items with the same
+// bindPath and permissions does not rebuild when the catalog is already
+// non-empty. Item names are managed fleet model names.
+func (clt *Client) PatchMicroserviceModels(uuid string, catalog MicroserviceCatalog) error {
+	_, err := clt.doRequest("PATCH", fmt.Sprintf("/microservices/%s/models", uuid), catalog)
+	return err
+}
+
 // DeleteMicroservice deletes a microservice using Controller REST API
 func (clt *Client) DeleteMicroservice(uuid string) error {
 	_, err := clt.doRequest("DELETE", fmt.Sprintf("/microservices/%s", uuid), nil)
