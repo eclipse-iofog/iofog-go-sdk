@@ -9,6 +9,11 @@ func DeployApplicationTemplate(controller IofogController, controllerBaseURL *ur
 	return exe.execute()
 }
 
+func DeployMicroserviceTemplate(controller IofogController, controllerBaseURL *url.URL, template any, name string, opts ...DeployOption) error {
+	exe := newMicroserviceTemplateExecutor(controller, controllerBaseURL, template, name, opts...)
+	return exe.execute()
+}
+
 func DeployApplication(controller IofogController, application any, name string, opts ...DeployOption) error {
 	exe := newApplicationExecutor(controller, application, name, opts...)
 	return exe.execute()

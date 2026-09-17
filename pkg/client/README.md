@@ -1,10 +1,23 @@
 # Client Package
 
-This package provides an HTTP client for ioFog Controller's REST API **v3** (`/api/v3/*`).
+This package provides an HTTP client for ioFog Controller's REST API **v3**. Construct `Options.BaseURL` with the `/api/v3` prefix (for example `http://localhost:51121/api/v3`); request paths on `Client` are relative to that base.
 
 Import path: `github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/client`
 
 You can view the full REST API specification at [iofog.org](https://iofog.org/docs/1.3.0/controllers/rest-api.html).
+
+## Controller v3.9 resources
+
+In addition to applications, microservices, agents, registries, and other v3 resources:
+
+- **Fleet Model** — JSON CRUD, YAML (`/models/yaml`), and fog link (`/models/{name}/link`).
+- **RuntimeClass** — JSON CRUD, YAML (`/runtimeClasses/yaml`), and fog link (`/runtimeClasses/{name}/link`).
+- **MicroserviceTemplate** — JSON CRUD and YAML (`/microserviceTemplates/yaml`).
+- **Microservice models catalog** — `PatchMicroserviceModels` (`PATCH /microservices/{uuid}/models`).
+
+Fog GET includes additive status fields (`runtimeClasses`, `availableCdiDevices`, `modelStatus`, `activeModels`, `modelLastUpdate`). HAL hardware/USB inventory is **not** exposed by this client.
+
+Registries use `type` (`oci` | `hf`), optional `ca`, and `insecure`. Fog/agent config no longer includes HAL/BLE scan and bluetooth fields; Edge Guard (`edgeGuardFrequency`) remains. See `CHANGELOG.md` for the removed JSON keys.
 
 ## Usage
 

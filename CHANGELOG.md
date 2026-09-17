@@ -2,6 +2,24 @@
 
 ## [Unreleased]
 
+Controller REST **v3.9** client and YAML deploy surface.
+
+### Breaking changes
+
+- **Fog / agent config:** removed `deviceScanFrequency`, `bluetoothEnabled`, and `abstractedHardwareEnabled` from fog GET (`AgentInfo`) and agent configuration (`AgentConfiguration` in `pkg/client` and `pkg/apps`). Edge Guard (`edgeGuardFrequency`) is unchanged. The client does not expose HAL hardware/USB inventory endpoints.
+- **Registry:** removed `isSecure`, `certificate`, and `requiresCert`. Use `type` (`oci` | `hf`), `ca` (optional extra trust), and `insecure` instead.
+
+### Added
+
+- **`pkg/client` — Fleet Model:** JSON CRUD, YAML create/upsert, and fog link/unlink (`ListModels`, `CreateModel`, `GetModel`, `UpdateModel`, `DeleteModel`, `CreateModelFromYAML`, `UpsertModelFromYAML`, `GetModelLink`, `LinkModel`, `UnlinkModel`).
+- **`pkg/client` — RuntimeClass:** JSON CRUD, YAML create/upsert, and fog link/unlink (`ListRuntimeClasses`, `CreateRuntimeClass`, `GetRuntimeClass`, `UpdateRuntimeClass`, `DeleteRuntimeClass`, `CreateRuntimeClassFromYAML`, `UpsertRuntimeClassFromYAML`, `GetRuntimeClassLink`, `LinkRuntimeClass`, `UnlinkRuntimeClass`).
+- **`pkg/client` — MicroserviceTemplate:** JSON CRUD and YAML create/update (`ListMicroserviceTemplates`, `CreateMicroserviceTemplate`, `GetMicroserviceTemplate`, `UpdateMicroserviceTemplate`, `DeleteMicroserviceTemplate`, `CreateMicroserviceTemplateFromYAML`, `UpdateMicroserviceTemplateFromYAML`).
+- **`pkg/client` — `PatchMicroserviceModels`:** catalog-only PATCH of bound fleet models on a microservice.
+- **`pkg/apps` — `DeployMicroserviceTemplate`:** YAML create/upsert for `kind: MicroserviceTemplate` (honors `WithAPIVersion`).
+- **`pkg/apps` — `kind: Microservice`:** optional `spec.template` (instantiate from a microservice template) and `spec.models` (fleet model catalog bind).
+- **Microservice 3.9 container/status fields** on `MicroserviceInfo` and YAML `MicroserviceContainer` / status: `models`, `runAsGroup`, `readOnlyRootFilesystem`, `entrypoint`, `workingDir`, `cpus`, `memoryReservation`, `memorySwap`, `shmSize`, `sysctls`, `ulimits`, `devices`, `tmpfs`, and status `podId`.
+- **Fog GET status:** `runtimeClasses`, `availableCdiDevices`, `modelStatus`, `activeModels`, `modelLastUpdate`.
+
 ## [v3.8.3] - 20 August 2026
 
 ### Changed
