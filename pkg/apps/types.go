@@ -3,6 +3,7 @@ package apps
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 
 	"k8s.io/apiextensions-apiserver/pkg/apis/apiextensions"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -44,26 +45,40 @@ type Header struct {
 // CatalogItem contains information about a catalog item
 // +k8s:deepcopy-gen=true
 type CatalogItem struct {
-	ID            int    `yaml:"id" json:"id"`
-	AMD64         string `yaml:"amd64" json:"amd64"`
-	ARM64         string `yaml:"arm64" json:"arm64"`
-	RISCV64       string `yaml:"riscv64" json:"riscv64"`
-	ARM           string `yaml:"arm" json:"arm"`
-	Registry      string `yaml:"registry" json:"registry"`
-	Name          string `yaml:"name" json:"name"`
-	Description   string `yaml:"description" json:"description"`
-	ConfigExample string `yaml:"configExample" json:"configExample"`
+	ID            int         `yaml:"id" json:"id"`
+	Registry      RegistryRef `yaml:"registry" json:"registry"`
+	ARM64         string      `yaml:"arm64" json:"arm64"`
+	AMD64         string      `yaml:"amd64" json:"amd64"`
+	RISCV64       string      `yaml:"riscv64,omitempty" json:"riscv64,omitempty"`
+	ARM           string      `yaml:"arm,omitempty" json:"arm,omitempty"`
+	Name          string      `yaml:"name" json:"name"`
+	Description   string      `yaml:"description" json:"description"`
+	ConfigExample string      `yaml:"configExample" json:"configExample"`
 }
 
 // MicroserviceImages contains information about the images for a microservice
 // +k8s:deepcopy-gen=true
 type MicroserviceImages struct {
-	CatalogID int    `yaml:"catalogId" json:"catalogId"`
-	AMD64     string `yaml:"amd64" json:"amd64"`
-	ARM64     string `yaml:"arm64" json:"arm64"`
-	RISCV64   string `yaml:"riscv64" json:"riscv64"`
-	ARM       string `yaml:"arm" json:"arm"`
-	Registry  string `yaml:"registry" json:"registry"`
+	Registry  RegistryRef `yaml:"registry" json:"registry"`
+	ARM64     string      `yaml:"arm64" json:"arm64"`
+	AMD64     string      `yaml:"amd64" json:"amd64"`
+	RISCV64   string      `yaml:"riscv64,omitempty" json:"riscv64,omitempty"`
+	ARM       string      `yaml:"arm,omitempty" json:"arm,omitempty"`
+	CatalogID int         `yaml:"catalogId,omitempty" json:"catalogId,omitempty"`
+}
+
+// RoleRef references a Role by kind and name.
+// +k8s:deepcopy-gen=true
+type RoleRef struct {
+	Kind     string `yaml:"kind" json:"kind"`
+	Name     string `yaml:"name" json:"name"`
+	APIGroup string `yaml:"apiGroup,omitempty" json:"apiGroup,omitempty"`
+}
+
+// MicroserviceServiceAccountRef binds a microservice to an application Role.
+// +k8s:deepcopy-gen=true
+type MicroserviceServiceAccountRef struct {
+	RoleRef RoleRef `yaml:"roleRef" json:"roleRef"`
 }
 
 // MicroserviceAgent names the edge agent that runs the microservice.
@@ -75,21 +90,15 @@ type MicroserviceAgent struct {
 // MicroserviceContainer contains information for configuring a microservice container
 // +k8s:deepcopy-gen=true
 type MicroserviceContainer struct {
-	Commands               []string                      `yaml:"commands,omitempty" json:"commands,omitempty"`
-	Volumes                *[]MicroserviceVolumeMapping  `yaml:"volumes,omitempty" json:"volumes,omitempty"`
-	Env                    *[]MicroserviceEnvironment    `yaml:"env,omitempty" json:"env,omitempty"`
-	ExtraHosts             *[]MicroserviceExtraHost      `yaml:"extraHosts,omitempty" json:"extraHosts,omitempty"`
-	Ports                  []MicroservicePortMapping     `yaml:"ports" json:"ports"`
 	HostNetworkMode        bool                          `yaml:"hostNetworkMode" json:"hostNetworkMode"`
 	IsPrivileged           bool                          `yaml:"isPrivileged" json:"isPrivileged"`
-	PidMode                string                        `yaml:"pidMode,omitempty" json:"pidMode,omitempty"`
-	IpcMode                string                        `yaml:"ipcMode,omitempty" json:"ipcMode,omitempty"`
-	Runtime                string                        `yaml:"runtime,omitempty" json:"runtime,omitempty"`
-	Platform               string                        `yaml:"platform,omitempty" json:"platform,omitempty"`
 	RunAsUser              string                        `yaml:"runAsUser,omitempty" json:"runAsUser,omitempty"`
 	RunAsGroup             string                        `yaml:"runAsGroup,omitempty" json:"runAsGroup,omitempty"`
 	ReadOnlyRootFilesystem bool                          `yaml:"readOnlyRootFilesystem" json:"readOnlyRootFilesystem"`
-	CdiDevices             []string                      `yaml:"cdiDevices,omitempty" json:"cdiDevices,omitempty"`
+	IpcMode                string                        `yaml:"ipcMode,omitempty" json:"ipcMode,omitempty"`
+	PidMode                string                        `yaml:"pidMode,omitempty" json:"pidMode,omitempty"`
+	Platform               string                        `yaml:"platform,omitempty" json:"platform,omitempty"`
+	Runtime                string                        `yaml:"runtime,omitempty" json:"runtime,omitempty"`
 	CapAdd                 []string                      `yaml:"capAdd,omitempty" json:"capAdd,omitempty"`
 	CapDrop                []string                      `yaml:"capDrop,omitempty" json:"capDrop,omitempty"`
 	Annotations            ArbitraryJSON                 `yaml:"annotations,omitempty" json:"annotations,omitempty"`
@@ -101,10 +110,16 @@ type MicroserviceContainer struct {
 	MemoryReservation      *int64                        `yaml:"memoryReservation,omitempty" json:"memoryReservation,omitempty"`
 	MemorySwap             *int64                        `yaml:"memorySwap,omitempty" json:"memorySwap,omitempty"`
 	ShmSize                *int64                        `yaml:"shmSize,omitempty" json:"shmSize,omitempty"`
+	CdiDevices             []string                      `yaml:"cdiDevices,omitempty" json:"cdiDevices,omitempty"`
 	Devices                []MicroserviceDevice          `yaml:"devices,omitempty" json:"devices,omitempty"`
+	Volumes                *[]MicroserviceVolumeMapping  `yaml:"volumes,omitempty" json:"volumes,omitempty"`
 	Tmpfs                  []MicroserviceTmpfs           `yaml:"tmpfs,omitempty" json:"tmpfs,omitempty"`
+	ExtraHosts             *[]MicroserviceExtraHost      `yaml:"extraHosts,omitempty" json:"extraHosts,omitempty"`
+	Env                    *[]MicroserviceEnvironment    `yaml:"env,omitempty" json:"env,omitempty"`
+	Ports                  []MicroservicePortMapping     `yaml:"ports" json:"ports"`
 	WorkingDir             string                        `yaml:"workingDir,omitempty" json:"workingDir,omitempty"`
 	Entrypoint             []string                      `yaml:"entrypoint,omitempty" json:"entrypoint,omitempty"`
+	Commands               []string                      `yaml:"commands,omitempty" json:"commands,omitempty"`
 	HealthCheck            *MicroserviceHealthCheck      `yaml:"healthCheck,omitempty" json:"healthCheck,omitempty"`
 }
 
@@ -169,21 +184,22 @@ type MicroserviceExecStatusInfo struct {
 // Microservice contains information for configuring a microservice
 // +k8s:deepcopy-gen=true
 type Microservice struct {
-	UUID        string                     `yaml:"uuid" json:"uuid"`
-	Name        string                     `yaml:"name" json:"name"`
-	Agent       MicroserviceAgent          `yaml:"agent" json:"agent"`
-	Images      *MicroserviceImages        `yaml:"images,omitempty" json:"images,omitempty"`
-	Container   MicroserviceContainer      `yaml:"container,omitempty" json:"container,omitempty"`
-	NatsConfig  *MicroserviceNatsConfig    `yaml:"natsConfig,omitempty" json:"natsConfig,omitempty"`
-	Schedule    int                        `yaml:"schedule" json:"schedule"`
-	Config      ArbitraryJSON              `yaml:"config" json:"config"`
-	Application string                     `yaml:"application,omitempty" json:"application,omitempty"`
-	Template    *MicroserviceTemplateRef   `yaml:"template,omitempty" json:"template,omitempty"`
-	Models      *MicroserviceCatalog       `yaml:"models,omitempty" json:"models,omitempty"`
-	Created     string                     `yaml:"created,omitempty" json:"created,omitempty"`
-	Rebuild     bool                       `yaml:"rebuild,omitempty" json:"rebuild,omitempty"`
-	Status      MicroserviceStatusInfo     `yaml:"status,omitempty" json:"status,omitempty"`
-	ExecStatus  MicroserviceExecStatusInfo `yaml:"execStatus,omitempty" json:"execStatus,omitempty"`
+	UUID           string                         `yaml:"uuid" json:"uuid"`
+	Application    string                         `yaml:"application,omitempty" json:"application,omitempty"`
+	Name           string                         `yaml:"name" json:"name"`
+	Agent          MicroserviceAgent              `yaml:"agent" json:"agent"`
+	Images         *MicroserviceImages            `yaml:"images,omitempty" json:"images,omitempty"`
+	NatsConfig     *MicroserviceNatsConfig        `yaml:"natsConfig,omitempty" json:"natsConfig,omitempty"`
+	Models         *MicroserviceCatalog           `yaml:"models,omitempty" json:"models,omitempty"`
+	Container      MicroserviceContainer          `yaml:"container,omitempty" json:"container,omitempty"`
+	Schedule       int                            `yaml:"schedule" json:"schedule"`
+	Config         ArbitraryJSON                  `yaml:"config" json:"config"`
+	ServiceAccount *MicroserviceServiceAccountRef `yaml:"serviceAccount,omitempty" json:"serviceAccount,omitempty"`
+	Template       *MicroserviceTemplateRef       `yaml:"template,omitempty" json:"template,omitempty"`
+	Created        string                         `yaml:"created,omitempty" json:"created,omitempty"`
+	Rebuild        bool                           `yaml:"rebuild,omitempty" json:"rebuild,omitempty"`
+	Status         MicroserviceStatusInfo         `yaml:"status,omitempty" json:"status,omitempty"`
+	ExecStatus     MicroserviceExecStatusInfo     `yaml:"execStatus,omitempty" json:"execStatus,omitempty"`
 }
 
 // MicroserviceCatalogItem names a fleet model bound into the container.
@@ -381,6 +397,47 @@ func (a *ArbitraryJSON) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func normalizeYAMLValue(v any) (any, error) {
+	switch x := v.(type) {
+	case map[any]any:
+		out := make(map[string]any, len(x))
+		for k, val := range x {
+			ks, ok := k.(string)
+			if !ok {
+				return nil, fmt.Errorf("non-string yaml map key %T", k)
+			}
+			normalized, err := normalizeYAMLValue(val)
+			if err != nil {
+				return nil, err
+			}
+			out[ks] = normalized
+		}
+		return out, nil
+	case map[string]any:
+		out := make(map[string]any, len(x))
+		for k, val := range x {
+			normalized, err := normalizeYAMLValue(val)
+			if err != nil {
+				return nil, err
+			}
+			out[k] = normalized
+		}
+		return out, nil
+	case []any:
+		out := make([]any, len(x))
+		for i, val := range x {
+			normalized, err := normalizeYAMLValue(val)
+			if err != nil {
+				return nil, err
+			}
+			out[i] = normalized
+		}
+		return out, nil
+	default:
+		return v, nil
+	}
+}
+
 // UnmarshalYAML implements yaml.Unmarshaler so YAML objects (e.g. config: { key: value }) decode correctly.
 func (a *ArbitraryJSON) UnmarshalYAML(unmarshal func(any) error) error {
 	var v any
@@ -391,7 +448,11 @@ func (a *ArbitraryJSON) UnmarshalYAML(unmarshal func(any) error) error {
 		a.Raw = []byte("{}")
 		return nil
 	}
-	raw, err := json.Marshal(v)
+	normalized, err := normalizeYAMLValue(v)
+	if err != nil {
+		return err
+	}
+	raw, err := json.Marshal(normalized)
 	if err != nil {
 		return err
 	}

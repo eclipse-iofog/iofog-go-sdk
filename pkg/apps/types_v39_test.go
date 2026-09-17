@@ -59,6 +59,9 @@ func TestMicroserviceContainerYAMLSpotCheck(t *testing.T) {
 		t.Fatalf("yaml.Marshal MicroserviceContainer: %v", err)
 	}
 	got := string(out)
+	if strings.Index(got, "hostNetworkMode:") > strings.Index(got, "runAsGroup:") {
+		t.Errorf("hostNetworkMode should appear before runAsGroup:\n%s", got)
+	}
 	if !strings.Contains(got, "runAsGroup: \"1000\"") && !strings.Contains(got, "runAsGroup: 1000") {
 		t.Errorf("YAML missing runAsGroup:\n%s", got)
 	}

@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased]
+## [v3.9.0-rc.2]
 
 Controller REST **v3.9** client and YAML deploy surface.
 
@@ -9,8 +9,16 @@ Controller REST **v3.9** client and YAML deploy surface.
 - **Fog / agent config:** removed `deviceScanFrequency`, `bluetoothEnabled`, and `abstractedHardwareEnabled` from fog GET (`AgentInfo`) and agent configuration (`AgentConfiguration` in `pkg/client` and `pkg/apps`). Edge Guard (`edgeGuardFrequency`) is unchanged. The client does not expose HAL hardware/USB inventory endpoints.
 - **Registry:** removed `isSecure`, `certificate`, and `requiresCert`. Use `type` (`oci` | `hf`), `ca` (optional extra trust), and `insecure` instead.
 
+### Changed
+
+- **`pkg/apps` — `MicroserviceImages.registry` and `CatalogItem.registry`:** type changed from `string` to `RegistryRef`. Unmarshal accepts int, numeric string, or aliases `remote` (1) and `local` (2); marshal emits an unquoted integer (fixes describe output `registry: "5"` → `registry: 5`).
+- **`pkg/apps` — canonical YAML field order:** reordered struct fields on `Microservice`, `MicroserviceImages`, `MicroserviceContainer`, and `CatalogItem` so `yaml.v2` marshal matches deploy/describe templates (`application` after `uuid`, `models` before `container`, `registry` first in image blocks, runtime/security fields first in `container`). Optional `omitempty` on `catalogId`, `riscv64`, and `arm` in image blocks.
+- **`pkg/apps` — `ArbitraryJSON` YAML unmarshal:** normalize `yaml.v2` map/list values before JSON encoding so `config` and `annotations` round-trip on microservice describe/redeploy.
+
 ### Added
 
+- **`pkg/apps` — `Microservice.serviceAccount`:** optional `roleRef` binding for microservice RBAC (`RoleRef`, `MicroserviceServiceAccountRef` on `apps.Microservice`; YAML describe/redeploy round-trip without importing `pkg/client`).
+- **`pkg/apps` — `RegistryRef`:** shared registry id type for microservice image and catalog item YAML fields.
 - **`pkg/client` — Fleet Model:** JSON CRUD, YAML create/upsert, and fog link/unlink (`ListModels`, `CreateModel`, `GetModel`, `UpdateModel`, `DeleteModel`, `CreateModelFromYAML`, `UpsertModelFromYAML`, `GetModelLink`, `LinkModel`, `UnlinkModel`).
 - **`pkg/client` — RuntimeClass:** JSON CRUD, YAML create/upsert, and fog link/unlink (`ListRuntimeClasses`, `CreateRuntimeClass`, `GetRuntimeClass`, `UpdateRuntimeClass`, `DeleteRuntimeClass`, `CreateRuntimeClassFromYAML`, `UpsertRuntimeClassFromYAML`, `GetRuntimeClassLink`, `LinkRuntimeClass`, `UnlinkRuntimeClass`).
 - **`pkg/client` — MicroserviceTemplate:** JSON CRUD and YAML create/update (`ListMicroserviceTemplates`, `CreateMicroserviceTemplate`, `GetMicroserviceTemplate`, `UpdateMicroserviceTemplate`, `DeleteMicroserviceTemplate`, `CreateMicroserviceTemplateFromYAML`, `UpdateMicroserviceTemplateFromYAML`).
