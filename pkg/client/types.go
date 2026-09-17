@@ -94,25 +94,29 @@ type ApplicationTemplateListResponse struct {
 
 // Registries
 type RegistryInfo struct {
-	ID           int    `json:"id"`
-	URL          string `json:"url"`
-	IsPublic     bool   `json:"isPublic"`
-	IsSecure     bool   `json:"isSecure"`
-	Certificate  string `json:"certificate"`
-	RequiresCert bool   `json:"requiresCert"`
-	Username     string `json:"username"`
-	Email        string `json:"userEmail"`
-	Password     string `json:"password"`
+	ID       int    `json:"id"`
+	URL      string `json:"url"`
+	IsPublic bool   `json:"isPublic"`
+	Username string `json:"username"`
+	Email    string `json:"userEmail"`
+	Password string `json:"password"`
+	// Type is oci or hf. Microservice and catalog-item registryId must be oci.
+	Type string `json:"type"`
+	// CA is an optional base64-encoded PEM CA bundle (additional trust).
+	CA string `json:"ca"`
+	// Insecure allows http and skips TLS verify. Image-pull ca/insecure apply on edgelet only.
+	Insecure bool `json:"insecure"`
 }
 
 type RegistryCreateRequest struct {
-	URL          string `json:"url"`
-	IsPublic     bool   `json:"isPublic"`
-	Certificate  string `json:"certificate"`
-	RequiresCert bool   `json:"requiresCert"`
-	Username     string `json:"username"`
-	Email        string `json:"email"`
-	Password     string `json:"password"`
+	URL      string `json:"url"`
+	IsPublic bool   `json:"isPublic"`
+	Username string `json:"username,omitempty"`
+	Email    string `json:"email,omitempty"`
+	Password string `json:"password,omitempty"`
+	Type     string `json:"type,omitempty"`
+	CA       string `json:"ca,omitempty"`
+	Insecure bool   `json:"insecure,omitempty"`
 }
 
 type RegistryCreateResponse struct {
@@ -120,14 +124,15 @@ type RegistryCreateResponse struct {
 }
 
 type RegistryUpdateRequest struct {
-	URL          *string `json:"url,omitempty"`
-	IsPublic     *bool   `json:"isPublic,omitempty"`
-	Certificate  *string `json:"certificate,omitempty"`
-	RequiresCert *bool   `json:"requiresCert,omitempty"`
-	Username     *string `json:"username,omitempty"`
-	Email        *string `json:"email,omitempty"`
-	Password     *string `json:"password,omitempty"`
-	ID           int     `json:"-"`
+	URL      *string `json:"url,omitempty"`
+	IsPublic *bool   `json:"isPublic,omitempty"`
+	Username *string `json:"username,omitempty"`
+	Email    *string `json:"email,omitempty"`
+	Password *string `json:"password,omitempty"`
+	Type     *string `json:"type,omitempty"`
+	CA       *string `json:"ca,omitempty"`
+	Insecure *bool   `json:"insecure,omitempty"`
+	ID       int     `json:"-"`
 }
 
 type RegistryListResponse struct {
@@ -350,17 +355,19 @@ type MicroserviceEnvironmentInfo struct {
 }
 
 type MicroserviceStatusInfo struct {
-	Status            string   `json:"status"`
-	StartTime         int64    `json:"startTime"`
-	OperatingDuration int64    `json:"operatingDuration"`
-	MemoryUsage       float64  `json:"memoryUsage"`
-	CPUUsage          float64  `json:"cpuUsage"`
-	ContainerID       string   `json:"containerId"`
-	Percentage        float64  `json:"percentage"`
-	IPAddress         string   `json:"ipAddress"`
-	ErrorMessage      string   `json:"errorMessage"`
-	ExecSessionIDs    []string `json:"execSessionIds"`
-	HealthStatus      string   `json:"healthStatus"`
+	Status            string  `json:"status"`
+	StartTime         int64   `json:"startTime"`
+	OperatingDuration int64   `json:"operatingDuration"`
+	MemoryUsage       float64 `json:"memoryUsage"`
+	CPUUsage          float64 `json:"cpuUsage"`
+	ContainerID       string  `json:"containerId"`
+	// PodID is the pause/sandbox id on edgelet. Same as containerId on docker/podman when set.
+	PodID          string   `json:"podId,omitempty"`
+	Percentage     float64  `json:"percentage"`
+	IPAddress      string   `json:"ipAddress"`
+	ErrorMessage   string   `json:"errorMessage"`
+	ExecSessionIDs []string `json:"execSessionIds"`
+	HealthStatus   string   `json:"healthStatus"`
 }
 
 type MicroserviceExecStatusInfo struct {
@@ -368,45 +375,146 @@ type MicroserviceExecStatusInfo struct {
 	ExecSessionID string `json:"execSessionId"`
 }
 
+// ContainerDevice maps a host /dev node into the container.
+type ContainerDevice struct {
+	HostPath      string `json:"hostPath"`
+	ContainerPath string `json:"containerPath"`
+	Permissions   string `json:"permissions,omitempty"`
+}
+
+// ContainerTmpfs is an in-memory mount. Size is MiB; Mode is an optional octal string.
+type ContainerTmpfs struct {
+	ContainerPath string `json:"containerPath"`
+	Size          int64  `json:"size,omitempty"`
+	Mode          string `json:"mode,omitempty"`
+}
+
+// ContainerUlimit is a soft/hard resource limit. -1 means unlimited.
+type ContainerUlimit struct {
+	Soft int `json:"soft"`
+	Hard int `json:"hard"`
+}
+
+// MicroserviceCatalogItem names a fleet model bound into the container.
+type MicroserviceCatalogItem struct {
+	// Name is the fleet model metadata name; never a uuid or host path.
+	Name string `json:"name"`
+}
+
+// MicroserviceCatalog binds Ready model content into the container.
+type MicroserviceCatalog struct {
+	BindPath    string                    `json:"bindPath,omitempty"`
+	Permissions string                    `json:"permissions,omitempty"` // ro | rw
+	Items       []MicroserviceCatalogItem `json:"items,omitempty"`
+}
+
+// MicroserviceTemplateVariable is a template substitution variable.
+type MicroserviceTemplateVariable struct {
+	Key          string `json:"key"`
+	Description  string `json:"description,omitempty"`
+	DefaultValue any    `json:"defaultValue,omitempty"`
+}
+
+// MicroserviceTemplate is a reusable microservice spec without instance identity fields.
+type MicroserviceTemplate struct {
+	Name         string                         `json:"name"`
+	Description  string                         `json:"description"`
+	Variables    []MicroserviceTemplateVariable `json:"variables"`
+	Microservice map[string]any                 `json:"microservice"`
+}
+
+type MicroserviceTemplateCreateRequest struct {
+	Name         string                         `json:"name"`
+	Description  string                         `json:"description,omitempty"`
+	Variables    []MicroserviceTemplateVariable `json:"variables,omitempty"`
+	Microservice map[string]any                 `json:"microservice"`
+}
+
+type MicroserviceTemplateUpdateRequest struct {
+	Description  *string                        `json:"description,omitempty"`
+	Variables    []MicroserviceTemplateVariable `json:"variables,omitempty"`
+	Microservice map[string]any                 `json:"microservice,omitempty"`
+}
+
+type MicroserviceTemplateListResponse struct {
+	MicroserviceTemplates []MicroserviceTemplate `json:"microserviceTemplates"`
+}
+
+// MicroserviceTemplateRef selects a template and optional variable values.
+// Variables is a map[string]any or a []{key,value} list.
+type MicroserviceTemplateRef struct {
+	Name      string `json:"name"`
+	Variables any    `json:"variables,omitempty"`
+}
+
 type MicroserviceInfo struct {
-	UUID              string                          `json:"uuid"`
-	Config            string                          `json:"config"`
-	Name              string                          `json:"name"`
-	HostNetworkMode   bool                            `json:"hostNetworkMode"`
-	IsPrivileged      bool                            `json:"isPrivileged"`
-	Schedule          int                             `json:"schedule"`
-	PidMode           string                          `json:"pidMode,omitempty"`
-	IpcMode           string                          `json:"ipcMode,omitempty"`
-	Runtime           string                          `json:"runtime,omitempty"`
-	Platform          string                          `json:"platform,omitempty"`
-	RunAsUser         string                          `json:"runAsUser,omitempty"`
-	CdiDevices        []string                        `json:"cdiDevices,omitempty"`
-	CapAdd            []string                        `json:"capAdd,omitempty"`
-	CapDrop           []string                        `json:"capDrop,omitempty"`
-	LogSize           int                             `json:"logSize"`
-	Delete            bool                            `json:"delete"`
-	DeleteWithCleanup bool                            `json:"deleteWithCleanup"`
-	Application       string                          `json:"application"`
-	CatalogItemID     int                             `json:"catalogItemId"`
-	AgentUUID         string                          `json:"iofogUuid"`
-	UserID            int                             `json:"userId"`
-	RegistryID        int                             `json:"registryId"`
-	Ports             []MicroservicePortMappingInfo   `json:"ports"`
-	Volumes           []MicroserviceVolumeMappingInfo `json:"volumeMappings"`
-	Commands          []string                        `json:"cmd"`
-	Env               []MicroserviceEnvironmentInfo   `json:"env"`
-	ExtraHosts        []MicroserviceExtraHost         `json:"extraHosts"`
-	Status            MicroserviceStatusInfo          `json:"status"`
-	ExecStatus        MicroserviceExecStatusInfo      `json:"execStatus"`
-	Images            []CatalogImage                  `json:"images"`
-	PubTags           []string                        `json:"pubTags"`
-	SubTags           []string                        `json:"subTags"`
-	Annotations       string                          `json:"annotations"`
-	CPUSetCpus        string                          `json:"cpuSetCpus,omitempty"`
-	MemoryLimit       int64                           `json:"memoryLimit,omitempty"`
-	HealthCheck       MicroserviceHealthCheck         `json:"healthCheck,omitempty"`
-	NatsConfig        *MicroserviceNatsConfig         `json:"natsConfig,omitempty"`
-	ServiceAccount    *MicroserviceServiceAccountRef  `json:"serviceAccount,omitempty"`
+	UUID                   string                          `json:"uuid"`
+	Config                 string                          `json:"config"`
+	Name                   string                          `json:"name"`
+	HostNetworkMode        bool                            `json:"hostNetworkMode"`
+	IsPrivileged           bool                            `json:"isPrivileged"`
+	Schedule               int                             `json:"schedule"`
+	PidMode                string                          `json:"pidMode,omitempty"`
+	IpcMode                string                          `json:"ipcMode,omitempty"`
+	Runtime                string                          `json:"runtime,omitempty"`
+	Platform               string                          `json:"platform,omitempty"`
+	RunAsUser              string                          `json:"runAsUser,omitempty"`
+	RunAsGroup             string                          `json:"runAsGroup,omitempty"`
+	ReadOnlyRootFilesystem bool                            `json:"readOnlyRootFilesystem,omitempty"`
+	CdiDevices             []string                        `json:"cdiDevices,omitempty"`
+	CapAdd                 []string                        `json:"capAdd,omitempty"`
+	CapDrop                []string                        `json:"capDrop,omitempty"`
+	LogSize                int                             `json:"logSize"`
+	Delete                 bool                            `json:"delete"`
+	DeleteWithCleanup      bool                            `json:"deleteWithCleanup"`
+	Application            string                          `json:"application"`
+	CatalogItemID          int                             `json:"catalogItemId"`
+	AgentUUID              string                          `json:"iofogUuid"`
+	UserID                 int                             `json:"userId"`
+	RegistryID             int                             `json:"registryId"`
+	Ports                  []MicroservicePortMappingInfo   `json:"ports"`
+	Volumes                []MicroserviceVolumeMappingInfo `json:"volumeMappings"`
+	Commands               []string                        `json:"cmd"`
+	// CommandsAlias is the commands key. Controller accepts cmd and commands; commands wins when both are present.
+	CommandsAlias     []string                       `json:"commands,omitempty"`
+	Entrypoint        []string                       `json:"entrypoint,omitempty"`
+	WorkingDir        string                         `json:"workingDir,omitempty"`
+	Env               []MicroserviceEnvironmentInfo  `json:"env"`
+	ExtraHosts        []MicroserviceExtraHost        `json:"extraHosts"`
+	Status            MicroserviceStatusInfo         `json:"status"`
+	ExecStatus        MicroserviceExecStatusInfo     `json:"execStatus"`
+	Images            []CatalogImage                 `json:"images"`
+	PubTags           []string                       `json:"pubTags"`
+	SubTags           []string                       `json:"subTags"`
+	Annotations       string                         `json:"annotations"`
+	CPUSetCpus        string                         `json:"cpuSetCpus,omitempty"`
+	MemoryLimit       int64                          `json:"memoryLimit,omitempty"`
+	Cpus              float64                        `json:"cpus,omitempty"`
+	MemoryReservation int64                          `json:"memoryReservation,omitempty"`
+	MemorySwap        int64                          `json:"memorySwap,omitempty"`
+	ShmSize           int64                          `json:"shmSize,omitempty"`
+	Sysctls           map[string]string              `json:"sysctls,omitempty"`
+	Ulimits           map[string]ContainerUlimit     `json:"ulimits,omitempty"`
+	Devices           []ContainerDevice              `json:"devices,omitempty"`
+	Tmpfs             []ContainerTmpfs               `json:"tmpfs,omitempty"`
+	Models            *MicroserviceCatalog           `json:"models,omitempty"`
+	HealthCheck       MicroserviceHealthCheck        `json:"healthCheck,omitempty"`
+	NatsConfig        *MicroserviceNatsConfig        `json:"natsConfig,omitempty"`
+	ServiceAccount    *MicroserviceServiceAccountRef `json:"serviceAccount,omitempty"`
+}
+
+// UnmarshalJSON keeps both cmd and commands. commands wins when both are present.
+func (m *MicroserviceInfo) UnmarshalJSON(data []byte) error {
+	type alias MicroserviceInfo
+	var out alias
+	if err := json.Unmarshal(data, &out); err != nil {
+		return err
+	}
+	*m = MicroserviceInfo(out)
+	if m.CommandsAlias != nil {
+		m.Commands = m.CommandsAlias
+	}
+	return nil
 }
 
 // MicroserviceServiceAccountRef is the optional serviceAccount field in a microservice spec (YAML or API).
@@ -598,81 +706,88 @@ type PlatformStatus struct {
 }
 
 type AgentInfo struct {
-	UUID                      string            `json:"uuid" yaml:"uuid"`
-	Name                      string            `json:"name" yaml:"name"`
-	Host                      string            `json:"host" yaml:"host"`
-	Location                  string            `json:"location" yaml:"location"`
-	Latitude                  float64           `json:"latitude" yaml:"latitude"`
-	Longitude                 float64           `json:"longitude" yaml:"longitude"`
-	Description               string            `json:"description" yaml:"description"`
-	ContainerEngineURL        string            `json:"containerEngineUrl" yaml:"containerEngineUrl"`
-	ContainerEngine           string            `json:"containerEngine" yaml:"containerEngine"`
-	DeploymentType            string            `json:"deploymentType" yaml:"deploymentType"`
-	DiskLimit                 int64             `json:"diskLimit" yaml:"diskLimit"`
-	DiskDirectory             string            `json:"diskDirectory" yaml:"diskDirectory"`
-	MemoryLimit               int64             `json:"memoryLimit" yaml:"memoryLimit"`
-	CPULimit                  int64             `json:"cpuLimit" yaml:"cpuLimit"`
-	LogLimit                  int64             `json:"logLimit" yaml:"logLimit"`
-	LogDirectory              string            `json:"logDirectory" yaml:"logDirectory"`
-	LogFileCount              int64             `json:"logFileCount" yaml:"logFileCount"`
-	StatusFrequency           float64           `json:"statusFrequency" yaml:"statusFrequency"`
-	ChangeFrequency           float64           `json:"changeFrequency" yaml:"changeFrequency"`
-	DeviceScanFrequency       float64           `json:"deviceScanFrequency" yaml:"deviceScanFrequency"`
-	BluetoothEnabled          bool              `json:"bluetoothEnabled" yaml:"bluetoothEnabled"`
-	WatchdogEnabled           bool              `json:"watchdogEnabled" yaml:"watchdogEnabled"`
-	GpsMode                   string            `json:"gpsMode" yaml:"gpsMode"`
-	GpsScanFrequency          float64           `json:"gpsScanFrequency" yaml:"gpsScanFrequency"`
-	GpsDevice                 string            `json:"gpsDevice" yaml:"gpsDevice"`
-	EdgeGuardFrequency        float64           `json:"edgeGuardFrequency" yaml:"edgeGuardFrequency"`
-	AbstractedHardwareEnabled bool              `json:"abstractedHardwareEnabled" yaml:"abstractedHardwareEnabled"`
-	CreatedTimeRFC3339        string            `json:"createdAt" yaml:"created"`
-	UpdatedTimeRFC3339        string            `json:"updatedAt" yaml:"updated"`
-	LastActive                int64             `json:"lastActive" yaml:"lastActive"`
-	DaemonStatus              string            `json:"daemonStatus" yaml:"daemonStatus"`
-	UptimeMs                  int64             `json:"daemonOperatingDuration" yaml:"uptime"`
-	MemoryUsage               float64           `json:"memoryUsage" yaml:"memoryUsage"`
-	DiskUsage                 float64           `json:"diskUsage" yaml:"diskUsage"`
-	CPUUsage                  float64           `json:"cpuUsage" yaml:"cpuUsage"`
-	SystemAvailableMemory     float64           `json:"systemAvailableMemory" yaml:"systemAvailableMemory"`
-	SystemAvailableDisk       float64           `json:"systemAvailableDisk" yaml:"systemAvailableDisk"`
-	SystemTotalCPU            float64           `json:"systemTotalCPU" yaml:"systemTotalCPU"`
-	MemoryViolation           string            `json:"memoryViolation" yaml:"memoryViolation"`
-	DiskViolation             string            `json:"diskViolation" yaml:"diskViolation"`
-	CPUViolation              string            `json:"cpuViolation" yaml:"cpuViolation"`
-	MicroserviceStatus        string            `json:"microserviceStatus" yaml:"microserviceStatus"`
-	RepositoryCount           int64             `json:"repositoryCount" yaml:"repositoryCount"`
-	RepositoryStatus          string            `json:"repositoryStatus" yaml:"repositoryStatus"`
-	LastStatusTimeMsUTC       int64             `json:"lastStatusTime" yaml:"lastStatusTime"`
-	IPAddress                 string            `json:"ipAddress" yaml:"ipAddress"`
-	IPAddressExternal         string            `json:"ipAddressExternal" yaml:"ipAddressExternal"`
-	LastCommandTimeMsUTC      int64             `json:"lastCommandTime" yaml:"lastCommandTime"`
-	NetworkInterface          string            `json:"networkInterface" yaml:"networkInterface"`
-	Version                   string            `json:"version" yaml:"version"`
-	IsReadyToUpgrade          bool              `json:"isReadyToUpgrade" yaml:"isReadyToUpgrade"`
-	IsReadyToRollback         bool              `json:"isReadyToRollback" yaml:"isReadyToRollback"`
-	Tunnel                    string            `json:"tunnel" yaml:"tunnel"`
-	ArchID                    int               `json:"archId" yaml:"archId"`
-	Arch                      *Architecture     `json:"arch,omitempty" yaml:"arch,omitempty"`
-	AvailableRuntimes         FlexStringSlice   `json:"availableRuntimes,omitempty" yaml:"availableRuntimes,omitempty"`
-	RuntimeAgentPhase         string            `json:"runtimeAgentPhase,omitempty" yaml:"runtimeAgentPhase,omitempty"`
-	ControlPlaneQuiesced      bool              `json:"controlPlaneQuiesced,omitempty" yaml:"controlPlaneQuiesced,omitempty"`
-	RouterMode                string            `json:"routerMode" yaml:"routerMode"`
-	NetworkRouter             *string           `json:"networkRouter,omitempty" yaml:"networkRouter,omitempty"`
-	UpstreamRouters           *[]string         `json:"upstreamRouters,omitempty" yaml:"upstreamRouters,omitempty"`
-	MessagingPort             *int              `json:"messagingPort,omitempty" yaml:"messagingPort,omitempty"`
-	EdgeRouterPort            *int              `json:"edgeRouterPort,omitempty" yaml:"edgeRouterPort,omitempty"`
-	InterRouterPort           *int              `json:"interRouterPort,omitempty" yaml:"interRouterPort,omitempty"`
-	LogLevel                  *string           `json:"logLevel" yaml:"logLevel"`
-	PruningFrequency          *float64          `json:"pruningFrequency" yaml:"pruningFrequency"`
-	AvailableDiskThreshold    *float64          `json:"availableDiskThreshold" yaml:"availableDiskThreshold"`
-	Tags                      *[]string         `json:"tags,omitempty" yaml:"tags,omitempty"`
-	TimeZone                  string            `json:"timeZone" yaml:"timeZone"`
-	IsSystem                  bool              `json:"isSystem" yaml:"-"`
-	VolumeMounts              []VolumeMountInfo `json:"volumeMounts" yaml:"volumeMounts"`
-	SecurityStatus            string            `json:"securityStatus" yaml:"securityStatus"`
-	SecurityViolationInfo     string            `json:"securityViolationInfo" yaml:"securityViolationInfo"`
-	WarningMessage            string            `json:"warningMessage" yaml:"warningMessage"`
-	GpsStatus                 string            `json:"gpsStatus" yaml:"gpsStatus"`
+	UUID                  string          `json:"uuid" yaml:"uuid"`
+	Name                  string          `json:"name" yaml:"name"`
+	Host                  string          `json:"host" yaml:"host"`
+	Location              string          `json:"location" yaml:"location"`
+	Latitude              float64         `json:"latitude" yaml:"latitude"`
+	Longitude             float64         `json:"longitude" yaml:"longitude"`
+	Description           string          `json:"description" yaml:"description"`
+	ContainerEngineURL    string          `json:"containerEngineUrl" yaml:"containerEngineUrl"`
+	ContainerEngine       string          `json:"containerEngine" yaml:"containerEngine"`
+	DeploymentType        string          `json:"deploymentType" yaml:"deploymentType"`
+	DiskLimit             int64           `json:"diskLimit" yaml:"diskLimit"`
+	DiskDirectory         string          `json:"diskDirectory" yaml:"diskDirectory"`
+	MemoryLimit           int64           `json:"memoryLimit" yaml:"memoryLimit"`
+	CPULimit              int64           `json:"cpuLimit" yaml:"cpuLimit"`
+	LogLimit              int64           `json:"logLimit" yaml:"logLimit"`
+	LogDirectory          string          `json:"logDirectory" yaml:"logDirectory"`
+	LogFileCount          int64           `json:"logFileCount" yaml:"logFileCount"`
+	StatusFrequency       float64         `json:"statusFrequency" yaml:"statusFrequency"`
+	ChangeFrequency       float64         `json:"changeFrequency" yaml:"changeFrequency"`
+	WatchdogEnabled       bool            `json:"watchdogEnabled" yaml:"watchdogEnabled"`
+	GpsMode               string          `json:"gpsMode" yaml:"gpsMode"`
+	GpsScanFrequency      float64         `json:"gpsScanFrequency" yaml:"gpsScanFrequency"`
+	GpsDevice             string          `json:"gpsDevice" yaml:"gpsDevice"`
+	EdgeGuardFrequency    float64         `json:"edgeGuardFrequency" yaml:"edgeGuardFrequency"`
+	CreatedTimeRFC3339    string          `json:"createdAt" yaml:"created"`
+	UpdatedTimeRFC3339    string          `json:"updatedAt" yaml:"updated"`
+	LastActive            int64           `json:"lastActive" yaml:"lastActive"`
+	DaemonStatus          string          `json:"daemonStatus" yaml:"daemonStatus"`
+	UptimeMs              int64           `json:"daemonOperatingDuration" yaml:"uptime"`
+	MemoryUsage           float64         `json:"memoryUsage" yaml:"memoryUsage"`
+	DiskUsage             float64         `json:"diskUsage" yaml:"diskUsage"`
+	CPUUsage              float64         `json:"cpuUsage" yaml:"cpuUsage"`
+	SystemAvailableMemory float64         `json:"systemAvailableMemory" yaml:"systemAvailableMemory"`
+	SystemAvailableDisk   float64         `json:"systemAvailableDisk" yaml:"systemAvailableDisk"`
+	SystemTotalCPU        float64         `json:"systemTotalCPU" yaml:"systemTotalCPU"`
+	MemoryViolation       string          `json:"memoryViolation" yaml:"memoryViolation"`
+	DiskViolation         string          `json:"diskViolation" yaml:"diskViolation"`
+	CPUViolation          string          `json:"cpuViolation" yaml:"cpuViolation"`
+	MicroserviceStatus    string          `json:"microserviceStatus" yaml:"microserviceStatus"`
+	RepositoryCount       int64           `json:"repositoryCount" yaml:"repositoryCount"`
+	RepositoryStatus      string          `json:"repositoryStatus" yaml:"repositoryStatus"`
+	LastStatusTimeMsUTC   int64           `json:"lastStatusTime" yaml:"lastStatusTime"`
+	IPAddress             string          `json:"ipAddress" yaml:"ipAddress"`
+	IPAddressExternal     string          `json:"ipAddressExternal" yaml:"ipAddressExternal"`
+	LastCommandTimeMsUTC  int64           `json:"lastCommandTime" yaml:"lastCommandTime"`
+	NetworkInterface      string          `json:"networkInterface" yaml:"networkInterface"`
+	Version               string          `json:"version" yaml:"version"`
+	IsReadyToUpgrade      bool            `json:"isReadyToUpgrade" yaml:"isReadyToUpgrade"`
+	IsReadyToRollback     bool            `json:"isReadyToRollback" yaml:"isReadyToRollback"`
+	Tunnel                string          `json:"tunnel" yaml:"tunnel"`
+	ArchID                int             `json:"archId" yaml:"archId"`
+	Arch                  *Architecture   `json:"arch,omitempty" yaml:"arch,omitempty"`
+	AvailableRuntimes     FlexStringSlice `json:"availableRuntimes,omitempty" yaml:"availableRuntimes,omitempty"`
+	RuntimeAgentPhase     string          `json:"runtimeAgentPhase,omitempty" yaml:"runtimeAgentPhase,omitempty"`
+	// RuntimeClasses is a JSON string of applied runtime classes.
+	RuntimeClasses string `json:"runtimeClasses" yaml:"runtimeClasses"`
+	// AvailableCdiDevices is a JSON string of unique sorted fully-qualified CDI names.
+	AvailableCdiDevices string `json:"availableCdiDevices" yaml:"availableCdiDevices"`
+	// ModelStatus is a JSON string of local and managed model status items.
+	ModelStatus string `json:"modelStatus" yaml:"modelStatus"`
+	// ActiveModels is the count of managed fleet models only.
+	ActiveModels int `json:"activeModels" yaml:"activeModels"`
+	// ModelLastUpdate is Unix seconds; 0 when the managed list is empty.
+	ModelLastUpdate        int64             `json:"modelLastUpdate" yaml:"modelLastUpdate"`
+	ControlPlaneQuiesced   bool              `json:"controlPlaneQuiesced,omitempty" yaml:"controlPlaneQuiesced,omitempty"`
+	RouterMode             string            `json:"routerMode" yaml:"routerMode"`
+	NetworkRouter          *string           `json:"networkRouter,omitempty" yaml:"networkRouter,omitempty"`
+	UpstreamRouters        *[]string         `json:"upstreamRouters,omitempty" yaml:"upstreamRouters,omitempty"`
+	MessagingPort          *int              `json:"messagingPort,omitempty" yaml:"messagingPort,omitempty"`
+	EdgeRouterPort         *int              `json:"edgeRouterPort,omitempty" yaml:"edgeRouterPort,omitempty"`
+	InterRouterPort        *int              `json:"interRouterPort,omitempty" yaml:"interRouterPort,omitempty"`
+	LogLevel               *string           `json:"logLevel" yaml:"logLevel"`
+	PruningFrequency       *float64          `json:"pruningFrequency" yaml:"pruningFrequency"`
+	AvailableDiskThreshold *float64          `json:"availableDiskThreshold" yaml:"availableDiskThreshold"`
+	Tags                   *[]string         `json:"tags,omitempty" yaml:"tags,omitempty"`
+	TimeZone               string            `json:"timeZone" yaml:"timeZone"`
+	IsSystem               bool              `json:"isSystem" yaml:"-"`
+	VolumeMounts           []VolumeMountInfo `json:"volumeMounts" yaml:"volumeMounts"`
+	SecurityStatus         string            `json:"securityStatus" yaml:"securityStatus"`
+	SecurityViolationInfo  string            `json:"securityViolationInfo" yaml:"securityViolationInfo"`
+	WarningMessage         string            `json:"warningMessage" yaml:"warningMessage"`
+	GpsStatus              string            `json:"gpsStatus" yaml:"gpsStatus"`
 	// NATS-related fields (Controller iofog schema)
 	NatsMode            *string         `json:"natsMode,omitempty" yaml:"natsMode,omitempty"` // none, leaf, server
 	NatsServerPort      *int            `json:"natsServerPort,omitempty" yaml:"natsServerPort,omitempty"`
@@ -705,39 +820,36 @@ type NatsConfig struct {
 }
 
 type AgentConfiguration struct {
-	NetworkInterface          *string   `json:"networkInterface,omitempty" yaml:"networkInterface"`
-	ContainerEngineURL        *string   `json:"containerEngineUrl,omitempty" yaml:"containerEngineUrl"`
-	ContainerEngine           *string   `json:"containerEngine,omitempty" yaml:"containerEngine"`
-	DeploymentType            *string   `json:"deploymentType,omitempty" yaml:"deploymentType"`
-	DiskLimit                 *int64    `json:"diskLimit,omitempty" yaml:"diskLimit"`
-	DiskDirectory             *string   `json:"diskDirectory,omitempty" yaml:"diskDirectory"`
-	MemoryLimit               *int64    `json:"memoryLimit,omitempty" yaml:"memoryLimit"`
-	CPULimit                  *int64    `json:"cpuLimit,omitempty" yaml:"cpuLimit"`
-	LogLimit                  *int64    `json:"logLimit,omitempty" yaml:"logLimit"`
-	LogDirectory              *string   `json:"logDirectory,omitempty" yaml:"logDirectory"`
-	LogFileCount              *int64    `json:"logFileCount,omitempty" yaml:"logFileCount"`
-	StatusFrequency           *float64  `json:"statusFrequency,omitempty" yaml:"statusFrequency"`
-	ChangeFrequency           *float64  `json:"changeFrequency,omitempty" yaml:"changeFrequency"`
-	DeviceScanFrequency       *float64  `json:"deviceScanFrequency,omitempty" yaml:"deviceScanFrequency"`
-	BluetoothEnabled          *bool     `json:"bluetoothEnabled,omitempty" yaml:"bluetoothEnabled"`
-	WatchdogEnabled           *bool     `json:"watchdogEnabled,omitempty" yaml:"watchdogEnabled"`
-	GpsMode                   *string   `yaml:"gpsMode,omitempty" json:"gpsMode,omitempty"`
-	GpsScanFrequency          *float64  `yaml:"gpsScanFrequency,omitempty" json:"gpsScanFrequency,omitempty"`
-	GpsDevice                 *string   `yaml:"gpsDevice,omitempty" json:"gpsDevice,omitempty"`
-	EdgeGuardFrequency        *float64  `yaml:"edgeGuardFrequency,omitempty" json:"edgeGuardFrequency,omitempty"`
-	AbstractedHardwareEnabled *bool     `json:"abstractedHardwareEnabled,omitempty" yaml:"abstractedHardwareEnabled"`
-	IsSystem                  *bool     `json:"isSystem,omitempty" yaml:"-"` // Can't specify system agent using yaml file.
-	UpstreamRouters           *[]string `json:"upstreamRouters,omitempty" yaml:"upstreamRouters,omitempty"`
-	NetworkRouter             *string   `json:"networkRouter,omitempty" yaml:"networkRouter,omitempty"`
-	Host                      *string   `json:"host,omitempty" yaml:"host,omitempty"`
-	RouterConfig              `json:",omitempty" yaml:"routerConfig,omitempty"`
-	LogLevel                  *string   `json:"logLevel,omitempty" yaml:"logLevel"`
-	PruningFrequency          *float64  `json:"pruningFrequency,omitempty" yaml:"pruningFrequency"`
-	AvailableDiskThreshold    *float64  `json:"availableDiskThreshold,omitempty" yaml:"availableDiskThreshold"`
-	ArchID                    *int64    `json:"archId,omitempty" yaml:"archId,omitempty"`
-	TimeZone                  string    `json:"timeZone,omitempty" yaml:"timeZone"`
-	UpstreamNatsServers       *[]string `json:"upstreamNatsServers,omitempty" yaml:"upstreamNatsServers,omitempty"`
-	NatsConfig                `json:",omitempty" yaml:"natsConfig,omitempty"`
+	NetworkInterface       *string   `json:"networkInterface,omitempty" yaml:"networkInterface"`
+	ContainerEngineURL     *string   `json:"containerEngineUrl,omitempty" yaml:"containerEngineUrl"`
+	ContainerEngine        *string   `json:"containerEngine,omitempty" yaml:"containerEngine"`
+	DeploymentType         *string   `json:"deploymentType,omitempty" yaml:"deploymentType"`
+	DiskLimit              *int64    `json:"diskLimit,omitempty" yaml:"diskLimit"`
+	DiskDirectory          *string   `json:"diskDirectory,omitempty" yaml:"diskDirectory"`
+	MemoryLimit            *int64    `json:"memoryLimit,omitempty" yaml:"memoryLimit"`
+	CPULimit               *int64    `json:"cpuLimit,omitempty" yaml:"cpuLimit"`
+	LogLimit               *int64    `json:"logLimit,omitempty" yaml:"logLimit"`
+	LogDirectory           *string   `json:"logDirectory,omitempty" yaml:"logDirectory"`
+	LogFileCount           *int64    `json:"logFileCount,omitempty" yaml:"logFileCount"`
+	StatusFrequency        *float64  `json:"statusFrequency,omitempty" yaml:"statusFrequency"`
+	ChangeFrequency        *float64  `json:"changeFrequency,omitempty" yaml:"changeFrequency"`
+	WatchdogEnabled        *bool     `json:"watchdogEnabled,omitempty" yaml:"watchdogEnabled"`
+	GpsMode                *string   `yaml:"gpsMode,omitempty" json:"gpsMode,omitempty"`
+	GpsScanFrequency       *float64  `yaml:"gpsScanFrequency,omitempty" json:"gpsScanFrequency,omitempty"`
+	GpsDevice              *string   `yaml:"gpsDevice,omitempty" json:"gpsDevice,omitempty"`
+	EdgeGuardFrequency     *float64  `yaml:"edgeGuardFrequency,omitempty" json:"edgeGuardFrequency,omitempty"`
+	IsSystem               *bool     `json:"isSystem,omitempty" yaml:"-"` // Can't specify system agent using yaml file.
+	UpstreamRouters        *[]string `json:"upstreamRouters,omitempty" yaml:"upstreamRouters,omitempty"`
+	NetworkRouter          *string   `json:"networkRouter,omitempty" yaml:"networkRouter,omitempty"`
+	Host                   *string   `json:"host,omitempty" yaml:"host,omitempty"`
+	RouterConfig           `json:",omitempty" yaml:"routerConfig,omitempty"`
+	LogLevel               *string   `json:"logLevel,omitempty" yaml:"logLevel"`
+	PruningFrequency       *float64  `json:"pruningFrequency,omitempty" yaml:"pruningFrequency"`
+	AvailableDiskThreshold *float64  `json:"availableDiskThreshold,omitempty" yaml:"availableDiskThreshold"`
+	ArchID                 *int64    `json:"archId,omitempty" yaml:"archId,omitempty"`
+	TimeZone               string    `json:"timeZone,omitempty" yaml:"timeZone"`
+	UpstreamNatsServers    *[]string `json:"upstreamNatsServers,omitempty" yaml:"upstreamNatsServers,omitempty"`
+	NatsConfig             `json:",omitempty" yaml:"natsConfig,omitempty"`
 }
 
 type AgentUpdateRequest struct {
@@ -986,6 +1098,71 @@ type VolumeMountLinkRequest struct {
 type VolumeMountUnlinkRequest struct {
 	Name     string   `json:"name"`
 	FogUUIDs []string `json:"fogUuids"`
+}
+
+// FogLinkRequest links or unlinks fog nodes by UUID. Name is in the URL path only.
+type FogLinkRequest struct {
+	FogUUIDs []string `json:"fogUuids"`
+}
+
+// FogLinkSet is the linked fog UUID set returned by GET .../link.
+type FogLinkSet struct {
+	FogUUIDs []string `json:"fogUuids"`
+}
+
+// Model is a fleet model (OCI or Hugging Face).
+type Model struct {
+	UUID string `json:"uuid"`
+	Name string `json:"name"`
+	// Repo is the upstream path without host.
+	Repo string `json:"repo"`
+	// Revision pins the artifact. Empty means latest (OCI) or main (Hugging Face).
+	Revision   string   `json:"revision"`
+	RegistryID int      `json:"registryId"`
+	Files      []string `json:"files,omitempty"`  // Hugging Face only; ignored for OCI
+	Format     string   `json:"format,omitempty"` // gguf|safetensors|onnx|pytorch|tensorrt|unknown
+}
+
+type ModelCreateRequest struct {
+	Name       string   `json:"name"`
+	Repo       string   `json:"repo"`
+	RegistryID int      `json:"registryId"`
+	Revision   string   `json:"revision,omitempty"`
+	Files      []string `json:"files,omitempty"`
+	Format     string   `json:"format,omitempty"`
+}
+
+// ModelUpdateRequest updates mutable model fields. Name is immutable.
+type ModelUpdateRequest struct {
+	Repo       *string  `json:"repo,omitempty"`
+	Revision   *string  `json:"revision,omitempty"`
+	RegistryID *int     `json:"registryId,omitempty"`
+	Files      []string `json:"files,omitempty"`
+	Format     *string  `json:"format,omitempty"`
+}
+
+type ModelListResponse struct {
+	Models []Model `json:"models"`
+}
+
+// RuntimeClass is a named container runtime handler.
+type RuntimeClass struct {
+	Name    string `json:"name"`
+	Handler string `json:"handler"`
+}
+
+type RuntimeClassCreateRequest struct {
+	Name    string `json:"name"`
+	Handler string `json:"handler"`
+}
+
+// RuntimeClassUpdateRequest updates the handler. Name is in the URL path.
+type RuntimeClassUpdateRequest struct {
+	Handler string `json:"handler"`
+}
+
+type RuntimeClassListResponse struct {
+	RuntimeClasses []RuntimeClass `json:"runtimeClasses"`
 }
 
 // Certificate Types
