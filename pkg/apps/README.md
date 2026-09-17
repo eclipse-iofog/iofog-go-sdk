@@ -49,4 +49,15 @@ if err := yaml.Unmarshal(yamlFile, &header); err != nil {
 err = apps.DeployApplication(controller, application, "my-app")
 ```
 
-Other entry points: `DeployMicroservice` and `DeployApplicationTemplate`. Each accepts optional `DeployOption` values (for example `WithAPIVersion`).
+Other entry points: `DeployMicroservice`, `DeployApplicationTemplate`, and `DeployMicroserviceTemplate`. Each accepts optional `DeployOption` values (for example `WithAPIVersion`).
+
+## Microservice YAML (`kind: Microservice`)
+
+`DeployMicroservice` uploads `kind: Microservice` YAML (default `apiVersion: iofog.org/v3`). Optional spec fields:
+
+- `spec.template` — instantiate from a MicroserviceTemplate (`name` plus `variables`).
+- `spec.models` — bind fleet models into the container (`bindPath`, `permissions`, `items[].name`).
+
+## Microservice templates (`kind: MicroserviceTemplate`)
+
+`DeployMicroserviceTemplate` creates or updates a Controller microservice template from YAML, matching the application-template deploy pattern. There is no `DeployModel` or `DeployRuntimeClass` in this package; those resources use the `client` YAML methods directly.
