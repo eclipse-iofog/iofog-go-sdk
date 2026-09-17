@@ -3,7 +3,7 @@ module github.com/eclipse-iofog/iofog-go-sdk/v3
 go 1.26.6
 
 require (
-	github.com/gorilla/websocket v1.5.0
+	github.com/gorilla/websocket v1.5.3
 	github.com/json-iterator/go v1.1.12
 	github.com/vmihailenco/msgpack/v5 v5.4.1
 	golang.org/x/term v0.44.0
