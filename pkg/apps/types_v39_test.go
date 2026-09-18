@@ -73,6 +73,33 @@ func TestMicroserviceContainerYAMLSpotCheck(t *testing.T) {
 	}
 }
 
+func TestMicroserviceStatusYAMLIncludesErrorExtras(t *testing.T) {
+	ms := Microservice{
+		Name: "infer",
+		Status: MicroserviceStatusInfo{
+			Status:       "RUNNING",
+			LastError:    "OOMKilled",
+			LastErrorAt:  1710000000123,
+			RestartCount: 2,
+		},
+	}
+
+	out, err := yaml.Marshal(ms)
+	if err != nil {
+		t.Fatalf("yaml.Marshal Microservice: %v", err)
+	}
+	got := string(out)
+	if !strings.Contains(got, "lastError: OOMKilled") {
+		t.Errorf("YAML missing lastError:\n%s", got)
+	}
+	if !strings.Contains(got, "lastErrorAt: 1710000000123") {
+		t.Errorf("YAML missing lastErrorAt:\n%s", got)
+	}
+	if !strings.Contains(got, "restartCount: 2") {
+		t.Errorf("YAML missing restartCount:\n%s", got)
+	}
+}
+
 func TestAgentConfigurationYAMLTagsOmitHAL(t *testing.T) {
 	// Split literals so pkg-wide grep gates on the removed JSON keys stay clean.
 	forbidden := []string{

@@ -362,10 +362,16 @@ type MicroserviceStatusInfo struct {
 	CPUUsage          float64 `json:"cpuUsage"`
 	ContainerID       string  `json:"containerId"`
 	// PodID is the pause/sandbox id on edgelet. Same as containerId on docker/podman when set.
-	PodID          string   `json:"podId,omitempty"`
-	Percentage     float64  `json:"percentage"`
-	IPAddress      string   `json:"ipAddress"`
-	ErrorMessage   string   `json:"errorMessage"`
+	PodID        string  `json:"podId,omitempty"`
+	Percentage   float64 `json:"percentage"`
+	IPAddress    string  `json:"ipAddress"`
+	ErrorMessage string  `json:"errorMessage"`
+	// LastError is the last crash text; it survives recovery. Empty on older Controllers.
+	LastError string `json:"lastError"`
+	// LastErrorAt is Unix milliseconds. 0 when LastError is empty or omitted.
+	LastErrorAt int64 `json:"lastErrorAt"`
+	// RestartCount is crashes since the last operator rebuild. First crash is 1.
+	RestartCount   int      `json:"restartCount"`
 	ExecSessionIDs []string `json:"execSessionIds"`
 	HealthStatus   string   `json:"healthStatus"`
 }

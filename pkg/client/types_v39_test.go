@@ -66,6 +66,9 @@ func TestMicroserviceInfoUnmarshalV39Fields(t *testing.T) {
 	if info.Status.PodID != "pod-abc" {
 		t.Fatalf("status.podId = %q", info.Status.PodID)
 	}
+	if info.Status.LastError != "" || info.Status.LastErrorAt != 0 || info.Status.RestartCount != 0 {
+		t.Fatalf("status extras must be zero when omitted: %+v", info.Status)
+	}
 	if info.Cpus != 1.5 {
 		t.Fatalf("cpus = %v", info.Cpus)
 	}
@@ -74,6 +77,72 @@ func TestMicroserviceInfoUnmarshalV39Fields(t *testing.T) {
 	}
 	if len(info.Devices) != 1 || info.Devices[0].HostPath != "/dev/nvidia0" {
 		t.Fatalf("devices = %+v", info.Devices)
+	}
+}
+
+func TestMicroserviceStatusInfoUnmarshalErrorExtras(t *testing.T) {
+	raw := []byte(`{
+		"uuid":"ms-1",
+		"name":"infer",
+		"status":{
+			"status":"RUNNING",
+			"errorMessage":"",
+			"lastError":"OOMKilled",
+			"lastErrorAt":1710000000123,
+			"restartCount":2
+		}
+	}`)
+
+	var info MicroserviceInfo
+	if err := json.Unmarshal(raw, &info); err != nil {
+		t.Fatalf("Unmarshal MicroserviceInfo: %v", err)
+	}
+	if info.Status.LastError != "OOMKilled" {
+		t.Fatalf("status.lastError = %q", info.Status.LastError)
+	}
+	if info.Status.LastErrorAt != 1710000000123 {
+		t.Fatalf("status.lastErrorAt = %d", info.Status.LastErrorAt)
+	}
+	if info.Status.RestartCount != 2 {
+		t.Fatalf("status.restartCount = %d", info.Status.RestartCount)
+	}
+}
+
+func TestApplicationInfoUnmarshalMicroserviceStatusExtras(t *testing.T) {
+	raw := []byte(`{
+		"name":"demo",
+		"microservices":[{
+			"uuid":"ms-1",
+			"name":"infer",
+			"status":{
+				"status":"FAILED",
+				"errorMessage":"crash loop",
+				"lastError":"crash loop",
+				"lastErrorAt":1710000000456,
+				"restartCount":1
+			}
+		}]
+	}`)
+
+	var app ApplicationInfo
+	if err := json.Unmarshal(raw, &app); err != nil {
+		t.Fatalf("Unmarshal ApplicationInfo: %v", err)
+	}
+	if len(app.Microservices) != 1 {
+		t.Fatalf("microservices len = %d", len(app.Microservices))
+	}
+	st := app.Microservices[0].Status
+	if st.ErrorMessage != "crash loop" {
+		t.Fatalf("status.errorMessage = %q", st.ErrorMessage)
+	}
+	if st.LastError != "crash loop" {
+		t.Fatalf("status.lastError = %q", st.LastError)
+	}
+	if st.LastErrorAt != 1710000000456 {
+		t.Fatalf("status.lastErrorAt = %d", st.LastErrorAt)
+	}
+	if st.RestartCount != 1 {
+		t.Fatalf("status.restartCount = %d", st.RestartCount)
 	}
 }
 

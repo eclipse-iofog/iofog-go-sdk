@@ -15,7 +15,7 @@ In addition to applications, microservices, agents, registries, and other v3 res
 - **MicroserviceTemplate** — JSON CRUD and YAML (`/microserviceTemplates/yaml`).
 - **Microservice models catalog** — `PatchMicroserviceModels` (`PATCH /microservices/{uuid}/models`).
 
-Fog GET includes additive status fields (`runtimeClasses`, `availableCdiDevices`, `modelStatus`, `activeModels`, `modelLastUpdate`). HAL hardware/USB inventory is **not** exposed by this client.
+Fog GET includes additive status fields (`runtimeClasses`, `availableCdiDevices`, `modelStatus`, `activeModels`, `modelLastUpdate`). Microservice GET status includes crash extras (`lastError`, `lastErrorAt`, `restartCount`). HAL hardware/USB inventory is **not** exposed by this client.
 
 Registries use `type` (`oci` | `hf`), optional `ca`, and `insecure`. Fog/agent config no longer includes HAL/BLE scan and bluetooth fields; Edge Guard (`edgeGuardFrequency`) remains. See `CHANGELOG.md` for the removed JSON keys.
 
