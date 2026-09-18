@@ -169,6 +169,9 @@ type MicroserviceStatusInfo struct {
 	Percentage        float64  `yaml:"percentage" json:"percentage"`
 	IPAddress         string   `yaml:"ipAddress" json:"ipAddress"`
 	ErrorMessage      string   `yaml:"errorMessage" json:"errorMessage"`
+	LastError         string   `yaml:"lastError" json:"lastError"`
+	LastErrorAt       int64    `yaml:"lastErrorAt" json:"lastErrorAt"`
+	RestartCount      int      `yaml:"restartCount" json:"restartCount"`
 	ExecSessionIDs    []string `yaml:"execSessionIds" json:"execSessionIds"`
 	HealthStatus      string   `yaml:"healthStatus" json:"healthStatus"`
 	PodID             string   `yaml:"podId,omitempty" json:"podId,omitempty"`

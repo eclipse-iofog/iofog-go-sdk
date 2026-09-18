@@ -1,5 +1,10 @@
 # Changelog
 
+## [v3.9.0-rc.3]
+
+### Added
+- **Microservice status extras** on GET microservice / application (`pkg/client.MicroserviceStatusInfo` and YAML `pkg/apps.MicroserviceStatusInfo`): `lastError`, `lastErrorAt`, `restartCount`. Older Controllers omit them; decode uses zeros.
+
 ## [v3.9.0-rc.2]
 
 Controller REST **v3.9** client and YAML deploy surface.
