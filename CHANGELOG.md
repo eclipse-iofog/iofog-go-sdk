@@ -1,5 +1,10 @@
 # Changelog
 
+## [v3.9.0-rc.4]
+
+### Added
+- **Volume mapping `scope`** on `pkg/client.MicroserviceVolumeMappingInfo` and YAML `pkg/apps.MicroserviceVolumeMapping`: `private` (default) or `shared`. Meaningful only when `type` is `volume`. Omit on create → Controller stores `private`. GET always returns the key. No prune/reclaim client.
+
 ## [v3.9.0-rc.3]
 
 ### Added

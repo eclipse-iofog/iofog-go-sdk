@@ -73,6 +73,49 @@ func TestMicroserviceContainerYAMLSpotCheck(t *testing.T) {
 	}
 }
 
+func TestMicroserviceVolumeMappingYAMLRoundTripScope(t *testing.T) {
+	vol := MicroserviceVolumeMapping{
+		HostDestination:      "nodered-config",
+		ContainerDestination: "/data",
+		AccessMode:           "rw",
+		Type:                 "volume",
+		Scope:                "shared",
+	}
+
+	out, err := yaml.Marshal(vol)
+	if err != nil {
+		t.Fatalf("yaml.Marshal MicroserviceVolumeMapping: %v", err)
+	}
+	got := string(out)
+	if !strings.Contains(got, "scope: shared") {
+		t.Errorf("YAML missing scope:\n%s", got)
+	}
+	if strings.Contains(got, "id:") {
+		t.Errorf("YAML must not include id:\n%s", got)
+	}
+
+	var decoded MicroserviceVolumeMapping
+	if err := yaml.Unmarshal(out, &decoded); err != nil {
+		t.Fatalf("yaml.Unmarshal MicroserviceVolumeMapping: %v", err)
+	}
+	if decoded.Scope != "shared" || decoded.Type != "volume" || decoded.HostDestination != "nodered-config" {
+		t.Fatalf("decoded = %+v", decoded)
+	}
+
+	empty, err := yaml.Marshal(MicroserviceVolumeMapping{
+		HostDestination:      "data",
+		ContainerDestination: "/var/lib/app",
+		AccessMode:           "rw",
+		Type:                 "volume",
+	})
+	if err != nil {
+		t.Fatalf("yaml.Marshal empty scope: %v", err)
+	}
+	if strings.Contains(string(empty), "scope:") {
+		t.Errorf("empty scope must be omitted:\n%s", empty)
+	}
+}
+
 func TestMicroserviceStatusYAMLIncludesErrorExtras(t *testing.T) {
 	ms := Microservice{
 		Name: "infer",

@@ -80,6 +80,64 @@ func TestMicroserviceInfoUnmarshalV39Fields(t *testing.T) {
 	}
 }
 
+func TestMicroserviceVolumeMappingInfoRoundTripScope(t *testing.T) {
+	raw := []byte(`{
+		"uuid":"ms-1",
+		"name":"infer",
+		"volumeMappings":[{
+			"hostDestination":"nodered-config",
+			"containerDestination":"/data",
+			"accessMode":"rw",
+			"type":"volume",
+			"scope":"shared"
+		}]
+	}`)
+
+	var info MicroserviceInfo
+	if err := json.Unmarshal(raw, &info); err != nil {
+		t.Fatalf("Unmarshal MicroserviceInfo: %v", err)
+	}
+	if len(info.Volumes) != 1 {
+		t.Fatalf("volumeMappings len = %d", len(info.Volumes))
+	}
+	vol := info.Volumes[0]
+	if vol.HostDestination != "nodered-config" || vol.Type != "volume" || vol.Scope != "shared" {
+		t.Fatalf("volumeMapping = %+v", vol)
+	}
+
+	body, err := json.Marshal(vol)
+	if err != nil {
+		t.Fatalf("Marshal MicroserviceVolumeMappingInfo: %v", err)
+	}
+	var got map[string]any
+	if err := json.Unmarshal(body, &got); err != nil {
+		t.Fatalf("Unmarshal: %v", err)
+	}
+	if got["scope"] != "shared" {
+		t.Fatalf("scope = %v, want shared", got["scope"])
+	}
+	if _, ok := got["id"]; ok {
+		t.Fatalf("id must not be marshaled: %s", body)
+	}
+
+	empty, err := json.Marshal(MicroserviceVolumeMappingInfo{
+		HostDestination:      "data",
+		ContainerDestination: "/var/lib/app",
+		AccessMode:           "rw",
+		Type:                 "volume",
+	})
+	if err != nil {
+		t.Fatalf("Marshal empty scope: %v", err)
+	}
+	var omitted map[string]any
+	if err := json.Unmarshal(empty, &omitted); err != nil {
+		t.Fatalf("Unmarshal empty scope: %v", err)
+	}
+	if _, ok := omitted["scope"]; ok {
+		t.Fatalf("empty scope must be omitted: %s", empty)
+	}
+}
+
 func TestMicroserviceStatusInfoUnmarshalErrorExtras(t *testing.T) {
 	raw := []byte(`{
 		"uuid":"ms-1",
