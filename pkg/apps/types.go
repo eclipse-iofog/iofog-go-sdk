@@ -529,13 +529,16 @@ type MicroservicePortMapping struct {
 }
 
 // MicroserviceVolumeMapping maps a host path or service account into the container.
-// Type is the mapping kind (e.g. bind, serviceAccount).
+// Type is the mapping kind (e.g. bind, serviceAccount, volume).
+// Scope is private or shared. Meaningful only when Type is volume.
+// Empty on create stores private.
 // +k8s:deepcopy-gen=true
 type MicroserviceVolumeMapping struct {
 	HostDestination      string `yaml:"hostDestination" json:"hostDestination"`
 	ContainerDestination string `yaml:"containerDestination" json:"containerDestination"`
 	AccessMode           string `yaml:"accessMode" json:"accessMode"`
 	Type                 string `yaml:"type,omitempty" json:"type,omitempty"`
+	Scope                string `yaml:"scope,omitempty" json:"scope,omitempty"`
 }
 
 // +k8s:deepcopy-gen=true

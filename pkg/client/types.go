@@ -345,6 +345,9 @@ type MicroserviceVolumeMappingInfo struct {
 	ContainerDestination string `json:"containerDestination"`
 	AccessMode           string `json:"accessMode"`
 	Type                 string `json:"type,omitempty"`
+	// Scope is private or shared. Meaningful only when Type is volume.
+	// Empty on create stores private. GET always returns the key.
+	Scope string `json:"scope,omitempty"`
 }
 
 type MicroserviceEnvironmentInfo struct {
