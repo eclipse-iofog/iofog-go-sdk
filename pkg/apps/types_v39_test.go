@@ -45,6 +45,74 @@ func TestMicroserviceYAMLIncludesTemplateAndModels(t *testing.T) {
 	}
 }
 
+func TestMicroserviceYAMLIncludesKnowledge(t *testing.T) {
+	ms := Microservice{
+		Name: "infer",
+		Knowledge: &KnowledgeCatalog{
+			BindPath: "/knowledge",
+			Items:    []KnowledgeCatalogItem{{Name: "wiki"}},
+		},
+	}
+
+	out, err := yaml.Marshal(ms)
+	if err != nil {
+		t.Fatalf("yaml.Marshal Microservice: %v", err)
+	}
+	got := string(out)
+	if !strings.Contains(got, "knowledge:") {
+		t.Errorf("YAML missing knowledge:\n%s", got)
+	}
+	if !strings.Contains(got, "bindPath: /knowledge") && !strings.Contains(got, "bindPath: '/knowledge'") {
+		t.Errorf("YAML missing knowledge.bindPath:\n%s", got)
+	}
+	if !strings.Contains(got, "name: wiki") {
+		t.Errorf("YAML missing knowledge item name:\n%s", got)
+	}
+
+	var decoded Microservice
+	if err := yaml.Unmarshal(out, &decoded); err != nil {
+		t.Fatalf("yaml.Unmarshal Microservice: %v", err)
+	}
+	if decoded.Knowledge == nil || decoded.Knowledge.BindPath != "/knowledge" {
+		t.Fatalf("knowledge = %+v", decoded.Knowledge)
+	}
+	if len(decoded.Knowledge.Items) != 1 || decoded.Knowledge.Items[0].Name != "wiki" {
+		t.Fatalf("knowledge items = %+v", decoded.Knowledge.Items)
+	}
+}
+
+func TestKnowledgeSpecYAMLTags(t *testing.T) {
+	spec := Knowledge{
+		Repo:       "org/wiki",
+		Revision:   "main",
+		RegistryID: 5,
+		Files:      []string{"README.md"},
+		Format:     "dataset",
+	}
+
+	out, err := yaml.Marshal(spec)
+	if err != nil {
+		t.Fatalf("yaml.Marshal Knowledge: %v", err)
+	}
+	got := string(out)
+	for _, want := range []string{"repo:", "revision:", "registryId:", "files:", "format:"} {
+		if !strings.Contains(got, want) {
+			t.Errorf("YAML missing %s:\n%s", want, got)
+		}
+	}
+
+	var decoded Knowledge
+	if err := yaml.Unmarshal(out, &decoded); err != nil {
+		t.Fatalf("yaml.Unmarshal Knowledge: %v", err)
+	}
+	if decoded.Repo != "org/wiki" || decoded.Revision != "main" || decoded.RegistryID != 5 || decoded.Format != "dataset" {
+		t.Fatalf("decoded = %+v", decoded)
+	}
+	if len(decoded.Files) != 1 || decoded.Files[0] != "README.md" {
+		t.Fatalf("files = %v", decoded.Files)
+	}
+}
+
 func TestMicroserviceContainerYAMLSpotCheck(t *testing.T) {
 	container := MicroserviceContainer{
 		RunAsGroup: "1000",

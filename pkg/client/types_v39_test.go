@@ -205,12 +205,16 @@ func TestApplicationInfoUnmarshalMicroserviceStatusExtras(t *testing.T) {
 }
 
 func TestAgentInfoUnmarshalV39FieldsWithoutHAL(t *testing.T) {
+	// modelLastUpdate and knowledgeLastUpdate are Unix milliseconds.
 	raw := []byte(`{
 		"uuid":"fog-1",
 		"name":"edge-1",
 		"runtimeClasses":"[{\"name\":\"nvidia\"}]",
 		"activeModels":2,
-		"modelLastUpdate":1710000000
+		"modelLastUpdate":1710000000000,
+		"knowledgeStatus":"[{\"name\":\"wiki\"}]",
+		"activeKnowledge":3,
+		"knowledgeLastUpdate":1710000000456
 	}`)
 
 	var agent AgentInfo
@@ -223,8 +227,17 @@ func TestAgentInfoUnmarshalV39FieldsWithoutHAL(t *testing.T) {
 	if agent.ActiveModels != 2 {
 		t.Fatalf("activeModels = %d", agent.ActiveModels)
 	}
-	if agent.ModelLastUpdate != 1710000000 {
+	if agent.ModelLastUpdate != 1710000000000 {
 		t.Fatalf("modelLastUpdate = %d", agent.ModelLastUpdate)
+	}
+	if agent.KnowledgeStatus != `[{"name":"wiki"}]` {
+		t.Fatalf("knowledgeStatus = %q", agent.KnowledgeStatus)
+	}
+	if agent.ActiveKnowledge != 3 {
+		t.Fatalf("activeKnowledge = %d", agent.ActiveKnowledge)
+	}
+	if agent.KnowledgeLastUpdate != 1710000000456 {
+		t.Fatalf("knowledgeLastUpdate = %d", agent.KnowledgeLastUpdate)
 	}
 }
 
