@@ -29,6 +29,7 @@ const (
 	MicroserviceKind         Kind = "Microservice"
 	MicroserviceTemplateKind Kind = "MicroserviceTemplate"
 	ModelKind                Kind = "Model"
+	KnowledgeKind            Kind = "Knowledge"
 	RuntimeClassKind         Kind = "RuntimeClass"
 	// RouteKind is deprecated. Controller no longer exposes routing; use NATS for messaging.
 	RouteKind Kind = "Route"
@@ -194,6 +195,7 @@ type Microservice struct {
 	Images         *MicroserviceImages            `yaml:"images,omitempty" json:"images,omitempty"`
 	NatsConfig     *MicroserviceNatsConfig        `yaml:"natsConfig,omitempty" json:"natsConfig,omitempty"`
 	Models         *MicroserviceCatalog           `yaml:"models,omitempty" json:"models,omitempty"`
+	Knowledge      *KnowledgeCatalog              `yaml:"knowledge,omitempty" json:"knowledge,omitempty"`
 	Container      MicroserviceContainer          `yaml:"container,omitempty" json:"container,omitempty"`
 	Schedule       int                            `yaml:"schedule" json:"schedule"`
 	Config         ArbitraryJSON                  `yaml:"config" json:"config"`
@@ -218,6 +220,21 @@ type MicroserviceCatalog struct {
 	BindPath    string                    `yaml:"bindPath,omitempty" json:"bindPath,omitempty"`
 	Permissions string                    `yaml:"permissions,omitempty" json:"permissions,omitempty"` // ro | rw
 	Items       []MicroserviceCatalogItem `yaml:"items,omitempty" json:"items,omitempty"`
+}
+
+// KnowledgeCatalogItem names a fleet Knowledge resource bound into the container.
+// +k8s:deepcopy-gen=true
+type KnowledgeCatalogItem struct {
+	// Name is the fleet Knowledge metadata name; never a uuid or host path.
+	Name string `yaml:"name" json:"name"`
+}
+
+// KnowledgeCatalog binds Ready Knowledge content into the container.
+// +k8s:deepcopy-gen=true
+type KnowledgeCatalog struct {
+	BindPath    string                 `yaml:"bindPath,omitempty" json:"bindPath,omitempty"`
+	Permissions string                 `yaml:"permissions,omitempty" json:"permissions,omitempty"` // ro | rw
+	Items       []KnowledgeCatalogItem `yaml:"items,omitempty" json:"items,omitempty"`
 }
 
 // MicroserviceTemplateVariables is a map of template instance variable values.
@@ -684,6 +701,16 @@ type MicroserviceTemplate struct {
 // Model is the spec for kind: Model YAML.
 // +k8s:deepcopy-gen=true
 type Model struct {
+	Repo       string   `yaml:"repo" json:"repo"`
+	Revision   string   `yaml:"revision,omitempty" json:"revision,omitempty"`
+	RegistryID int      `yaml:"registryId" json:"registryId"`
+	Files      []string `yaml:"files,omitempty" json:"files,omitempty"`
+	Format     string   `yaml:"format,omitempty" json:"format,omitempty"`
+}
+
+// Knowledge is the spec for kind: Knowledge YAML.
+// +k8s:deepcopy-gen=true
+type Knowledge struct {
 	Repo       string   `yaml:"repo" json:"repo"`
 	Revision   string   `yaml:"revision,omitempty" json:"revision,omitempty"`
 	RegistryID int      `yaml:"registryId" json:"registryId"`

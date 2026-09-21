@@ -417,6 +417,19 @@ type MicroserviceCatalog struct {
 	Items       []MicroserviceCatalogItem `json:"items,omitempty"`
 }
 
+// KnowledgeCatalogItem names a fleet Knowledge resource bound into the container.
+type KnowledgeCatalogItem struct {
+	// Name is the fleet Knowledge metadata name; never a uuid or host path.
+	Name string `json:"name"`
+}
+
+// KnowledgeCatalog binds Ready Knowledge content into the container.
+type KnowledgeCatalog struct {
+	BindPath    string                 `json:"bindPath,omitempty"`
+	Permissions string                 `json:"permissions,omitempty"` // ro | rw
+	Items       []KnowledgeCatalogItem `json:"items,omitempty"`
+}
+
 // MicroserviceTemplateVariable is a template substitution variable.
 type MicroserviceTemplateVariable struct {
 	Key          string `json:"key"`
@@ -507,6 +520,7 @@ type MicroserviceInfo struct {
 	Devices           []ContainerDevice              `json:"devices,omitempty"`
 	Tmpfs             []ContainerTmpfs               `json:"tmpfs,omitempty"`
 	Models            *MicroserviceCatalog           `json:"models,omitempty"`
+	Knowledge         *KnowledgeCatalog              `json:"knowledge,omitempty"`
 	HealthCheck       MicroserviceHealthCheck        `json:"healthCheck,omitempty"`
 	NatsConfig        *MicroserviceNatsConfig        `json:"natsConfig,omitempty"`
 	ServiceAccount    *MicroserviceServiceAccountRef `json:"serviceAccount,omitempty"`
@@ -777,8 +791,14 @@ type AgentInfo struct {
 	ModelStatus string `json:"modelStatus" yaml:"modelStatus"`
 	// ActiveModels is the count of managed fleet models only.
 	ActiveModels int `json:"activeModels" yaml:"activeModels"`
-	// ModelLastUpdate is Unix seconds; 0 when the managed list is empty.
-	ModelLastUpdate        int64             `json:"modelLastUpdate" yaml:"modelLastUpdate"`
+	// ModelLastUpdate is Unix ms; 0 when the managed list is empty.
+	ModelLastUpdate int64 `json:"modelLastUpdate" yaml:"modelLastUpdate"`
+	// KnowledgeStatus is a JSON string of local and managed Knowledge status items. Callers parse it.
+	KnowledgeStatus string `json:"knowledgeStatus" yaml:"knowledgeStatus"`
+	// ActiveKnowledge is the count of managed fleet Knowledge only.
+	ActiveKnowledge int `json:"activeKnowledge" yaml:"activeKnowledge"`
+	// KnowledgeLastUpdate is Unix milliseconds; 0 when the managed list is empty.
+	KnowledgeLastUpdate    int64             `json:"knowledgeLastUpdate" yaml:"knowledgeLastUpdate"`
 	ControlPlaneQuiesced   bool              `json:"controlPlaneQuiesced,omitempty" yaml:"controlPlaneQuiesced,omitempty"`
 	RouterMode             string            `json:"routerMode" yaml:"routerMode"`
 	NetworkRouter          *string           `json:"networkRouter,omitempty" yaml:"networkRouter,omitempty"`
@@ -1152,6 +1172,43 @@ type ModelUpdateRequest struct {
 
 type ModelListResponse struct {
 	Models []Model `json:"models"`
+}
+
+// Knowledge is a fleet Knowledge resource (OCI or Hugging Face).
+type Knowledge struct {
+	UUID string `json:"uuid"`
+	Name string `json:"name"`
+	// Repo is the upstream path without host (Hub dataset id or OCI path).
+	Repo string `json:"repo"`
+	// Revision pins the artifact. Empty means latest (OCI) or main (Hugging Face).
+	Revision   string `json:"revision"`
+	RegistryID int    `json:"registryId"`
+	// Files is Hugging Face only. Controller rejects non-empty files on OCI registries.
+	Files []string `json:"files,omitempty"`
+	// Format is a soft hint. Controller normalizes unknown values to "unknown".
+	Format string `json:"format,omitempty"`
+}
+
+type KnowledgeCreateRequest struct {
+	Name       string   `json:"name"`
+	Repo       string   `json:"repo"`
+	RegistryID int      `json:"registryId"`
+	Revision   string   `json:"revision,omitempty"`
+	Files      []string `json:"files,omitempty"`
+	Format     string   `json:"format,omitempty"`
+}
+
+// KnowledgeUpdateRequest updates mutable Knowledge fields. Name is immutable.
+type KnowledgeUpdateRequest struct {
+	Repo       *string  `json:"repo,omitempty"`
+	Revision   *string  `json:"revision,omitempty"`
+	RegistryID *int     `json:"registryId,omitempty"`
+	Files      []string `json:"files,omitempty"`
+	Format     *string  `json:"format,omitempty"`
+}
+
+type KnowledgeListResponse struct {
+	Knowledge []Knowledge `json:"knowledge"`
 }
 
 // RuntimeClass is a named container runtime handler.

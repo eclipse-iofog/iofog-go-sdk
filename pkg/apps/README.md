@@ -57,7 +57,12 @@ Other entry points: `DeployMicroservice`, `DeployApplicationTemplate`, and `Depl
 
 - `spec.template` — instantiate from a MicroserviceTemplate (`name` plus `variables`).
 - `spec.models` — bind fleet models into the container (`bindPath`, `permissions`, `items[].name`).
+- `spec.knowledge` — bind fleet Knowledge into the container (`bindPath`, `permissions`, `items[].name` on `KnowledgeCatalog`).
+
+## Knowledge (`kind: Knowledge`)
+
+`KnowledgeKind` (`"Knowledge"`) is the YAML kind for a fleet Knowledge document (`apps.Knowledge`: `repo`, `revision`, `registryId`, `files`, `format`). This package does not deploy that kind. Upload the YAML with the `client` methods `CreateKnowledgeFromYAML` and `UpsertKnowledgeFromYAML`.
 
 ## Microservice templates (`kind: MicroserviceTemplate`)
 
-`DeployMicroserviceTemplate` creates or updates a Controller microservice template from YAML, matching the application-template deploy pattern. There is no `DeployModel` or `DeployRuntimeClass` in this package; those resources use the `client` YAML methods directly.
+`DeployMicroserviceTemplate` creates or updates a Controller microservice template from YAML, matching the application-template deploy pattern. There is no `DeployModel` or `DeployRuntimeClass` in this package. Model, RuntimeClass, and Knowledge YAML use the `client` methods directly.

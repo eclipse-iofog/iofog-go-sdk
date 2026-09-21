@@ -251,6 +251,18 @@ func (clt *Client) PatchMicroserviceModels(uuid string, catalog MicroserviceCata
 	return err
 }
 
+// PatchMicroserviceKnowledge is a catalog-only update. Sets the microservice-knowledge
+// change flag only (does not reload the full microservice list). Rebuilds the
+// workload when the catalog goes empty to non-empty or non-empty to empty, or
+// when bindPath or permissions change. Adding or removing items with the same
+// bindPath and permissions does not rebuild when the catalog is already
+// non-empty. Item names are managed fleet Knowledge names. The body is a
+// KnowledgeCatalog. Success is HTTP 204.
+func (clt *Client) PatchMicroserviceKnowledge(uuid string, catalog KnowledgeCatalog) error {
+	_, err := clt.doRequest("PATCH", fmt.Sprintf("/microservices/%s/knowledge", uuid), catalog)
+	return err
+}
+
 // DeleteMicroservice deletes a microservice using Controller REST API
 func (clt *Client) DeleteMicroservice(uuid string) error {
 	_, err := clt.doRequest("DELETE", fmt.Sprintf("/microservices/%s", uuid), nil)
