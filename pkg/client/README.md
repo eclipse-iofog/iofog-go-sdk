@@ -11,11 +11,16 @@ You can view the full REST API specification at [iofog.org](https://iofog.org/do
 In addition to applications, microservices, agents, registries, and other v3 resources:
 
 - **Fleet Model** — JSON CRUD, YAML (`/models/yaml`), and fog link (`/models/{name}/link`).
+- **Fleet Knowledge** — JSON CRUD, YAML (`/knowledge/yaml`), and fog link (`/knowledge/{name}/link`):
+  - `ListKnowledge`, `GetKnowledge`, `CreateKnowledge`, `UpdateKnowledge`, `DeleteKnowledge`
+  - `CreateKnowledgeFromYAML`, `UpsertKnowledgeFromYAML` (multipart field `knowledge`)
+  - `GetKnowledgeLink`, `LinkKnowledge`, `UnlinkKnowledge` (`FogLinkSet` / `FogLinkRequest`)
 - **RuntimeClass** — JSON CRUD, YAML (`/runtimeClasses/yaml`), and fog link (`/runtimeClasses/{name}/link`).
 - **MicroserviceTemplate** — JSON CRUD and YAML (`/microserviceTemplates/yaml`).
 - **Microservice models catalog** — `PatchMicroserviceModels` (`PATCH /microservices/{uuid}/models`).
+- **Microservice knowledge catalog** — `PatchMicroserviceKnowledge` (`PATCH /microservices/{uuid}/knowledge`) on user microservices only.
 
-Fog GET includes additive status fields (`runtimeClasses`, `availableCdiDevices`, `modelStatus`, `activeModels`, `modelLastUpdate`). Microservice GET status includes crash extras (`lastError`, `lastErrorAt`, `restartCount`). HAL hardware/USB inventory is **not** exposed by this client.
+Fog GET includes additive status fields (`runtimeClasses`, `availableCdiDevices`, `modelStatus`, `activeModels`, `modelLastUpdate`, `knowledgeStatus`, `activeKnowledge`, `knowledgeLastUpdate`). `modelLastUpdate` and `knowledgeLastUpdate` are Unix ms (0 when the managed list is empty). `modelStatus` and `knowledgeStatus` are JSON strings; parse them locally. Microservice GET status includes crash extras (`lastError`, `lastErrorAt`, `restartCount`). HAL hardware/USB inventory is **not** exposed by this client.
 
 Registries use `type` (`oci` | `hf`), optional `ca`, and `insecure`. Fog/agent config no longer includes HAL/BLE scan and bluetooth fields; Edge Guard (`edgeGuardFrequency`) remains. See `CHANGELOG.md` for the removed JSON keys.
 
