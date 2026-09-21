@@ -1,5 +1,18 @@
 # Changelog
 
+## [v3.9.0-rc.5]
+
+### Added
+
+- **`pkg/client` — Fleet Knowledge:** JSON CRUD, YAML create/upsert, and fog link/unlink (`ListKnowledge`, `GetKnowledge`, `CreateKnowledge`, `UpdateKnowledge`, `DeleteKnowledge`, `CreateKnowledgeFromYAML`, `UpsertKnowledgeFromYAML`, `GetKnowledgeLink`, `LinkKnowledge`, `UnlinkKnowledge`).
+- **`pkg/client` — `PatchMicroserviceKnowledge`:** catalog-only PATCH on user microservices (`PATCH /microservices/{uuid}/knowledge`).
+- **`pkg/apps` — `kind: Knowledge`** (`KnowledgeKind`) and **`spec.knowledge`** on microservice YAML. There is no `DeployKnowledge`; YAML upload uses the client methods.
+- **Fog GET status:** `knowledgeStatus`, `activeKnowledge`, `knowledgeLastUpdate`. `knowledgeStatus` is a JSON string for the caller to parse. `knowledgeLastUpdate` is Unix milliseconds.
+
+### Changed
+
+- **`modelLastUpdate`** on fog GET is documented as Unix **milliseconds** (godoc and `pkg/client` README). It was previously described as seconds.
+
 ## [v3.9.0-rc.4]
 
 ### Added
