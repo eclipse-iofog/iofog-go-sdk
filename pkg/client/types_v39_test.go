@@ -204,6 +204,52 @@ func TestApplicationInfoUnmarshalMicroserviceStatusExtras(t *testing.T) {
 	}
 }
 
+func TestAgentInfoUnmarshalHostStatus(t *testing.T) {
+	raw := []byte(`{
+		"uuid":"fog-1",
+		"name":"edge-1",
+		"systemCpus":8,
+		"systemTotalMemory":17179869184,
+		"systemAvailableMemory":8589934592,
+		"systemTotalDisk":107374182400,
+		"systemAvailableDisk":53687091200,
+		"systemTotalCpu":12.5,
+		"systemOs":"linux",
+		"systemOsVersion":"Ubuntu 22.04",
+		"systemKernelVersion":"6.8.0",
+		"diskUsage":1.25
+	}`)
+
+	var agent AgentInfo
+	if err := json.Unmarshal(raw, &agent); err != nil {
+		t.Fatalf("Unmarshal AgentInfo: %v", err)
+	}
+	if agent.SystemCpus != 8 {
+		t.Fatalf("systemCpus = %d", agent.SystemCpus)
+	}
+	if agent.SystemTotalMemory != 17179869184 {
+		t.Fatalf("systemTotalMemory = %d", agent.SystemTotalMemory)
+	}
+	if agent.SystemAvailableMemory != 8589934592 {
+		t.Fatalf("systemAvailableMemory = %d", agent.SystemAvailableMemory)
+	}
+	if agent.SystemTotalDisk != 107374182400 {
+		t.Fatalf("systemTotalDisk = %d", agent.SystemTotalDisk)
+	}
+	if agent.SystemAvailableDisk != 53687091200 {
+		t.Fatalf("systemAvailableDisk = %d", agent.SystemAvailableDisk)
+	}
+	if agent.SystemTotalCPU != 12.5 {
+		t.Fatalf("systemTotalCpu = %v", agent.SystemTotalCPU)
+	}
+	if agent.SystemOs != "linux" || agent.SystemOsVersion != "Ubuntu 22.04" || agent.SystemKernelVersion != "6.8.0" {
+		t.Fatalf("system os fields = %q %q %q", agent.SystemOs, agent.SystemOsVersion, agent.SystemKernelVersion)
+	}
+	if agent.DiskUsage != 1.25 {
+		t.Fatalf("diskUsage = %v", agent.DiskUsage)
+	}
+}
+
 func TestAgentInfoUnmarshalV39FieldsWithoutHAL(t *testing.T) {
 	// modelLastUpdate and knowledgeLastUpdate are Unix milliseconds.
 	raw := []byte(`{

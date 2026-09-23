@@ -1,5 +1,15 @@
 # Changelog
 
+## [v3.9.0-rc.6]
+
+### Added
+
+- **`pkg/client` — fog host status on `AgentInfo`:** optional read-only fields on `GET /iofog/{uuid}` and list (`ListAgents` / `GetAgentByID`): `systemCpus`, `systemTotalMemory`, `systemTotalDisk`, `systemOs`, `systemOsVersion`, `systemKernelVersion`. Byte fields are host RAM or `diskDirectory` filesystem capacity and free space. `systemTotalCpu` is host CPU busy **0–100%** (not core count — use `systemCpus`). Older Controllers or agents omit keys; decode uses zero values.
+
+### Changed
+
+- **`pkg/client.AgentInfo` — host metrics JSON alignment:** `systemAvailableMemory`, `systemAvailableDisk`, and byte totals use `int64`. Wire key for CPU utilization is `systemTotalCpu` (Controller `IOFogNodeInfoResponse`). **`diskUsage`** remains Edgelet data-directory usage in **GiB**, not host disk totals.
+
 ## [v3.9.0-rc.5]
 
 ### Added
