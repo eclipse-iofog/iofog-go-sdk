@@ -49,4 +49,20 @@ if err := yaml.Unmarshal(yamlFile, &header); err != nil {
 err = apps.DeployApplication(controller, application, "my-app")
 ```
 
-Other entry points: `DeployMicroservice` and `DeployApplicationTemplate`. Each accepts optional `DeployOption` values (for example `WithAPIVersion`).
+Other entry points: `DeployMicroservice`, `DeployApplicationTemplate`, and `DeployMicroserviceTemplate`. Each accepts optional `DeployOption` values (for example `WithAPIVersion`).
+
+## Microservice YAML (`kind: Microservice`)
+
+`DeployMicroservice` uploads `kind: Microservice` YAML (default `apiVersion: iofog.org/v3`). Optional spec fields:
+
+- `spec.template` — instantiate from a MicroserviceTemplate (`name` plus `variables`).
+- `spec.models` — bind fleet models into the container (`bindPath`, `permissions`, `items[].name`).
+- `spec.knowledge` — bind fleet Knowledge into the container (`bindPath`, `permissions`, `items[].name` on `KnowledgeCatalog`).
+
+## Knowledge (`kind: Knowledge`)
+
+`KnowledgeKind` (`"Knowledge"`) is the YAML kind for a fleet Knowledge document (`apps.Knowledge`: `repo`, `revision`, `registryId`, `files`, `format`). This package does not deploy that kind. Upload the YAML with the `client` methods `CreateKnowledgeFromYAML` and `UpsertKnowledgeFromYAML`.
+
+## Microservice templates (`kind: MicroserviceTemplate`)
+
+`DeployMicroserviceTemplate` creates or updates a Controller microservice template from YAML, matching the application-template deploy pattern. There is no `DeployModel` or `DeployRuntimeClass` in this package. Model, RuntimeClass, and Knowledge YAML use the `client` methods directly.
