@@ -2,9 +2,12 @@ package client
 
 import (
 	"encoding/json"
+	"errors"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"strings"
 	"testing"
 	"time"
 )
@@ -98,6 +101,52 @@ func testClient(t *testing.T, handler http.HandlerFunc) *Client {
 		timeout:     5,
 	}
 	return clt
+}
+
+func readJSONObject(t *testing.T, r *http.Request) map[string]any {
+	t.Helper()
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		t.Fatalf("read body: %v", err)
+	}
+	var obj map[string]any
+	if err := json.Unmarshal(body, &obj); err != nil {
+		t.Fatalf("unmarshal JSON body %q: %v", body, err)
+	}
+	return obj
+}
+
+func assertMultipartFormFile(t *testing.T, r *http.Request, field string) {
+	t.Helper()
+	contentType := r.Header.Get("Content-Type")
+	if !strings.HasPrefix(contentType, "multipart/") {
+		t.Fatalf("Content-Type = %q, want multipart", contentType)
+	}
+	if err := r.ParseMultipartForm(1 << 20); err != nil {
+		t.Fatalf("ParseMultipartForm: %v", err)
+	}
+	file, header, err := r.FormFile(field)
+	if err != nil {
+		t.Fatalf("form file field %q: %v", field, err)
+	}
+	defer func() { _ = file.Close() }()
+	if header == nil {
+		t.Fatalf("missing multipart header for field %q", field)
+	}
+}
+
+func requireHTTPErrorCode(t *testing.T, err error, code int) {
+	t.Helper()
+	if err == nil {
+		t.Fatalf("expected HTTPError with code %d, got nil", code)
+	}
+	var httpErr *HTTPError
+	if !errors.As(err, &httpErr) {
+		t.Fatalf("expected *HTTPError, got %T: %v", err, err)
+	}
+	if httpErr.Code != code {
+		t.Fatalf("HTTPError.Code = %d, want %d (%v)", httpErr.Code, code, err)
+	}
 }
 
 func TestReconcileAgent(t *testing.T) {

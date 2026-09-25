@@ -1,6 +1,65 @@
 # Changelog
 
-## [Unreleased]
+## [v3.9.0-rc.6]
+
+### Added
+
+- **`pkg/client` — fog host status on `AgentInfo`:** optional read-only fields on `GET /iofog/{uuid}` and list (`ListAgents` / `GetAgentByID`): `systemCpus`, `systemTotalMemory`, `systemTotalDisk`, `systemOs`, `systemOsVersion`, `systemKernelVersion`. Byte fields are host RAM or `diskDirectory` filesystem capacity and free space. `systemTotalCpu` is host CPU busy **0–100%** (not core count — use `systemCpus`). Older Controllers or agents omit keys; decode uses zero values.
+
+### Changed
+
+- **`pkg/client.AgentInfo` — host metrics JSON alignment:** `systemAvailableMemory`, `systemAvailableDisk`, and byte totals use `int64`. Wire key for CPU utilization is `systemTotalCpu` (Controller `IOFogNodeInfoResponse`). **`diskUsage`** remains Edgelet data-directory usage in **GiB**, not host disk totals.
+
+## [v3.9.0-rc.5]
+
+### Added
+
+- **`pkg/client` — Fleet Knowledge:** JSON CRUD, YAML create/upsert, and fog link/unlink (`ListKnowledge`, `GetKnowledge`, `CreateKnowledge`, `UpdateKnowledge`, `DeleteKnowledge`, `CreateKnowledgeFromYAML`, `UpsertKnowledgeFromYAML`, `GetKnowledgeLink`, `LinkKnowledge`, `UnlinkKnowledge`).
+- **`pkg/client` — `PatchMicroserviceKnowledge`:** catalog-only PATCH on user microservices (`PATCH /microservices/{uuid}/knowledge`).
+- **`pkg/apps` — `kind: Knowledge`** (`KnowledgeKind`) and **`spec.knowledge`** on microservice YAML. There is no `DeployKnowledge`; YAML upload uses the client methods.
+- **Fog GET status:** `knowledgeStatus`, `activeKnowledge`, `knowledgeLastUpdate`. `knowledgeStatus` is a JSON string for the caller to parse. `knowledgeLastUpdate` is Unix milliseconds.
+
+### Changed
+
+- **`modelLastUpdate`** on fog GET is documented as Unix **milliseconds** (godoc and `pkg/client` README). It was previously described as seconds.
+
+## [v3.9.0-rc.4]
+
+### Added
+- **Volume mapping `scope`** on `pkg/client.MicroserviceVolumeMappingInfo` and YAML `pkg/apps.MicroserviceVolumeMapping`: `private` (default) or `shared`. Meaningful only when `type` is `volume`. Omit on create → Controller stores `private`. GET always returns the key. No prune/reclaim client.
+
+## [v3.9.0-rc.3]
+
+### Added
+- **Microservice status extras** on GET microservice / application (`pkg/client.MicroserviceStatusInfo` and YAML `pkg/apps.MicroserviceStatusInfo`): `lastError`, `lastErrorAt`, `restartCount`. Older Controllers omit them; decode uses zeros.
+
+## [v3.9.0-rc.2]
+
+Controller REST **v3.9** client and YAML deploy surface.
+
+### Breaking changes
+
+- **Fog / agent config:** removed `deviceScanFrequency`, `bluetoothEnabled`, and `abstractedHardwareEnabled` from fog GET (`AgentInfo`) and agent configuration (`AgentConfiguration` in `pkg/client` and `pkg/apps`). Edge Guard (`edgeGuardFrequency`) is unchanged. The client does not expose HAL hardware/USB inventory endpoints.
+- **Registry:** removed `isSecure`, `certificate`, and `requiresCert`. Use `type` (`oci` | `hf`), `ca` (optional extra trust), and `insecure` instead.
+
+### Changed
+
+- **`pkg/apps` — `MicroserviceImages.registry` and `CatalogItem.registry`:** type changed from `string` to `RegistryRef`. Unmarshal accepts int, numeric string, or aliases `remote` (1) and `local` (2); marshal emits an unquoted integer (fixes describe output `registry: "5"` → `registry: 5`).
+- **`pkg/apps` — canonical YAML field order:** reordered struct fields on `Microservice`, `MicroserviceImages`, `MicroserviceContainer`, and `CatalogItem` so `yaml.v2` marshal matches deploy/describe templates (`application` after `uuid`, `models` before `container`, `registry` first in image blocks, runtime/security fields first in `container`). Optional `omitempty` on `catalogId`, `riscv64`, and `arm` in image blocks.
+- **`pkg/apps` — `ArbitraryJSON` YAML unmarshal:** normalize `yaml.v2` map/list values before JSON encoding so `config` and `annotations` round-trip on microservice describe/redeploy.
+
+### Added
+
+- **`pkg/apps` — `Microservice.serviceAccount`:** optional `roleRef` binding for microservice RBAC (`RoleRef`, `MicroserviceServiceAccountRef` on `apps.Microservice`; YAML describe/redeploy round-trip without importing `pkg/client`).
+- **`pkg/apps` — `RegistryRef`:** shared registry id type for microservice image and catalog item YAML fields.
+- **`pkg/client` — Fleet Model:** JSON CRUD, YAML create/upsert, and fog link/unlink (`ListModels`, `CreateModel`, `GetModel`, `UpdateModel`, `DeleteModel`, `CreateModelFromYAML`, `UpsertModelFromYAML`, `GetModelLink`, `LinkModel`, `UnlinkModel`).
+- **`pkg/client` — RuntimeClass:** JSON CRUD, YAML create/upsert, and fog link/unlink (`ListRuntimeClasses`, `CreateRuntimeClass`, `GetRuntimeClass`, `UpdateRuntimeClass`, `DeleteRuntimeClass`, `CreateRuntimeClassFromYAML`, `UpsertRuntimeClassFromYAML`, `GetRuntimeClassLink`, `LinkRuntimeClass`, `UnlinkRuntimeClass`).
+- **`pkg/client` — MicroserviceTemplate:** JSON CRUD and YAML create/update (`ListMicroserviceTemplates`, `CreateMicroserviceTemplate`, `GetMicroserviceTemplate`, `UpdateMicroserviceTemplate`, `DeleteMicroserviceTemplate`, `CreateMicroserviceTemplateFromYAML`, `UpdateMicroserviceTemplateFromYAML`).
+- **`pkg/client` — `PatchMicroserviceModels`:** catalog-only PATCH of bound fleet models on a microservice.
+- **`pkg/apps` — `DeployMicroserviceTemplate`:** YAML create/upsert for `kind: MicroserviceTemplate` (honors `WithAPIVersion`).
+- **`pkg/apps` — `kind: Microservice`:** optional `spec.template` (instantiate from a microservice template) and `spec.models` (fleet model catalog bind).
+- **Microservice 3.9 container/status fields** on `MicroserviceInfo` and YAML `MicroserviceContainer` / status: `models`, `runAsGroup`, `readOnlyRootFilesystem`, `entrypoint`, `workingDir`, `cpus`, `memoryReservation`, `memorySwap`, `shmSize`, `sysctls`, `ulimits`, `devices`, `tmpfs`, and status `podId`.
+- **Fog GET status:** `runtimeClasses`, `availableCdiDevices`, `modelStatus`, `activeModels`, `modelLastUpdate`.
 
 ## [v3.8.3] - 20 August 2026
 
