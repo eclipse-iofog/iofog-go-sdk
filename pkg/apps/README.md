@@ -1,38 +1,68 @@
-# Deploy applications Package
+# Apps Package
 
-This package contains executors to deploy iofog applications and microservices using the `client` package.
+This package contains executors to deploy ioFog applications and microservices using the `client` package. It is used by `iofogctl` and `iofog-operator` to apply YAML configuration to Controller.
+
+Import path: `github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/apps`
+
+## apiVersion
+
+Deploy YAML emitted by this package includes an `apiVersion` header. The default is **`iofog.org/v3`** (`apps.DefaultAPIVersion`).
+
+For Datasance-flavored deploy YAML, pass `WithAPIVersion` at the call site:
+
+```go
+apps.DeployApplication(ctrl, app, name, apps.WithAPIVersion("datasance.com/v3"))
+```
 
 ## Usage
 
 ```go
 import (
-	deploytypes "github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/deployapps"
-	deploy "github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/deployapps/application"
+	"os"
+
+	"github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/apps"
+	"gopkg.in/yaml.v2"
 )
 
-// Create your Controller access structure
-controller := deploytypes.IofogController{
-  Endpoint: "127.0.0.1:51121",
+controller := apps.IofogController{
+	Endpoint: "127.0.0.1:51121",
 	Email:    "user@domain.com",
-	Password: "kj2gh0ooiwbug",
+	Password: "password",
 }
 
-// Create your application structure
-application := deploytypes.Application{
-  Name: "my-app"
-  //...Rest of the fields
+application := apps.Application{
+	Name: "my-app",
+	// ... remaining fields
 }
 
-// OR, read it from a yaml file
-yamlFile, err := ioutil.ReadFile(filename)
+// OR, read spec from a YAML file
+yamlFile, err := os.ReadFile(filename)
 if err != nil {
-  return err
+	return err
 }
-err = yaml.Unmarshal(yamlFile, &application)
-if err != nil {
-  return err
+var header apps.IofogHeader
+if err := yaml.Unmarshal(yamlFile, &header); err != nil {
+	return err
 }
 
-// Deploy
-err = deploy.Execute(controller, application)
+// Deploy (default apiVersion: iofog.org/v3)
+err = apps.DeployApplication(controller, application, "my-app")
 ```
+
+Other entry points: `DeployMicroservice`, `DeployApplicationTemplate`, and `DeployMicroserviceTemplate`. Each accepts optional `DeployOption` values (for example `WithAPIVersion`).
+
+## Microservice YAML (`kind: Microservice`)
+
+`DeployMicroservice` uploads `kind: Microservice` YAML (default `apiVersion: iofog.org/v3`). Optional spec fields:
+
+- `spec.template` — instantiate from a MicroserviceTemplate (`name` plus `variables`).
+- `spec.models` — bind fleet models into the container (`bindPath`, `permissions`, `items[].name`).
+- `spec.knowledge` — bind fleet Knowledge into the container (`bindPath`, `permissions`, `items[].name` on `KnowledgeCatalog`).
+
+## Knowledge (`kind: Knowledge`)
+
+`KnowledgeKind` (`"Knowledge"`) is the YAML kind for a fleet Knowledge document (`apps.Knowledge`: `repo`, `revision`, `registryId`, `files`, `format`). This package does not deploy that kind. Upload the YAML with the `client` methods `CreateKnowledgeFromYAML` and `UpsertKnowledgeFromYAML`.
+
+## Microservice templates (`kind: MicroserviceTemplate`)
+
+`DeployMicroserviceTemplate` creates or updates a Controller microservice template from YAML, matching the application-template deploy pattern. There is no `DeployModel` or `DeployRuntimeClass` in this package. Model, RuntimeClass, and Knowledge YAML use the `client` methods directly.

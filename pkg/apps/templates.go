@@ -1,16 +1,3 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2019 Edgeworx, Inc.
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 package apps
 
 import (
@@ -24,20 +11,21 @@ import (
 type applicationTemplateExecutor struct {
 	controller IofogController
 	baseURL    *url.URL
-	template   interface{}
+	template   any
 	name       string
+	apiVersion string
 	client     *client.Client
 }
 
-func newApplicationTemplateExecutor(controller IofogController, controllerBaseURL *url.URL, template interface{}, name string) *applicationTemplateExecutor {
-	exe := &applicationTemplateExecutor{
+func newApplicationTemplateExecutor(controller IofogController, controllerBaseURL *url.URL, template any, name string, opts ...DeployOption) *applicationTemplateExecutor {
+	resolved := resolveDeployOptions(opts...)
+	return &applicationTemplateExecutor{
 		controller: controller,
 		baseURL:    controllerBaseURL,
 		name:       name,
 		template:   template,
+		apiVersion: resolved.apiVersion,
 	}
-
-	return exe
 }
 
 func (exe *applicationTemplateExecutor) execute() error {
@@ -54,7 +42,7 @@ func (exe *applicationTemplateExecutor) init() (err error) {
 	if exe.controller.Token != "" {
 		exe.client, err = client.NewWithToken(client.Options{BaseURL: exe.baseURL}, exe.controller.Token)
 	} else {
-		exe.client, err = client.NewAndLogin(client.Options{BaseURL: exe.baseURL}, exe.controller.Email, exe.controller.Password)
+		exe.client, err = client.SessionLogin(client.Options{BaseURL: exe.baseURL}, exe.controller.RefreshToken, exe.controller.Email, exe.controller.Password)
 	}
 
 	return err
@@ -62,7 +50,7 @@ func (exe *applicationTemplateExecutor) init() (err error) {
 
 func (exe *applicationTemplateExecutor) deploy() error {
 	file := IofogHeader{
-		APIVersion: "iofog.org/v3",
+		APIVersion: exe.apiVersion,
 		Kind:       ApplicationTemplateKind,
 		Metadata: HeaderMetadata{
 			Name: exe.name,
@@ -74,8 +62,7 @@ func (exe *applicationTemplateExecutor) deploy() error {
 		return err
 	}
 	existingAppTemplate, err := exe.client.GetApplicationTemplate(exe.name)
-	// If not notfound error, return error
-	if _, ok := err.(*client.NotFoundError); err != nil && !ok {
+	if err = lookupErrorAllowNotFound(err); err != nil {
 		return err
 	}
 	if existingAppTemplate == nil {

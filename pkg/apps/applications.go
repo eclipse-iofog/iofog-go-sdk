@@ -1,16 +1,3 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2019 Edgeworx, Inc.
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 package apps
 
 import (
@@ -24,20 +11,21 @@ import (
 
 type applicationExecutor struct {
 	controller      IofogController
-	app             interface{}
+	app             any
 	name            string
+	apiVersion      string
 	applicationInfo *client.ApplicationInfo
 	client          *client.Client
 }
 
-func newApplicationExecutor(controller IofogController, app interface{}, name string) *applicationExecutor {
-	exe := &applicationExecutor{
+func newApplicationExecutor(controller IofogController, app any, name string, opts ...DeployOption) *applicationExecutor {
+	resolved := resolveDeployOptions(opts...)
+	return &applicationExecutor{
 		controller: controller,
 		app:        app,
 		name:       name,
+		apiVersion: resolved.apiVersion,
 	}
-
-	return exe
 }
 
 func (exe *applicationExecutor) execute() (err error) {
@@ -46,20 +34,13 @@ func (exe *applicationExecutor) execute() (err error) {
 		return err
 	}
 
-	// Try application API
-	// Look for exisiting application
+	// Look up existing application; NotFound means create on deploy.
 	exe.applicationInfo, err = exe.client.GetApplicationByName(exe.name)
-
-	// If not notfound error, return error
-	if _, ok := err.(*client.NotFoundError); err != nil && !ok {
+	if err = lookupErrorAllowNotFound(err); err != nil {
 		return err
 	}
 
-	// Deploy application
-	if err := exe.deploy(); err != nil {
-		return err
-	}
-	return nil
+	return exe.deploy()
 }
 
 func (exe *applicationExecutor) init() (err error) {
@@ -70,14 +51,14 @@ func (exe *applicationExecutor) init() (err error) {
 	if exe.controller.Token != "" {
 		exe.client, err = client.NewWithToken(client.Options{BaseURL: baseURL}, exe.controller.Token)
 	} else {
-		exe.client, err = client.NewAndLogin(client.Options{BaseURL: baseURL}, exe.controller.Email, exe.controller.Password)
+		exe.client, err = client.SessionLogin(client.Options{BaseURL: baseURL}, exe.controller.RefreshToken, exe.controller.Email, exe.controller.Password)
 	}
 	return err
 }
 
 func (exe *applicationExecutor) create() (err error) {
 	file := IofogHeader{
-		APIVersion: "iofog.org/v3",
+		APIVersion: exe.apiVersion,
 		Kind:       ApplicationKind,
 		Metadata: HeaderMetadata{
 			Name: exe.name,
@@ -96,7 +77,7 @@ func (exe *applicationExecutor) create() (err error) {
 
 func (exe *applicationExecutor) update() (err error) {
 	file := IofogHeader{
-		APIVersion: "iofog.org/v3",
+		APIVersion: exe.apiVersion,
 		Kind:       ApplicationKind,
 		Metadata: HeaderMetadata{
 			Name: exe.name,

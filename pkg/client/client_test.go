@@ -1,16 +1,3 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2019 Edgeworx, Inc.
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 package client
 
 import (
@@ -43,11 +30,11 @@ func TestGenerateListAgentsURL(t *testing.T) {
 		},
 	}
 	url := generateListAgentURL(request)
-	if url != "/iofog-list?system=true&filters[0][key]=first&filters[0][value]=second&filters[0][condition]=third" {
+	if url != "/iofog-list&filters[0][key]=first&filters[0][value]=second&filters[0][condition]=third" {
 		t.Errorf("Failed to generate List Agents URL: %s", url)
 	}
 	url = generateListAgentURL(ListAgentsRequest{})
-	if url != "/iofog-list?system=false" {
+	if url != "/iofog-list" {
 		t.Errorf("Failed to generate List Agents URL: %s", url)
 	}
 }
