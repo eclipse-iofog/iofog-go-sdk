@@ -1,5 +1,10 @@
 # Changelog
 
+## [v3.9.0] - 26 September 2026
+
+Stable release of the Controller REST **v3.9** client and YAML deploy surface. No functional changes since **v3.9.0-rc.6**; incremental pre-release notes remain below (`v3.9.0-rc.2` … `v3.9.0-rc.6`).
+
+
 ## [v3.9.0-rc.6]
 
 ### Added
@@ -226,7 +231,8 @@ Microservice exec: replace `AttachExecMicroservice` / detach REST calls with `Di
 * Add client package to the repo
 * Re-organize the repo to maintain multiple packages
   
-[Unreleased]: https://github.com/eclipse-iofog/iofog-go-sdk/compare/v3.8.3..HEAD
+[Unreleased]: https://github.com/eclipse-iofog/iofog-go-sdk/compare/v3.9.0..HEAD
+[v3.9.0]: https://github.com/eclipse-iofog/iofog-go-sdk/compare/v3.8.3..v3.9.0
 [v3.8.3]: https://github.com/eclipse-iofog/iofog-go-sdk/compare/v3.8.2..v3.8.3
 [v3.8.2]: https://github.com/eclipse-iofog/iofog-go-sdk/compare/v3.8.1..v3.8.2
 [v3.8.1]: https://github.com/eclipse-iofog/iofog-go-sdk/compare/v3.8.0..v3.8.1
