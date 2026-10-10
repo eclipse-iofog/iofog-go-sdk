@@ -1,5 +1,17 @@
 # Changelog
 
+## [v3.9.1-rc.1]
+
+### Added
+
+- **govulncheck workflow** (`.github/workflows/govulncheck.yml`): runs on pushes that change `go.sum`, daily, and on manual dispatch. Uses Go 1.26.9 and govulncheck v1.1.4, the same script as `make vulncheck`.
+
+### Changed
+
+- **Go 1.26.9** minimum (see `go.mod`).
+- Dependency bumps so `make vulncheck` is clean: `golang.org/x/net` v0.60.0 ([GO-2026-6603](https://pkg.go.dev/vuln/GO-2026-6603), [GO-2026-6610](https://pkg.go.dev/vuln/GO-2026-6610), [GO-2026-6611](https://pkg.go.dev/vuln/GO-2026-6611), [GO-2026-6612](https://pkg.go.dev/vuln/GO-2026-6612), [GO-2026-6617](https://pkg.go.dev/vuln/GO-2026-6617)), with `golang.org/x/sync` v0.23.0, `golang.org/x/sys` v0.48.0, `golang.org/x/term` v0.46.0, and `golang.org/x/text` v0.42.0.
+
+
 ## [v3.9.0] - 26 September 2026
 
 Stable release of the Controller REST **v3.9** client and YAML deploy surface. No functional changes since **v3.9.0-rc.6**; incremental pre-release notes remain below (`v3.9.0-rc.2` … `v3.9.0-rc.6`).

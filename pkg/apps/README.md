@@ -4,6 +4,8 @@ This package contains executors to deploy ioFog applications and microservices u
 
 Import path: `github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/apps`
 
+Full reference: [`docs/reference/apps.md`](../../docs/reference/apps.md). Deploy steps: [`docs/howto/deploy-yaml.md`](../../docs/howto/deploy-yaml.md).
+
 ## apiVersion
 
 Deploy YAML emitted by this package includes an `apiVersion` header. The default is **`iofog.org/v3`** (`apps.DefaultAPIVersion`).
@@ -25,7 +27,7 @@ import (
 )
 
 controller := apps.IofogController{
-	Endpoint: "127.0.0.1:51121",
+	Endpoint: "http://127.0.0.1:51121/api/v3",
 	Email:    "user@domain.com",
 	Password: "password",
 }
