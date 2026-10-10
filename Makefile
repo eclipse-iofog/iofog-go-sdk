@@ -113,13 +113,14 @@ security-code: ## Static Go security analysis (gosec; not in golangci-lint)
 	@gosec -exclude-dir=reports -exclude-generated $(GOSEC_SCOPE)
 
 .PHONY: vulncheck
-vulncheck: ## Dependency vulnerability scan (govulncheck + go mod verify)
+vulncheck: ## Run dependency vulnerability scan (govulncheck + go mod verify)
 	@echo "🔐 Running govulncheck..."
 	@if ! command -v govulncheck >/dev/null 2>&1; then \
-		echo "⬇️  Installing govulncheck $(GOVULNCHECK_VERSION)..."; \
+		echo "⬇️  Installing govulncheck..."; \
 		go install golang.org/x/vuln/cmd/govulncheck@$(GOVULNCHECK_VERSION); \
 	fi
-	@govulncheck ./pkg/...
+	@chmod +x scripts/vulncheck.sh
+	@scripts/vulncheck.sh
 	@echo "🔍 Verifying module integrity..."
 	@go mod verify
 
