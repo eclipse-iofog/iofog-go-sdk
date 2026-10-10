@@ -3,6 +3,7 @@
 [![CI](https://github.com/eclipse-iofog/iofog-go-sdk/actions/workflows/ci.yml/badge.svg)](https://github.com/eclipse-iofog/iofog-go-sdk/actions/workflows/ci.yml)
 [![Go](https://img.shields.io/badge/Go-1.26.9-blue.svg)](https://go.dev/)
 [![License](https://img.shields.io/badge/License-EPL--2.0-blue.svg)](LICENSE)
+[![govulncheck](https://github.com/eclipse-iofog/iofog-go-sdk/actions/workflows/govulncheck.yml/badge.svg)](https://github.com/eclipse-iofog/iofog-go-sdk/actions/workflows/govulncheck.yml)
 
 **Upstream:** [eclipse-iofog/iofog-go-sdk](https://github.com/eclipse-iofog/iofog-go-sdk) · **Datasance distribution:** [Datasance/iofog-go-sdk](https://github.com/Datasance/iofog-go-sdk)
 
