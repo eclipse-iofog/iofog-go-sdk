@@ -4,7 +4,7 @@ This package provides an HTTP client for ioFog Controller's REST API **v3**. Con
 
 Import path: `github.com/eclipse-iofog/iofog-go-sdk/v3/pkg/client`
 
-You can view the full REST API specification at [iofog.org](https://iofog.org/docs/1.3.0/controllers/rest-api.html).
+Full reference: [`docs/reference/client.md`](../../docs/reference/client.md). NATS methods: [`docs/reference/nats.md`](../../docs/reference/nats.md).
 
 ## Controller v3.9 resources
 
