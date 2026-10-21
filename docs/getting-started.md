@@ -4,7 +4,7 @@ You will add the module, open an authenticated client against Controller REST v3
 
 ## What you need
 
-- Go **1.26.9** or newer (`go.mod` sets this minimum).
+- Go **1.26.10** or newer (`go.mod` sets this minimum).
 - A running ioFog Controller that speaks REST **v3**.
 - A user access token, or an email, password, and TOTP that the Controller accepts.
 

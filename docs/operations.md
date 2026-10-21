@@ -6,7 +6,7 @@
 github.com/eclipse-iofog/iofog-go-sdk/v3
 ```
 
-Go **1.26.9** or newer. The Datasance GitHub repository publishes this same module path. Do not change imports to a Datasance module path.
+Go **1.26.10** or newer. The Datasance GitHub repository publishes this same module path. Do not change imports to a Datasance module path.
 
 `go.mod` retracts a set of accidental and test tags (`v3.3.2` through parts of `v3.4`, and `v3.8.0-beta.0` / `beta.1`). Do not depend on those versions.
 

@@ -1,6 +1,13 @@
 # Changelog
 
-## [v3.9.1-rc.1]
+## [v3.9.2]
+
+### Changed
+
+- **Go 1.26.10** minimum (see `go.mod`). CI and the govulncheck workflow use the same toolchain. Clears [GO-2026-6809](https://pkg.go.dev/vuln/GO-2026-6809) (`crypto/x509` distrust of compromised intermediate certificates), reachable from `client.CreateCertificateFromYaml` via `x509.Certificate.Verify`. `make vulncheck` is clean.
+
+
+## [v3.9.1]
 
 ### Added
 
