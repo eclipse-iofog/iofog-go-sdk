@@ -79,7 +79,9 @@ type Header struct {
 
 ### Container
 
-`MicroserviceContainer` includes network and privilege flags, `runAsUser`, `runAsGroup`, `readOnlyRootFilesystem`, `ipcMode`, `pidMode`, `platform`, `runtime`, `capAdd`, `capDrop`, `annotations`, `sysctls`, `ulimits` (soft/hard, `-1` means unlimited), `cpuSetCpus`, `cpus`, memory fields, `shmSize`, `cdiDevices`, `devices` (`hostPath`, `containerPath`, `permissions`), `volumes`, `tmpfs` (`size` is MiB, `mode` is an optional octal string), `extraHosts`, `env`, `ports`, `workingDir`, `entrypoint`, `commands`, `healthCheck`.
+`MicroserviceContainer` includes network and privilege flags, `runAsUser`, `runAsGroup`, `supplementalGroups`, `readOnlyRootFilesystem`, `ipcMode`, `pidMode`, `platform`, `runtime`, `capAdd`, `capDrop`, `annotations`, `sysctls`, `ulimits` (soft/hard, `-1` means unlimited), `cpuSetCpus`, `cpus`, memory fields, `shmSize`, `cdiDevices`, `devices` (`hostPath`, `containerPath`, `permissions`), `volumes`, `tmpfs` (`size` is MiB, `mode` is an optional octal string), `extraHosts`, `env`, `ports`, `workingDir`, `entrypoint`, `commands`, `healthCheck`.
+
+`supplementalGroups` is a list of host group IDs, separate from `runAsGroup`. Omit the key and a YAML update leaves the stored list unchanged. An empty list clears it. Controller stores and returns the ids sorted ascending. At most 16 unique whole numbers from 0 through 4294967295.
 
 `MicroservicePortMapping` has no `yaml` tags. `yaml.v2` uses the field name (`Internal`, `External`, `Protocol`) unless you populate the struct from JSON. Prefer a YAML struct you control, or set the fields in Go and let the executor marshal them, if you need lowercase keys. The JSON tags are `internal`, `external`, `protocol`.
 

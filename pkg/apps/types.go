@@ -95,6 +95,7 @@ type MicroserviceContainer struct {
 	IsPrivileged           bool                          `yaml:"isPrivileged" json:"isPrivileged"`
 	RunAsUser              string                        `yaml:"runAsUser,omitempty" json:"runAsUser,omitempty"`
 	RunAsGroup             string                        `yaml:"runAsGroup,omitempty" json:"runAsGroup,omitempty"`
+	SupplementalGroups     *[]int                        `yaml:"supplementalGroups,omitempty" json:"supplementalGroups,omitempty"` // nil omits the key; empty slice clears
 	ReadOnlyRootFilesystem bool                          `yaml:"readOnlyRootFilesystem" json:"readOnlyRootFilesystem"`
 	IpcMode                string                        `yaml:"ipcMode,omitempty" json:"ipcMode,omitempty"`
 	PidMode                string                        `yaml:"pidMode,omitempty" json:"pidMode,omitempty"`

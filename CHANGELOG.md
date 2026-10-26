@@ -1,5 +1,12 @@
 # Changelog
 
+## [v3.9.3]
+
+### Added
+
+- **Microservice `supplementalGroups`** on `MicroserviceInfo` and YAML `container.supplementalGroups`: extra host group IDs, separate from `runAsGroup`. GET returns an array (`[]` when there are none). On YAML, omit the key to leave the stored list unchanged; an empty list clears it.
+
+
 ## [v3.9.2]
 
 ### Changed

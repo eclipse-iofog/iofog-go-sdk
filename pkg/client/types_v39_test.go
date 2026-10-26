@@ -80,6 +80,61 @@ func TestMicroserviceInfoUnmarshalV39Fields(t *testing.T) {
 	}
 }
 
+func TestMicroserviceInfoSupplementalGroups(t *testing.T) {
+	raw := []byte(`{
+		"uuid":"ms-1",
+		"name":"infer",
+		"runAsGroup":"1000",
+		"supplementalGroups":[44,993]
+	}`)
+
+	var info MicroserviceInfo
+	if err := json.Unmarshal(raw, &info); err != nil {
+		t.Fatalf("Unmarshal MicroserviceInfo: %v", err)
+	}
+	if info.RunAsGroup != "1000" {
+		t.Fatalf("runAsGroup = %q", info.RunAsGroup)
+	}
+	if len(info.SupplementalGroups) != 2 || info.SupplementalGroups[0] != 44 || info.SupplementalGroups[1] != 993 {
+		t.Fatalf("supplementalGroups = %v", info.SupplementalGroups)
+	}
+
+	dup := []byte(`{"uuid":"ms-1","name":"infer","supplementalGroups":[44,44]}`)
+	var fromDup MicroserviceInfo
+	if err := json.Unmarshal(dup, &fromDup); err != nil {
+		t.Fatalf("Unmarshal duplicates: %v", err)
+	}
+	if len(fromDup.SupplementalGroups) != 2 {
+		t.Fatalf("duplicates collapsed: %v", fromDup.SupplementalGroups)
+	}
+
+	emptyRaw := []byte(`{"uuid":"ms-1","name":"infer","supplementalGroups":[]}`)
+	var empty MicroserviceInfo
+	if err := json.Unmarshal(emptyRaw, &empty); err != nil {
+		t.Fatalf("Unmarshal empty: %v", err)
+	}
+	if empty.SupplementalGroups == nil || len(empty.SupplementalGroups) != 0 {
+		t.Fatalf("empty list = %#v", empty.SupplementalGroups)
+	}
+	body, err := json.Marshal(empty)
+	if err != nil {
+		t.Fatalf("Marshal empty: %v", err)
+	}
+	var got map[string]any
+	if err := json.Unmarshal(body, &got); err != nil {
+		t.Fatalf("Unmarshal marshaled empty: %v", err)
+	}
+	groups, ok := got["supplementalGroups"].([]any)
+	if !ok || len(groups) != 0 {
+		t.Fatalf("marshaled supplementalGroups = %s", body)
+	}
+
+	fraction := []byte(`{"uuid":"ms-1","name":"infer","supplementalGroups":[44.5]}`)
+	if err := json.Unmarshal(fraction, &MicroserviceInfo{}); err == nil {
+		t.Fatal("44.5 must not unmarshal into supplementalGroups")
+	}
+}
+
 func TestMicroserviceVolumeMappingInfoRoundTripScope(t *testing.T) {
 	raw := []byte(`{
 		"uuid":"ms-1",

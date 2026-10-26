@@ -148,11 +148,13 @@ func TestMicroserviceImagesOmitsZeroCatalogID(t *testing.T) {
 }
 
 func TestMicroserviceContainerFieldOrderWhenSet(t *testing.T) {
+	groups := []int{993, 44}
 	container := MicroserviceContainer{
 		HostNetworkMode:        false,
 		IsPrivileged:           false,
 		RunAsUser:              "1000",
 		RunAsGroup:             "1000",
+		SupplementalGroups:     &groups,
 		ReadOnlyRootFilesystem: false,
 		Ports:                  []MicroservicePortMapping{{Internal: 80, External: 8080}},
 		Commands:               []string{"/bin/app"},
@@ -163,7 +165,7 @@ func TestMicroserviceContainerFieldOrderWhenSet(t *testing.T) {
 	}
 	got := string(out)
 	assertYAMLKeysInOrder(t, got,
-		"hostNetworkMode", "isPrivileged", "runAsUser", "runAsGroup", "readOnlyRootFilesystem",
+		"hostNetworkMode", "isPrivileged", "runAsUser", "runAsGroup", "supplementalGroups", "readOnlyRootFilesystem",
 		"ports", "commands",
 	)
 }

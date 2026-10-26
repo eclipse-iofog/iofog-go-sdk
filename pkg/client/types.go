@@ -482,6 +482,7 @@ type MicroserviceInfo struct {
 	Platform               string                          `json:"platform,omitempty"`
 	RunAsUser              string                          `json:"runAsUser,omitempty"`
 	RunAsGroup             string                          `json:"runAsGroup,omitempty"`
+	SupplementalGroups     []int                           `json:"supplementalGroups"` // always an array; empty means none
 	ReadOnlyRootFilesystem bool                            `json:"readOnlyRootFilesystem,omitempty"`
 	CdiDevices             []string                        `json:"cdiDevices,omitempty"`
 	CapAdd                 []string                        `json:"capAdd,omitempty"`
