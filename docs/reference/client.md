@@ -193,7 +193,9 @@ Calls run `HEAD /capabilities/applicationTemplates` first. HTTP 404 becomes `*No
 
 Deprecated, all return `ErrRoutesNotSupported`: `CreateMicroserviceRoute`, `DeleteMicroserviceRoute`, `UpdateMicroserviceRoutes`.
 
-`MicroserviceInfo.Commands` is JSON `cmd`. `commands` wins when both keys are present (`UnmarshalJSON`). Container limits: `cpus` (float), `memoryLimit`, `memoryReservation`, `memorySwap`, `shmSize` (int64), `cpuSetCpus`, `sysctls`, `ulimits`, `devices`, `tmpfs`, `entrypoint`, `workingDir`, `runAsUser`, `runAsGroup`, `readOnlyRootFilesystem`, `cdiDevices`, `runtime`, `pidMode`, `ipcMode`. `serviceAccount.roleRef` binds a Role.
+`MicroserviceInfo.Commands` is JSON `cmd`. `commands` wins when both keys are present (`UnmarshalJSON`). Container limits: `cpus` (float), `memoryLimit`, `memoryReservation`, `memorySwap`, `shmSize` (int64), `cpuSetCpus`, `sysctls`, `ulimits`, `devices`, `tmpfs`, `entrypoint`, `workingDir`, `runAsUser`, `runAsGroup`, `supplementalGroups`, `readOnlyRootFilesystem`, `cdiDevices`, `runtime`, `pidMode`, `ipcMode`. `serviceAccount.roleRef` binds a Role.
+
+`supplementalGroups` is the host group IDs on GET microservice and application responses, separate from `runAsGroup`. The array is always present. `[]` means none. Controller returns the ids sorted ascending.
 
 `MicroserviceVolumeMappingInfo.Scope` is `private` or `shared`, and only meaningful when `type` is `volume`. Omit on create and the Controller stores `private`. GET always returns the key.
 

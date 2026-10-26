@@ -141,6 +141,77 @@ func TestMicroserviceContainerYAMLSpotCheck(t *testing.T) {
 	}
 }
 
+func TestMicroserviceContainerSupplementalGroupsYAML(t *testing.T) {
+	omitted, err := yaml.Marshal(MicroserviceContainer{RunAsGroup: "1000"})
+	if err != nil {
+		t.Fatalf("marshal omitted: %v", err)
+	}
+	if strings.Contains(string(omitted), "supplementalGroups:") {
+		t.Errorf("nil supplementalGroups must omit the key:\n%s", omitted)
+	}
+
+	none := []int{}
+	cleared, err := yaml.Marshal(MicroserviceContainer{SupplementalGroups: &none})
+	if err != nil {
+		t.Fatalf("marshal empty: %v", err)
+	}
+	if !strings.Contains(string(cleared), "supplementalGroups: []") {
+		t.Errorf("empty supplementalGroups must send []:\n%s", cleared)
+	}
+
+	groups := []int{993, 44}
+	out, err := yaml.Marshal(MicroserviceContainer{
+		RunAsGroup:         "1000",
+		SupplementalGroups: &groups,
+	})
+	if err != nil {
+		t.Fatalf("marshal groups: %v", err)
+	}
+	got := string(out)
+	if strings.Index(got, "runAsGroup:") > strings.Index(got, "supplementalGroups:") {
+		t.Errorf("runAsGroup should appear before supplementalGroups:\n%s", got)
+	}
+	if strings.Contains(got, "readOnlyRootFilesystem:") && strings.Index(got, "supplementalGroups:") > strings.Index(got, "readOnlyRootFilesystem:") {
+		t.Errorf("supplementalGroups should appear before readOnlyRootFilesystem:\n%s", got)
+	}
+	id993 := strings.Index(got, "993")
+	id44 := strings.Index(got, "44")
+	if id993 < 0 || id44 < 0 || id993 > id44 {
+		t.Errorf("YAML must keep caller order 993 then 44:\n%s", got)
+	}
+
+	const input = `
+runAsGroup: "1000"
+supplementalGroups:
+  - 44
+  - 993
+`
+	var decoded MicroserviceContainer
+	if err := yaml.Unmarshal([]byte(input), &decoded); err != nil {
+		t.Fatalf("unmarshal: %v", err)
+	}
+	if decoded.SupplementalGroups == nil || len(*decoded.SupplementalGroups) != 2 {
+		t.Fatalf("decoded = %#v", decoded.SupplementalGroups)
+	}
+	if (*decoded.SupplementalGroups)[0] != 44 || (*decoded.SupplementalGroups)[1] != 993 {
+		t.Fatalf("decoded ids = %v", *decoded.SupplementalGroups)
+	}
+
+	var absent MicroserviceContainer
+	if err := yaml.Unmarshal([]byte("runAsGroup: \"1000\"\n"), &absent); err != nil {
+		t.Fatalf("unmarshal absent: %v", err)
+	}
+	if absent.SupplementalGroups != nil {
+		t.Fatalf("omitted key decoded as %#v", absent.SupplementalGroups)
+	}
+
+	copied := decoded.DeepCopy()
+	(*copied.SupplementalGroups)[0] = 1
+	if (*decoded.SupplementalGroups)[0] != 44 {
+		t.Fatal("deepcopy aliased supplementalGroups")
+	}
+}
+
 func TestMicroserviceVolumeMappingYAMLRoundTripScope(t *testing.T) {
 	vol := MicroserviceVolumeMapping{
 		HostDestination:      "nodered-config",
