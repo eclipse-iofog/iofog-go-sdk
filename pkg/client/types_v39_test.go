@@ -221,6 +221,89 @@ func TestMicroserviceStatusInfoUnmarshalErrorExtras(t *testing.T) {
 	}
 }
 
+func TestMicroserviceStatusInfoUnmarshalImagePullStatus(t *testing.T) {
+	failed := []byte(`{
+		"uuid":"ms-1",
+		"name":"infer",
+		"status":{
+			"status":"RUNNING",
+			"containerId":"d8ed513372a8",
+			"errorMessage":"unable to pull docker.io/library/nginx:edgelet-pull-miss-absent: failed to pull image",
+			"imagePullStatus":"failed",
+			"lastError":"unable to pull docker.io/library/nginx:edgelet-pull-miss-absent: failed to pull image",
+			"lastErrorAt":1730000000000,
+			"restartCount":0
+		}
+	}`)
+
+	var running MicroserviceInfo
+	if err := json.Unmarshal(failed, &running); err != nil {
+		t.Fatalf("Unmarshal running pull miss: %v", err)
+	}
+	if running.Status.Status != "RUNNING" {
+		t.Fatalf("status.status = %q", running.Status.Status)
+	}
+	if running.Status.ImagePullStatus != "failed" {
+		t.Fatalf("status.imagePullStatus = %q", running.Status.ImagePullStatus)
+	}
+	if running.Status.RestartCount != 0 {
+		t.Fatalf("status.restartCount = %d", running.Status.RestartCount)
+	}
+
+	queued := []byte(`{
+		"uuid":"ms-2",
+		"name":"infer",
+		"status":{"status":"QUEUED","imagePullStatus":"failed","errorMessage":"unable to pull nginx: failed to pull image"}
+	}`)
+	var neverStarted MicroserviceInfo
+	if err := json.Unmarshal(queued, &neverStarted); err != nil {
+		t.Fatalf("Unmarshal queued pull miss: %v", err)
+	}
+	if neverStarted.Status.Status != "QUEUED" || neverStarted.Status.ImagePullStatus != "failed" {
+		t.Fatalf("status = %q imagePullStatus = %q", neverStarted.Status.Status, neverStarted.Status.ImagePullStatus)
+	}
+	if neverStarted.Status.ContainerID != "" {
+		t.Fatalf("containerId = %q", neverStarted.Status.ContainerID)
+	}
+
+	cleared := []byte(`{"uuid":"ms-3","status":{"status":"RUNNING","imagePullStatus":"","errorMessage":"","lastError":"unable to pull nginx: failed to pull image"}}`)
+	var recovered MicroserviceInfo
+	if err := json.Unmarshal(cleared, &recovered); err != nil {
+		t.Fatalf("Unmarshal cleared pull: %v", err)
+	}
+	if recovered.Status.ImagePullStatus != "" || recovered.Status.ErrorMessage != "" {
+		t.Fatalf("imagePullStatus = %q errorMessage = %q", recovered.Status.ImagePullStatus, recovered.Status.ErrorMessage)
+	}
+	if recovered.Status.LastError == "" {
+		t.Fatal("lastError was cleared")
+	}
+
+	omitted := []byte(`{"uuid":"ms-4","status":{"status":"RUNNING"}}`)
+	var older MicroserviceInfo
+	if err := json.Unmarshal(omitted, &older); err != nil {
+		t.Fatalf("Unmarshal omitted imagePullStatus: %v", err)
+	}
+	if older.Status.ImagePullStatus != "" {
+		t.Fatalf("omitted imagePullStatus = %q", older.Status.ImagePullStatus)
+	}
+
+	encoded, err := json.Marshal(older.Status)
+	if err != nil {
+		t.Fatalf("Marshal status: %v", err)
+	}
+	var raw map[string]any
+	if err := json.Unmarshal(encoded, &raw); err != nil {
+		t.Fatalf("Unmarshal encoded status: %v", err)
+	}
+	pull, ok := raw["imagePullStatus"]
+	if !ok {
+		t.Fatalf("encoded status omitted imagePullStatus: %s", encoded)
+	}
+	if pull != "" {
+		t.Fatalf("encoded imagePullStatus = %v", pull)
+	}
+}
+
 func TestApplicationInfoUnmarshalMicroserviceStatusExtras(t *testing.T) {
 	raw := []byte(`{
 		"name":"demo",
@@ -230,6 +313,7 @@ func TestApplicationInfoUnmarshalMicroserviceStatusExtras(t *testing.T) {
 			"status":{
 				"status":"FAILED",
 				"errorMessage":"crash loop",
+				"imagePullStatus":"",
 				"lastError":"crash loop",
 				"lastErrorAt":1710000000456,
 				"restartCount":1
@@ -256,6 +340,9 @@ func TestApplicationInfoUnmarshalMicroserviceStatusExtras(t *testing.T) {
 	}
 	if st.RestartCount != 1 {
 		t.Fatalf("status.restartCount = %d", st.RestartCount)
+	}
+	if st.ImagePullStatus != "" {
+		t.Fatalf("status.imagePullStatus = %q", st.ImagePullStatus)
 	}
 }
 

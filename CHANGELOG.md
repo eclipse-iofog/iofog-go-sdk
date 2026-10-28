@@ -1,5 +1,12 @@
 # Changelog
 
+## [v3.9.4]
+
+### Added
+
+- **Microservice `imagePullStatus`** on GET microservice and application status (`pkg/client.MicroserviceStatusInfo` and YAML `pkg/apps.MicroserviceStatusInfo`). `"failed"` means the desired image is not on the device; `""` means no outstanding pull failure. Observed `status` stays as Controller sent it (`RUNNING` or `QUEUED`). Older Controllers omit the key; decode leaves the string empty. Re-encoding a decoded status keeps the empty key. Create, update, and YAML deploy do not send this field.
+
+
 ## [v3.9.3]
 
 ### Added

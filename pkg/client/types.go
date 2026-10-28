@@ -369,6 +369,9 @@ type MicroserviceStatusInfo struct {
 	Percentage   float64 `json:"percentage"`
 	IPAddress    string  `json:"ipAddress"`
 	ErrorMessage string  `json:"errorMessage"`
+	// ImagePullStatus is the current image pull. "failed" means the desired image is not on the device.
+	// Empty means no outstanding pull failure. Older Controllers omit the key.
+	ImagePullStatus string `json:"imagePullStatus"`
 	// LastError is the last crash text; it survives recovery. Empty on older Controllers.
 	LastError string `json:"lastError"`
 	// LastErrorAt is Unix milliseconds. 0 when LastError is empty or omitted.

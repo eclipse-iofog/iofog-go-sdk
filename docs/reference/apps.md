@@ -91,7 +91,7 @@ type Header struct {
 
 ### Status (describe output)
 
-`MicroserviceStatusInfo` matches the client status fields, including `lastError`, `lastErrorAt`, `restartCount`, and `podId`. `MicroserviceExecStatusInfo`: `status`, `execSessionId`.
+`MicroserviceStatusInfo` matches the client status fields, including `imagePullStatus`, `lastError`, `lastErrorAt`, `restartCount`, and `podId`. `imagePullStatus` is `failed` or empty. An empty value stays in encoded status. Deploy YAML does not set it. `MicroserviceExecStatusInfo`: `status`, `execSessionId`.
 
 ## Fleet YAML specs
 
