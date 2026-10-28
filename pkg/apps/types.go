@@ -162,21 +162,24 @@ type MicroserviceHealthCheck struct {
 // MicroserviceStatusInfo contains information about the status of a microservice
 // +k8s:deepcopy-gen=true
 type MicroserviceStatusInfo struct {
-	Status            string   `yaml:"status" json:"status"`
-	StartTime         int64    `yaml:"startTime" json:"startTime"`
-	OperatingDuration int64    `yaml:"operatingDuration" json:"operatingDuration"`
-	MemoryUsage       float64  `yaml:"memoryUsage" json:"memoryUsage"`
-	CPUUsage          float64  `yaml:"cpuUsage" json:"cpuUsage"`
-	ContainerID       string   `yaml:"containerId" json:"containerId"`
-	Percentage        float64  `yaml:"percentage" json:"percentage"`
-	IPAddress         string   `yaml:"ipAddress" json:"ipAddress"`
-	ErrorMessage      string   `yaml:"errorMessage" json:"errorMessage"`
-	LastError         string   `yaml:"lastError" json:"lastError"`
-	LastErrorAt       int64    `yaml:"lastErrorAt" json:"lastErrorAt"`
-	RestartCount      int      `yaml:"restartCount" json:"restartCount"`
-	ExecSessionIDs    []string `yaml:"execSessionIds" json:"execSessionIds"`
-	HealthStatus      string   `yaml:"healthStatus" json:"healthStatus"`
-	PodID             string   `yaml:"podId,omitempty" json:"podId,omitempty"`
+	Status            string  `yaml:"status" json:"status"`
+	StartTime         int64   `yaml:"startTime" json:"startTime"`
+	OperatingDuration int64   `yaml:"operatingDuration" json:"operatingDuration"`
+	MemoryUsage       float64 `yaml:"memoryUsage" json:"memoryUsage"`
+	CPUUsage          float64 `yaml:"cpuUsage" json:"cpuUsage"`
+	ContainerID       string  `yaml:"containerId" json:"containerId"`
+	Percentage        float64 `yaml:"percentage" json:"percentage"`
+	IPAddress         string  `yaml:"ipAddress" json:"ipAddress"`
+	ErrorMessage      string  `yaml:"errorMessage" json:"errorMessage"`
+	// ImagePullStatus is the current image pull. "failed" means the desired image is not on the device.
+	// Empty means no outstanding pull failure. Older Controllers omit the key.
+	ImagePullStatus string   `yaml:"imagePullStatus" json:"imagePullStatus"`
+	LastError       string   `yaml:"lastError" json:"lastError"`
+	LastErrorAt     int64    `yaml:"lastErrorAt" json:"lastErrorAt"`
+	RestartCount    int      `yaml:"restartCount" json:"restartCount"`
+	ExecSessionIDs  []string `yaml:"execSessionIds" json:"execSessionIds"`
+	HealthStatus    string   `yaml:"healthStatus" json:"healthStatus"`
+	PodID           string   `yaml:"podId,omitempty" json:"podId,omitempty"`
 }
 
 // MicroserviceExecStatusInfo contains information about the exec status of a microservice

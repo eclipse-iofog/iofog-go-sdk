@@ -201,6 +201,8 @@ Deprecated, all return `ErrRoutesNotSupported`: `CreateMicroserviceRoute`, `Dele
 
 `MicroserviceStatusInfo` crash extras: `lastError` (survives recovery), `lastErrorAt` (Unix ms, 0 if empty), `restartCount` (crashes since the last operator rebuild; the first crash is 1), `podId` (pause/sandbox id on edgelet). Older Controllers omit them and the values stay zero.
 
+`MicroserviceStatusInfo.ImagePullStatus` is the current image pull on GET microservice and application responses. `"failed"` means the desired image is not on the device. `""` means no outstanding pull failure. Observed `status` stays as Controller sent it (`RUNNING` while the previous container is still up, `QUEUED` when nothing is running). `errorMessage` is the detail while the pull is failed. `lastError` and `lastErrorAt` can still hold an earlier pull after it succeeds. Older Controllers omit the key; decode leaves the string empty. Encoding a decoded status keeps `"imagePullStatus":""`. Create, update, and YAML deploy do not send this field.
+
 ## Microservice templates
 
 No fog link API.

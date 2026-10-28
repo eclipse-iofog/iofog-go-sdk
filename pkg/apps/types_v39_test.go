@@ -282,6 +282,41 @@ func TestMicroserviceStatusYAMLIncludesErrorExtras(t *testing.T) {
 	}
 }
 
+func TestMicroserviceStatusYAMLIncludesImagePullStatus(t *testing.T) {
+	failed, err := yaml.Marshal(Microservice{
+		Name: "infer",
+		Status: MicroserviceStatusInfo{
+			Status:          "RUNNING",
+			ErrorMessage:    "unable to pull nginx: failed to pull image",
+			ImagePullStatus: "failed",
+		},
+	})
+	if err != nil {
+		t.Fatalf("yaml.Marshal failed pull: %v", err)
+	}
+	if !strings.Contains(string(failed), "imagePullStatus: failed") {
+		t.Errorf("YAML missing imagePullStatus:\n%s", failed)
+	}
+	if !strings.Contains(string(failed), "status: RUNNING") {
+		t.Errorf("YAML changed observed status:\n%s", failed)
+	}
+
+	cleared, err := yaml.Marshal(Microservice{
+		Name: "infer",
+		Status: MicroserviceStatusInfo{
+			Status:          "RUNNING",
+			ImagePullStatus: "",
+			LastError:       "unable to pull nginx: failed to pull image",
+		},
+	})
+	if err != nil {
+		t.Fatalf("yaml.Marshal cleared pull: %v", err)
+	}
+	if !strings.Contains(string(cleared), "imagePullStatus: \"\"") {
+		t.Errorf("YAML omitted empty imagePullStatus:\n%s", cleared)
+	}
+}
+
 func TestAgentConfigurationYAMLTagsOmitHAL(t *testing.T) {
 	// Split literals so pkg-wide grep gates on the removed JSON keys stay clean.
 	forbidden := []string{
