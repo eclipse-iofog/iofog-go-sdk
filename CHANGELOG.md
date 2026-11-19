@@ -1,5 +1,11 @@
 # Changelog
 
+## [v3.9.5]
+
+### Changed
+
+- **Go 1.26.11** minimum (see `go.mod`).
+
 ## [v3.9.4]
 
 ### Added
