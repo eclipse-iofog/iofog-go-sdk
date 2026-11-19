@@ -1,16 +1,3 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2019 Edgeworx, Inc.
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 package client
 
 import (
@@ -34,26 +21,37 @@ func (clt *Client) CreateRegistry(request *RegistryCreateRequest) (int, error) {
 // UpdateRegistry patches a registry using the Controller REST API
 func (clt *Client) UpdateRegistry(request RegistryUpdateRequest) error {
 	_, err := clt.doRequest("PATCH", fmt.Sprintf("/registries/%d", request.ID), request)
+	return err
+}
+
+// GetRegistry retrieves a single registry by ID from the Controller REST API
+func (clt *Client) GetRegistry(id int) (*RegistryInfo, error) {
+	body, err := clt.doRequest("GET", fmt.Sprintf("/registries/%d", id), nil)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	registry := new(RegistryInfo)
+	if err := json.Unmarshal(body, registry); err != nil {
+		return nil, err
+	}
+	return registry, nil
 }
 
 // ListRegistries retrieve all registries information from the Controller REST API
-func (clt *Client) ListRegistries() (response RegistryListResponse, err error) {
+func (clt *Client) ListRegistries() (RegistryListResponse, error) {
+	var response RegistryListResponse
 	body, err := clt.doRequest("GET", "/registries", nil)
 	if err != nil {
-		return
+		return response, err
 	}
 	if err = json.Unmarshal(body, &response); err != nil {
-		return
+		return response, err
 	}
 	return response, nil
 }
 
 // DeleteRegistry deletes a registry using the Controller REST API
-func (clt *Client) DeleteRegistry(id int) (err error) {
-	_, err = clt.doRequest("DELETE", fmt.Sprintf("/registries/%d", id), nil)
-	return
+func (clt *Client) DeleteRegistry(id int) error {
+	_, err := clt.doRequest("DELETE", fmt.Sprintf("/registries/%d", id), nil)
+	return err
 }

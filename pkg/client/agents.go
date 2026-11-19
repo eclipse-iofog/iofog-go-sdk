@@ -1,116 +1,96 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2019 Edgeworx, Inc.
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 package client
 
 import (
 	"encoding/json"
 	"fmt"
-	"strings"
+	// "strings"
 )
 
-// CreateAgent creates an ioFog Agent using Controller REST API
-func (clt *Client) CreateAgent(request *CreateAgentRequest) (response CreateAgentResponse, err error) {
+// CreateAgent creates an ioFog Agent using Controller REST API.
+// Platform router/NATS provisioning runs asynchronously; poll GetAgentByID for
+// platformStatus.phase or use WaitForAgentPlatformReady after create.
+func (clt *Client) CreateAgent(request *CreateAgentRequest) (CreateAgentResponse, error) {
+	var response CreateAgentResponse
 	if !clt.isLoggedIn() {
-		err = NewError("Controller client must be logged into perform Create Agent request")
-		return
+		return response, NewError("Controller client must be logged into perform Create Agent request")
 	}
 
-	// Send request
 	body, err := clt.doRequest("POST", "/iofog", request)
 	if err != nil {
-		return
+		return response, err
 	}
 
-	// TODO: Determine full type returned from this endpoint
-	// Read uuid from response
-	var respMap map[string]interface{}
+	var respMap map[string]any
 	if err = json.Unmarshal(body, &respMap); err != nil {
-		return
+		return response, err
 	}
 	uuid, exists := respMap["uuid"].(string)
 	if !exists {
-		err = NewInternalError("Failed to get new Agent UUID from Controller")
-		return
+		return response, NewInternalError("Failed to get new Agent UUID from Controller")
 	}
 
 	response.UUID = uuid
-	return
+	return response, nil
 }
 
 // GetAgentProvisionKey get a provisioning key for an ioFog Agent using Controller REST API
-func (clt *Client) GetAgentProvisionKey(uuid string) (response GetAgentProvisionKeyResponse, err error) {
+func (clt *Client) GetAgentProvisionKey(uuid string) (GetAgentProvisionKeyResponse, error) {
+	var response GetAgentProvisionKeyResponse
 	if !clt.isLoggedIn() {
-		err = NewError("Controller client must be logged into perform Get Agent Provisioning Key request")
-		return
+		return response, NewError("Controller client must be logged into perform Get Agent Provisioning Key request")
 	}
 
-	// Send request
 	body, err := clt.doRequest("GET", fmt.Sprintf("/iofog/%s/provisioning-key", uuid), nil)
 	if err != nil {
-		return
+		return response, err
 	}
 
 	if err = json.Unmarshal(body, &response); err != nil {
-		return
+		return response, err
 	}
-	return
+	return response, nil
 }
 
 // ListAgents returns all ioFog Agents information using Controller REST API
-func (clt *Client) ListAgents(request ListAgentsRequest) (response ListAgentsResponse, err error) {
+func (clt *Client) ListAgents(request ListAgentsRequest) (ListAgentsResponse, error) {
+	var response ListAgentsResponse
 	if !clt.isLoggedIn() {
-		err = NewError("Controller client must be logged into perform List Agents request")
-		return
+		return response, NewError("Controller client must be logged into perform List Agents request")
 	}
 
-	// Send request
 	body, err := clt.doRequest("GET", generateListAgentURL(request), nil)
 	if err != nil {
-		return
+		return response, err
 	}
 
-	// Return body
 	if err = json.Unmarshal(body, &response); err != nil {
-		return
+		return response, err
 	}
 
-	return
+	return response, nil
 }
 
 // GetAgentByID returns an ioFog Agent information using Controller REST API
-func (clt *Client) GetAgentByID(uuid string) (response *AgentInfo, err error) {
+func (clt *Client) GetAgentByID(uuid string) (*AgentInfo, error) {
 	if !clt.isLoggedIn() {
-		err = NewError("Controller client must be logged into perform Get Agent request")
-		return
+		return nil, NewError("Controller client must be logged into perform Get Agent request")
 	}
 
-	// Send request
 	body, err := clt.doRequest("GET", fmt.Sprintf("/iofog/%s", uuid), nil)
 	if err != nil {
-		return
+		return nil, err
 	}
 
-	// Return body
-	response = new(AgentInfo)
+	response := new(AgentInfo)
 	if err = json.Unmarshal(body, response); err != nil {
-		return
+		return nil, err
 	}
 
-	return
+	return response, nil
 }
 
-// UpdateAgent patches an ioFog Agent using Controller REST API
+// UpdateAgent patches an ioFog Agent using Controller REST API.
+// Platform changes are applied asynchronously; poll platformStatus after update.
 func (clt *Client) UpdateAgent(request *AgentUpdateRequest) (*AgentInfo, error) {
 	_, err := clt.doRequest("PATCH", fmt.Sprintf("/iofog/%s", request.UUID), request)
 	if err != nil {
@@ -120,18 +100,18 @@ func (clt *Client) UpdateAgent(request *AgentUpdateRequest) (*AgentInfo, error) 
 }
 
 // RebootAgent reboots an ioFog Agent using Controller REST API
-func (clt *Client) RebootAgent(uuid string) (err error) {
-	_, err = clt.doRequest("POST", fmt.Sprintf("/iofog/%s/reboot", uuid), nil)
-	return
+func (clt *Client) RebootAgent(uuid string) error {
+	_, err := clt.doRequest("POST", fmt.Sprintf("/iofog/%s/reboot", uuid), nil)
+	return err
 }
 
-// DeleteAgent removes an ioFog Agent from the Controller using Controller REST API
+// DeleteAgent removes an ioFog Agent from the Controller using Controller REST API.
+// Teardown runs asynchronously via platformStatus Deleting phase.
 func (clt *Client) DeleteAgent(uuid string) error {
 	if !clt.isLoggedIn() {
 		return NewError("Controller client must be logged into perform Delete Agent request")
 	}
 
-	// Send request
 	if _, err := clt.doRequest("DELETE", fmt.Sprintf("/iofog/%s", uuid), nil); err != nil {
 		return err
 	}
@@ -139,9 +119,9 @@ func (clt *Client) DeleteAgent(uuid string) error {
 	return nil
 }
 
-// GetAgentByName retrieve the agent information by getting all agents then searching for the first occurance in the list
-func (clt *Client) GetAgentByName(name string, system bool) (*AgentInfo, error) {
-	list, err := clt.ListAgents(ListAgentsRequest{System: system})
+// GetAgentByName retrieve the agent information by getting all agents then searching for the first occurrence in the list
+func (clt *Client) GetAgentByName(name string) (*AgentInfo, error) {
+	list, err := clt.ListAgents(ListAgentsRequest{})
 	if err != nil {
 		return nil, err
 	}
@@ -154,17 +134,13 @@ func (clt *Client) GetAgentByName(name string, system bool) (*AgentInfo, error) 
 }
 
 // PruneAgent prunes an ioFog Agent using Controller REST API
-func (clt *Client) PruneAgent(uuid string) (err error) {
-	_, err = clt.doRequest("POST", fmt.Sprintf("/iofog/%s/prune", uuid), nil)
-	return
+func (clt *Client) PruneAgent(uuid string) error {
+	_, err := clt.doRequest("POST", fmt.Sprintf("/iofog/%s/prune", uuid), nil)
+	return err
 }
 
 func generateListAgentURL(request ListAgentsRequest) string {
-	// Embed request options into URL as query params
-	url := "/iofog-list?system=false"
-	if request.System {
-		url = strings.Replace(url, "false", "true", 1)
-	}
+	url := "/iofog-list"
 	for idx, filter := range request.Filters {
 		params := []string{
 			fmt.Sprintf("&filters[%d][key]=%s", idx, filter.Key),
@@ -178,32 +154,49 @@ func generateListAgentURL(request ListAgentsRequest) string {
 	return url
 }
 
-func (clt *Client) UpgradeAgent(name string) error {
-	// Get Agent uuid
-	agent, err := clt.GetAgentByName(name, false)
-	if err != nil {
-		return err
+// SetNodeVersionCommand sets an upgrade or rollback version command on a Controller-managed fog node.
+// versionCommand must be "upgrade" or "rollback". Pass req nil or req.Semver nil to omit a target semver.
+func (clt *Client) SetNodeVersionCommand(uuid, versionCommand string, req *SetNodeVersionCommandRequest) error {
+	var semver *string
+	if req != nil {
+		semver = req.Semver
 	}
-
-	// Send request
-	if _, err := clt.doRequest("POST", fmt.Sprintf("/iofog/%s/version/upgrade", agent.UUID), nil); err != nil {
-		return err
-	}
-
-	return nil
+	return clt.setNodeVersionCommand(uuid, versionCommand, semver)
 }
 
-func (clt *Client) RollbackAgent(name string) error {
-	// Get Agent uuid
-	agent, err := clt.GetAgentByName(name, false)
+// UpgradeNode requests an upgrade for a fog node by UUID. Pass semver nil to use Controller default behavior.
+func (clt *Client) UpgradeNode(uuid string, semver *string) error {
+	return clt.setNodeVersionCommand(uuid, "upgrade", semver)
+}
+
+// RollbackNode requests a rollback for a fog node by UUID. Pass semver nil to use Controller default behavior.
+func (clt *Client) RollbackNode(uuid string, semver *string) error {
+	return clt.setNodeVersionCommand(uuid, "rollback", semver)
+}
+
+// UpgradeAgent requests an upgrade for a fog node looked up by name. Pass semver nil for default behavior.
+func (clt *Client) UpgradeAgent(name string, semver *string) error {
+	agent, err := clt.GetAgentByName(name)
 	if err != nil {
 		return err
 	}
+	return clt.setNodeVersionCommand(agent.UUID, "upgrade", semver)
+}
 
-	// Send request
-	if _, err := clt.doRequest("POST", fmt.Sprintf("/iofog/%s/version/rollback", agent.UUID), nil); err != nil {
+// RollbackAgent requests a rollback for a fog node looked up by name. Pass semver nil for default behavior.
+func (clt *Client) RollbackAgent(name string, semver *string) error {
+	agent, err := clt.GetAgentByName(name)
+	if err != nil {
 		return err
 	}
+	return clt.setNodeVersionCommand(agent.UUID, "rollback", semver)
+}
 
-	return nil
+func (clt *Client) setNodeVersionCommand(uuid, command string, semver *string) error {
+	var body any
+	if semver != nil && *semver != "" {
+		body = SetNodeVersionCommandRequest{Semver: semver}
+	}
+	_, err := clt.doRequest("POST", fmt.Sprintf("/iofog/%s/version/%s", uuid, command), body)
+	return err
 }

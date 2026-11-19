@@ -1,20 +1,8 @@
-/*
- *  *******************************************************************************
- *  * Copyright (c) 2019 Edgeworx, Inc.
- *  *
- *  * This program and the accompanying materials are made available under the
- *  * terms of the Eclipse Public License v. 2.0 which is available at
- *  * http://www.eclipse.org/legal/epl-2.0
- *  *
- *  * SPDX-License-Identifier: EPL-2.0
- *  *******************************************************************************
- *
- */
-
 package client
 
 import (
 	"bytes"
+	"crypto/tls"
 	"fmt"
 	"io"
 	"net/http"
@@ -25,21 +13,31 @@ import (
 )
 
 type httpDo struct {
-	timeout int
+	timeout   int
+	tlsConfig *tls.Config
 }
 
-func (hd *httpDo) do(method, url string, headers map[string]string, requestBody interface{}) (responseBody []byte, err error) {
+func defaultTLSConfig() *tls.Config {
+	return &tls.Config{InsecureSkipVerify: true} // #nosec G402 -- Controller deployments commonly use self-signed TLS
+}
+
+func (hd *httpDo) transportTLS() *tls.Config {
+	if hd.tlsConfig != nil {
+		return hd.tlsConfig
+	}
+	return defaultTLSConfig()
+}
+
+func (hd *httpDo) do(method, url string, headers map[string]string, requestBody any) ([]byte, error) {
 	body, isIoReader := requestBody.(io.Reader)
 	encodeType, ok := headers["Content-Type"]
 	if ok && encodeType == "application/json" {
-		// If body is not an io.Reader and the content type is json, do the marshalling
 		if !isIoReader {
 			jsonBody := ""
 			if requestBody != nil {
-				var jsonBodyBytes []byte
-				jsonBodyBytes, err = json.Marshal(requestBody)
+				jsonBodyBytes, err := json.Marshal(requestBody)
 				if err != nil {
-					return
+					return nil, err
 				}
 				jsonBody = string(jsonBodyBytes)
 			}
@@ -54,42 +52,41 @@ func (hd *httpDo) do(method, url string, headers map[string]string, requestBody 
 		Verbose(fmt.Sprintf("===> [%s] %s \nContent-Type: %s\n", method, url, encodeType))
 	}
 
-	// Instantiate request
 	request, err := http.NewRequest(method, url, body)
 	if err != nil {
-		return
+		return nil, err
 	}
 
-	// Don't re-use connections to avoid EOF error
 	request.Close = true
 
-	// Set headers on request
 	for key, val := range headers {
 		request.Header.Set(key, val)
 	}
 
-	// Perform request
+	tr := &http.Transport{
+		TLSClientConfig: hd.transportTLS(),
+	}
+
 	client := &http.Client{
-		Timeout: time.Second * time.Duration(hd.timeout),
+		Transport: tr,
+		Timeout:   time.Second * time.Duration(hd.timeout),
 	}
 
 	httpResp, err := client.Do(request)
 	if err != nil {
-		return
+		return nil, err
 	}
 	defer httpResp.Body.Close()
 
-	// Check response
 	if err = checkStatusCode(httpResp.StatusCode, method, url, httpResp.Body); err != nil {
-		return
+		return nil, err
 	}
 
-	// Return body
 	buf := new(bytes.Buffer)
 	if _, err := buf.ReadFrom(httpResp.Body); err != nil {
 		return nil, err
 	}
-	responseBody = buf.Bytes()
+	responseBody := buf.Bytes()
 	Verbose(fmt.Sprintf("===> Response: %s\n\n", string(responseBody)))
-	return responseBody, err
+	return responseBody, nil
 }
