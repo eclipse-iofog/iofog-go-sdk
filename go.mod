@@ -1,6 +1,6 @@
 module github.com/eclipse-iofog/iofog-go-sdk/v3
 
-go 1.26.10
+go 1.26.11
 
 require (
 	github.com/gorilla/websocket v1.5.3
